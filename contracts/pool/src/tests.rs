@@ -170,3 +170,42 @@ fn rejects_underfunded_deposit() {
     context("sender.test.near", FEE);
     p.deposit(text(&v, "inputCommitment"), text(&v, "disclosureRoot"));
 }
+
+#[test]
+fn factory_bootstrap_accepts_only_direct_parent_and_preserves_domain() {
+    let v = vector();
+    context("test.near", INIT_RESERVE_FOR_TEST);
+    let p = Pool::new_from_factory(
+        "sandbox".into(),
+        U128(10u128.pow(24)),
+        near_sdk::serde_json::from_value(v["verificationKey"].clone()).unwrap(),
+    );
+    assert_eq!(p.get_config().domain, text(&v, "domain"));
+    assert_eq!(p.get_config().outstanding_notes, 0);
+}
+
+const INIT_RESERVE_FOR_TEST: u128 = 1_000_000_000_000_000_000_000_000;
+
+#[test]
+#[should_panic(expected = "Only the direct parent factory")]
+fn rejects_bootstrap_from_unrelated_account() {
+    let v = vector();
+    context("other.test.near", INIT_RESERVE_FOR_TEST);
+    Pool::new_from_factory(
+        "sandbox".into(),
+        U128(10u128.pow(24)),
+        near_sdk::serde_json::from_value(v["verificationKey"].clone()).unwrap(),
+    );
+}
+
+#[test]
+#[should_panic(expected = "Only the direct parent factory")]
+fn rejects_bootstrap_from_ancestor_account() {
+    let v = vector();
+    context("near", INIT_RESERVE_FOR_TEST);
+    Pool::new_from_factory(
+        "sandbox".into(),
+        U128(10u128.pow(24)),
+        near_sdk::serde_json::from_value(v["verificationKey"].clone()).unwrap(),
+    );
+}

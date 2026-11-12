@@ -23,12 +23,12 @@ NEAR 위에서 기업·개인의 자금을 비공개 노트로 이전하고, 필
 | TX 증빙 | 확정 TX·풀 계약 이벤트·온체인 journal을 대조 |
 | 기업 KYB | 신뢰한 발급기관의 Ed25519 서명, 노트 commitment, 만료·폐기 검증 |
 | 새 출금 지갑 | 수신자 기기에서 Ed25519 implicit 계정 생성, 첫 송금으로 온체인 계정 생성 |
-| 분산 보관 | 여러 독립 풀 배포 및 클라이언트 선택. 풀 간 공유 익명성은 후속 범위 |
+| 분산 보관 | 키 없는 vault 자동 배포, 생성 실패 환불, 코드·키 검증 후 선택 |
 | 세금·AI | 이후 단계. 미국 / UAE 아부다비 경계만 기록 |
 
 ## 실행
 
-Node.js 22+, Rust 1.99.1, C/C++ 빌드 도구가 필요합니다. 데모가 공식 NEAR sandbox 2.14.1을 별도로 내려받습니다(Linux x64 / macOS arm64). 계약 빌드는 Binaryen으로 NEAR에 맞게 최적화하여 `artifacts/core_pool.wasm`에 저장합니다.
+Node.js 22+, Rust 1.99.1, C/C++ 빌드 도구가 필요합니다. 데모가 공식 NEAR sandbox 2.14.1을 별도로 내려받습니다(Linux x64 / macOS arm64). 계약 빌드는 풀을 먼저 최적화하고 팩토리에 포함해 `artifacts/core_pool.wasm`, `core_factory.wasm`, `build-manifest.json`을 생성합니다.
 
 ```bash
 npm ci
@@ -37,13 +37,19 @@ npm run check
 npm test
 npm run contract:test
 npm run contract:build
+npm run factory:test
 npm run zk:setup
 npm run demo
+npm run demo:factory
 ```
 
 `demo`는 별도의 로컬 NEAR 체인을 시작해 계약 배포, 예치, 실제 ZK 노트 이전, 출금, 이중 사용 거부, 수신자 변조 거부, 확정 TX 증빙 검증을 실행합니다. `demo-output/bundle.json`과 `verification.json`을 저장한 뒤 로컬 체인을 종료합니다. 이 파일의 TX는 테스트넷 TX가 아니며 체인 종료 후 RPC로 재조회할 수 없습니다.
 
+`demo:factory`는 키 없는 vault 2개 배포, 실제 생성 실패와 환불, 팩토리 키 제거 후에도 가능한 생성, 직접 예치, 새 지갑 출금, vault 간 증명 재사용 거부와 TX 증빙을 검증합니다. 결과는 `demo-output/factory-validation.json`에 저장합니다. 자동 키 제거는 이 일회용 로컬 체인 안에서만 수행합니다.
+
 `npm test`와 Rust 테스트는 커밋된 공개 검증 벡터를 사용하므로 ZK setup 없이 실행할 수 있습니다. 벡터를 새 setup과 맞춰 재생성하려면 `npm run vectors:generate`를 실행합니다. 벡터에 note 비밀값과 proving key는 포함되지 않습니다.
+
+팩토리 테스트에는 포함할 vault WASM이 필요하므로 `contract:build` 이후 실행합니다. 공유 트리·공유 nullifier·비공개 cross-vault 이동은 아직 구현하지 않았습니다.
 
 ## 지갑과 연결하는 CLI
 
@@ -75,6 +81,12 @@ npm run cli -- disclose private-receipt.json asset,amount,reference
 
 # 배포된 테스트넷 풀의 증빙 검증
 npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
+
+# 신뢰한 빌드 해시로 factory-policy.json 작성 후 keyless vault 탐색
+npm run cli -- discover-vaults examples/factory-policy.json https://rpc.testnet.near.org
+
+# 팩토리의 코드·키·설정을 검증하고 새 vault 생성 인자 출력
+npm run cli -- create-vault-args examples/factory-policy.json creator.testnet https://rpc.testnet.near.org
 ```
 
 이후 `CORE_NOTE_PASSWORD`를 unset하고 암호화 노트를 안전하게 백업합니다. 비밀 노트를 잃으면 프로토콜 운영자도 복구할 수 없습니다. `transfer`의 `target`은 수신자가 만든 commitment이며, 송금자가 수신자의 비밀 노트를 대신 만들어 전달하지 않습니다.
@@ -85,7 +97,8 @@ npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
 
 | 메서드 | 핵심 인자 | attached deposit |
 | --- | --- | --- |
-| `new` | `network`, `denomination`, `verification_key` (base64) | 1 NEAR 이상 |
+| `new` | 직접 배포용: `network`, `denomination`, `verification_key` (base64) | 1 NEAR 이상 |
+| `new_from_factory` | 위와 동일, 직접 부모 팩토리만 호출 가능 | 1 NEAR 이상 |
 | `deposit` | `commitment`, `disclosure_root` | denomination + 0.02 NEAR |
 | `transfer` | `output_commitment`, `disclosure_root`, `proof`, `public_inputs` | 0.02 NEAR |
 | `withdraw` | `recipient`, `disclosure_root`, `proof`, `public_inputs` | 0.02 NEAR |
@@ -106,7 +119,7 @@ npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
 
 계약에는 owner, 강제출금, verifier 교체, pause, sweep 메서드가 없습니다. 네트워크·계약 주소·denomination이 증명 도메인에 포함되어 다른 풀로 replay할 수 없습니다. relayer에 관리자 권한이 없으며, 동일 증명을 먼저 제출해도 목적지를 바꿀 수 없습니다.
 
-배포 계정에 full-access key가 남으면 그 키로 계약을 교체할 수 있습니다. 테스트넷 시연에서 초기화와 동작 검증을 마친 뒤 키를 제거하고 `view_access_key_list`로 확인해야 계정 수준의 변경 권한도 없어집니다. 키 제거는 되돌릴 수 없으므로 자동화하지 않습니다. verifier hash와 WASM hash를 별도로 고정·검증해야 가짜 풀을 피할 수 있습니다. RPC 운영자를 신뢰하는 클라이언트이므로 높은 보증이 필요하면 독립 RPC와 재검증이 필요합니다.
+직접 배포한 계정에 full-access key가 남으면 그 키로 계약을 교체할 수 있습니다. 팩토리가 만든 vault는 키를 한 번도 추가하지 않습니다. 팩토리 자체는 초기화·검증 후 별도로 키를 제거해야 하며, SDK는 팩토리와 vault 모두 access key가 0개일 때만 승인합니다. 공개 네트워크의 키 제거는 자동화하지 않습니다. verifier hash와 WASM hash는 별도로 고정해 검증합니다. 탐색 조회는 하나의 최종 확정 블록에서 수행하며, RPC 운영자에 대한 신뢰는 여전히 필요합니다.
 
 ## 현재 제한
 
@@ -114,4 +127,4 @@ npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
 
 로컬 1인 Groth16 setup은 개발용입니다. 이 설정과 새 회로는 감사되지 않았습니다. network 설정값은 `testnet` / `sandbox`만 허용하지만, 계약이 실행 중인 실제 네트워크를 식별하거나 메인넷 배포를 기술적으로 차단하지는 않습니다. 테스트넷/로컬에서만 사용하며, 실제 자금용 배포에는 별도 회로 검토·독립 setup·운영 검증이 필요합니다.
 
-프로토콜 상세: [docs/PROTOCOL.md](docs/PROTOCOL.md). 분산 보관: [docs/DISTRIBUTED_VAULTS.md](docs/DISTRIBUTED_VAULTS.md). 확장 경계: [compliance/README.md](compliance/README.md).
+프로토콜 상세: [docs/PROTOCOL.md](docs/PROTOCOL.md). 자동 배포: [docs/FACTORY.md](docs/FACTORY.md). 분산 보관: [docs/DISTRIBUTED_VAULTS.md](docs/DISTRIBUTED_VAULTS.md). 확장 경계: [compliance/README.md](compliance/README.md).

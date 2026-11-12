@@ -11,9 +11,11 @@
     "test": "tsx --test tests/*.test.ts",
     "zk:setup": "node scripts/setup-zk.mjs",
     "demo": "tsx scripts/demo.ts",
+    "demo:factory": "tsx scripts/factory-demo.ts",
     "vectors:generate": "tsx scripts/vectors.ts",
     "cli": "tsx scripts/cli.ts",
     "contract:test": "cargo test --manifest-path contracts/pool/Cargo.toml",
+    "factory:test": "cargo test --locked --manifest-path contracts/factory/Cargo.toml --target-dir contracts/pool/target",
     "contract:build": "node scripts/build-contract.mjs"
   },
   "dependencies": {

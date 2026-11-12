@@ -1,6 +1,6 @@
 # Distributed vaults and fresh recipient accounts
 
-The current implementation can be deployed at multiple independent NEAR contract accounts. Each instance holds only its own funds and runs the same ZK spend rules. `chooseIndependentVault` selects among a client-approved list; it never receives funds. Contract bytecode, verification-key hash and deployment-account permissions must be checked separately before trusting an instance.
+The factory automatically deploys independent NEAR contract accounts without ever adding access keys to the children. Each holds its own funds and applies the same ZK spend rules. `discoverVaults` checks pinned bytecode, verification-key hashes, domains and empty access key lists at one finalized block. `chooseIndependentVault` selects from a caller-approved list without receiving funds. See [FACTORY.md](FACTORY.md) for deployment, verification and refunds.
 
 ```text
                          ┌─ vault A ─ ZK spend ─ fresh recipient address A
@@ -18,8 +18,8 @@ Contracts must not derive wallet private keys from on-chain randomness, state or
 
 ## Scope of v1
 
-Implemented: independent-pool configuration/domain separation, client-side selection, local implicit recipient generation, encrypted key export, native contract withdrawal to a fresh implicit account.
+Implemented: permissionless factory deployment of keyless vaults, failed-creation refunds, verified discovery, separate note domains, client-side selection, local implicit recipient generation, encrypted key export, and native withdrawals to fresh implicit accounts. Principal is deposited directly into a selected vault; only the account-creation budget passes through the factory.
 
-Not implemented: an on-chain vault factory, shared commitments/nullifiers across vaults, private atomic cross-vault transfers, pooled liquidity routing, or a common anonymity set. A note from A cannot be redeemed in B. Depositing/withdrawing transparently between pools does not create a private bridge.
+Not implemented: shared commitments/nullifiers across vaults, private atomic cross-vault transfers, pooled liquidity routing, or a common anonymity set. A note from A cannot be redeemed in B. Depositing/withdrawing transparently between pools does not create a private bridge.
 
 Distributing assets reduces concentration per account but divides the anonymity set; if only one deposit enters a vault, its exit can often be inferred. More wallets or more contract accounts do not themselves hide amounts, timing, funding edges or relayer identities. A production design that shares an anonymity set while distributing custody needs a separate cross-vault proof and asynchronous settlement design, including double-spend coordination and failure recovery on NEAR.

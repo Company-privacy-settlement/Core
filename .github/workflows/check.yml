@@ -17,3 +17,4 @@ jobs:
       - run: npm run check && npm test
       - run: cargo test --locked --manifest-path contracts/pool/Cargo.toml
       - run: npm run contract:build
+      - run: npm run factory:test

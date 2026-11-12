@@ -3,6 +3,8 @@ import { createNote, validateNote, encodeVerificationKey, NoteTree, proveSpend, 
 import { createReceipt, disclose, decryptPrivate, encryptPrivate, type Receipt, type ReceiptField } from '../sdk/disclosure.js';
 import { NearRpcEvidenceSource, verifyBundle, type SettlementBundle } from '../sdk/evidence.js';
 import { createFreshRecipient } from '../sdk/wallet.js';
+import { randomBytes } from 'node:crypto';
+import { discoverVaults, predictVaultAccount, NearRpcFactorySource, type FactoryPolicy } from '../sdk/factory.js';
 
 const [command, ...args] = process.argv.slice(2);
 const json = async (path: string) => JSON.parse(await readFile(path, 'utf8'));
@@ -18,6 +20,22 @@ async function loadNote(path: string): Promise<Note> {
 }
 try {
   switch (command) {
+    case 'discover-vaults': {
+      if (args.length !== 2 && args.length !== 4) throw new Error('discover-vaults trusted-policy.json trusted-rpc-url [from-index max-records]');
+      const policy: FactoryPolicy = await json(args[0]);
+      const options = args.length === 4 ? { fromIndex: Number(args[2]), maxRecords: Number(args[3]) } : {};
+      output(await discoverVaults(new NearRpcFactorySource(policy.network, policy.factory, args[1]), policy, options));
+      break;
+    }
+    case 'create-vault-args': {
+      if (args.length !== 3) throw new Error('create-vault-args trusted-policy.json creator-account trusted-rpc-url');
+      const policy: FactoryPolicy = await json(args[0]);
+      const catalog = await discoverVaults(new NearRpcFactorySource(policy.network, policy.factory, args[2]), policy, { maxRecords: 1 });
+      const salt = randomBytes(32).toString('hex');
+      output({ contract: policy.factory, method: 'create_vault', args: { salt }, depositYocto: catalog.creationDeposit, gasTgas: 300,
+        predictedVault: predictVaultAccount(policy.factory, args[1], salt), creator: args[1], checkedAtBlock: catalog.blockHash });
+      break;
+    }
     case 'wallet': {
       if (args.length !== 1) throw new Error('wallet encrypted-wallet.json');
       const wallet = createFreshRecipient(password());
@@ -74,7 +92,7 @@ try {
       break;
     }
     default:
-      console.log('Commands: wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle. See README.md.');
+      console.log('Commands: wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args. See README.md.');
       process.exitCode = command ? 1 : 0;
   }
 } catch (error) {

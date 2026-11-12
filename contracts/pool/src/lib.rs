@@ -67,7 +67,7 @@ trait Callbacks {
 }
 
 // No owner, pause, sweep, upgrade, verifier setter, or privileged spending methods.
-// Deploy key must separately be removed to make the account code immutable.
+// Direct deployments remove their keys separately; factory deployments start keyless.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Pool {
@@ -94,6 +94,30 @@ impl Pool {
             env::predecessor_account_id() == env::current_account_id(),
             "Initialize from contract account"
         );
+        Self::initialize(network, denomination, verification_key)
+    }
+
+    // Used in the factory's atomic create → fund → deploy → initialize batch.
+    // An arbitrary caller or ancestor cannot initialize a vault.
+    #[init]
+    #[payable]
+    pub fn new_from_factory(
+        network: String,
+        denomination: U128,
+        verification_key: Base64VecU8,
+    ) -> Self {
+        let current = env::current_account_id();
+        let predecessor = env::predecessor_account_id();
+        require!(
+            current.get_parent_account_id() == Some(predecessor.as_ref()),
+            "Only the direct parent factory may initialize"
+        );
+        Self::initialize(network, denomination, verification_key)
+    }
+}
+
+impl Pool {
+    fn initialize(network: String, denomination: U128, verification_key: Base64VecU8) -> Self {
         require!(
             network == "testnet" || network == "sandbox",
             "Hackathon pool: testnet or sandbox only"
@@ -136,7 +160,10 @@ impl Pool {
             outstanding: 0,
         }
     }
+}
 
+#[near]
+impl Pool {
     pub fn get_config(&self) -> Config {
         Config {
             protocol: "core-v1".into(),
