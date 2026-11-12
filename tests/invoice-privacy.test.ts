@@ -98,6 +98,63 @@ test('reference races remain actual payments and expose reuse instead of silentl
     assert.throws(() => validateInvoiceStatus({ ...status, reusedPaymentReferences: 0 }, f.invoice), /reuse count/);
   } finally { f.store.close(); }
 });
+test('late totals must match individual confirmations before paid status is trusted', async () => {
+  const f = await scoped();
+  try {
+    f.records.push(f.payment(0, f.roots[0]), { ...f.payment(1, f.roots[1]), timestamp_ns: (BigInt(Date.parse(f.invoice.expiresAt)) * 1000000n).toString() });
+    await f.worker.sync();
+    const status = await indexedInvoiceStatus(f.store, f.policy, f.request, now);
+    assert.equal(status.state, 'paid_late');
+    assert.equal(validateInvoiceStatus(status, f.invoice).lateTokens, '1000000');
+    assert.throws(() => validateInvoiceStatus({ ...status, lateTokens: '0', state: 'paid' }, f.invoice), /late total/);
+    assert.throws(() => validateInvoiceStatus({ ...status, lateTokens: '2000000' }, f.invoice), /late total/);
+    assert.throws(() => validateInvoiceStatus({ ...status, confirmations: status.confirmations.map(c => ({ ...c, late: false })) }, f.invoice), /late total/);
+  } finally { f.store.close(); }
+});
+test('indexed reference-set lookup finds an invoice behind 1200 unrelated recipient payouts', async () => {
+  const f = await scoped();
+  try {
+    f.records.push(f.payment(0, f.roots[0]), f.payment(1, f.roots[1]), ...Array.from({ length: 1200 }, (_, i) => f.payment(i + 2, 'ff'.repeat(32))));
+    await f.worker.sync({ maxPages: 30 });
+    const status = await indexedInvoiceStatus(f.store, f.policy, f.request, now);
+    assert.equal(status.state, 'paid'); assert.equal(status.coverageLimited, false);
+    assert.equal(status.confirmations.length, 2); assert.equal(status.paidTokens, '2000000');
+    // Older index adapters retain the conservative, bounded recipient scan.
+    const legacyReader = { policy: f.policy, status: () => f.store.status(), activity: (query: Parameters<IndexStore['activity']>[0]) => f.store.activity(query) };
+    const fallback = await indexedInvoiceStatus(legacyReader, f.policy, f.request, now);
+    assert.equal(fallback.state, 'review_required'); assert.equal(fallback.coverageLimited, true);
+    assert.throws(() => f.store.activity({ disclosure_roots: f.roots } as never));
+  } finally { f.store.close(); }
+});
+test('reference-set cursors retain one record snapshot and reject changed filters', async () => {
+  const f = await scoped();
+  try {
+    f.records.push(f.payment(0, f.roots[0]), f.payment(1, f.roots[1])); await f.worker.sync();
+    const query = { kind: 'withdrawal_succeeded' as const, recipient: f.recipient, disclosure_roots: f.roots, limit: 1 };
+    const first = f.store.invoiceActivity(query);
+    assert.equal(first.items[0].record.index, 1); assert(first.nextCursor);
+    f.state.height++; f.records.push(f.payment(2, f.roots[0])); await f.worker.sync();
+    const second = f.store.invoiceActivity({ ...query, cursor: first.nextCursor });
+    assert.equal(second.items[0].record.index, 0); assert.equal(second.nextCursor, null);
+    assert.equal(second.snapshot.upperExclusive, first.snapshot.upperExclusive);
+    assert.throws(() => f.store.invoiceActivity({ ...query, disclosure_roots: [f.roots[0]], cursor: first.nextCursor! }), /Cursor/);
+    assert.throws(() => f.store.invoiceActivity({ ...query, recipient: 'other.test.near', cursor: first.nextCursor! }), /Cursor/);
+    for (const roots of [[], [f.roots[0], f.roots[0]], Array(33).fill('ff'.repeat(32)), ["' OR 1=1 --"]])
+      assert.throws(() => f.store.invoiceActivity({ ...query, disclosure_roots: roots }));
+    assert.equal(f.store.invoiceActivity({ ...query, limit: 50 }).items.length, 3);
+  } finally { f.store.close(); }
+});
+test('matching reference floods still report incomplete coverage instead of a false final total', async () => {
+  const f = await scoped();
+  try {
+    f.records.push(...Array.from({ length: 1001 }, (_, i) => f.payment(i, f.roots[0])));
+    await f.worker.sync({ maxPages: 30 });
+    const status = await indexedInvoiceStatus(f.store, f.policy, f.request, now);
+    assert.equal(status.state, 'review_required'); assert.equal(status.coverageLimited, true);
+    assert.equal(status.confirmations.length, 1000); assert.equal(status.reusedPaymentReferences, 999);
+    validateInvoiceStatus(status, f.invoice);
+  } finally { f.store.close(); }
+});
 test('v2 public plans must use a signed invoice reference and exact payout destination', async () => {
   const f = await scoped();
   try {
@@ -125,5 +182,8 @@ test('v2 HTTP lookup sends reference nonces without business terms and verifies 
     assert(!InvoiceStatusInput.safeParse({ ...f.request, title: f.invoice.title }).success);
     assert(!InvoiceStatusInput.safeParse({ ...f.request, units: 3 }).success);
     await assert.rejects(() => assertInvoiceReferenceAvailable(f.invoice, f.roots[0], { ...status, settlementRoots: [...f.roots].reverse() }), /differs/);
+    f.store.invoiceActivity = () => { throw new Error('Private database diagnostics must not leak'); };
+    const failed = await fetch(`http://127.0.0.1:${address.port}/v1/invoices/status`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(f.request) });
+    assert.equal(failed.status, 503); assert.deepEqual(await failed.json(), { error: 'INDEX_READ_FAILED' });
   } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); f.store.close(); }
 });

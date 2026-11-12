@@ -47,6 +47,12 @@ export const ActivityQuery = z
   })
   .strict();
 export type ActivityQuery = z.input<typeof ActivityQuery>;
+// Internal invoice lookup only; the public activity route retains its scalar filters.
+export const InvoiceActivityQuery = ActivityQuery.omit({ disclosure_root: true }).extend({
+  disclosure_roots: z.array(z.string().regex(/^[a-f0-9]{64}$/)).min(1).max(32)
+    .refine(roots => new Set(roots).size === roots.length, "Duplicate invoice references"),
+}).strict();
+export type InvoiceActivityQuery = z.input<typeof InvoiceActivityQuery>;
 export const ProvenanceSchema = z
   .object({
     transaction: IndexTxRef,

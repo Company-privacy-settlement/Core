@@ -118,3 +118,9 @@ npm run demo:ft
 Tests cover restart/resume, atomic rollback, malformed pages, stale writers, finality conflicts, policy mismatch, stable pagination, invalid cursors, pending provenance, forged receipt logs, native v2 and FT v3, read-only API behavior and cancellation. The sandbox integration indexes real WASM/Groth16 settlement records, reopens the file without duplicates, discovers originating transactions without a supplied reference list, links finalized transaction/receipt provenance, and paginates it through a separate read-only API connection. The sandbox token is a test fixture, not Circle-issued USDC, and no public testnet deployment is implied.
 
 Primary references: [NEAR finalized transaction/receipt RPC](https://docs.near.org/api/rpc/transactions), [canonical block queries and archival errors](https://docs.near.org/api/rpc/block-chunk), [Node 22 SQLite](https://nodejs.org/docs/latest-v22.x/api/sqlite.html).
+
+## Invoice reference-set reads
+
+`IndexStore.invoiceActivity` is an internal SDK read for a validated set of 1–32 distinct disclosure roots. It combines parameterized `IN` matching on the existing `record_disclosure_root` index with the normal filters, read transaction and snapshot cursor. V2 invoice reconciliation uses it to avoid scanning unrelated recipient history. The public `/v1/activity` API keeps its existing scalar filters and rejects a root-array field; use `/v1/invoices/status` with the signed-derived inputs for invoice reconciliation.
+
+The method is optional on `ActivityReader` for adapter compatibility. An older adapter falls back to the existing bounded recipient-history scan. Matching-record scan limits and incomplete-index reporting still apply. This adds no database schema migration; existing installations still need the disclosure-root migration from the invoice release, applied by the writer before opening a read-only API.

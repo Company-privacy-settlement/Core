@@ -446,6 +446,7 @@ export function validateInvoiceStatus(
   if (invoice.version === 2 && (s.settlementRoot !== null || !Array.isArray(s.settlementRoots) || s.settlementRoots.length !== invoice.units || s.settlementRoots.some(r => typeof r !== "string" || !/^[a-f0-9]{64}$/.test(r)) || new Set(s.settlementRoots).size !== invoice.units))
     throw new Error("Invalid per-payment invoice references");
   const nullifiers = new Set<string>(), recordIndices = new Set<number>();
+  let latePayments = 0;
   for (const entry of s.confirmations) {
     const r = object(entry);
     if (
@@ -466,7 +467,10 @@ export function validateInvoiceStatus(
       throw new Error("Invalid invoice confirmation");
     nullifiers.add(r.nullifier);
     recordIndices.add(r.recordIndex);
+    if (r.late) latePayments++;
   }
+  if (late !== BigInt(latePayments) * unit)
+    throw new Error("Invoice late total differs from confirmed payments");
   if (invoice.version === 2) {
     const unique = new Set(s.confirmations.map(entry => object(entry).settlementRoot)).size;
     if (s.reusedPaymentReferences !== s.confirmations.length - unique) throw new Error("Invalid invoice reference reuse count");

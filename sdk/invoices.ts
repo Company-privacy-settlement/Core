@@ -101,7 +101,10 @@ export async function indexedInvoiceStatus(
         }),
       })
       .parse(
-        index.activity({
+        scoped && index.invoiceActivity ? index.invoiceActivity({
+          kind: "withdrawal_succeeded", recipient: request.recipient, disclosure_roots: roots,
+          limit: 50, ...(cursor ? { cursor } : {}),
+        }) : index.activity({
           kind: "withdrawal_succeeded",
           recipient: request.recipient,
           ...(!scoped ? { disclosure_root: roots[0] } : {}),

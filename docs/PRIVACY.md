@@ -42,7 +42,7 @@ Invoice terms v1 remain readable with their original common root. Terms v2 retai
 
 Checkout checks fresh indexed status before importing/signing a new payment, rejecting a reference already observed as paid. These references are not reserved or enforced as single-use on chain. Lag or simultaneous payers can reuse one reference with different nullifiers. Those are real payments: reconciliation counts them and reports `reusedPaymentReferences`. It does not discard money to preserve a preferred privacy claim. Recovery retains the original reference and recipient, including after invoice expiry.
 
-V2 reconciliation scans a consistent recipient-history snapshot and filters the signed-derived references. Scans are bounded to 20 pages of 50 records. If coverage is incomplete, the status is `review_required`; a high-volume recipient may require a more scalable reconciliation service. An index checkpoint never asserts latest-chain freshness.
+V2 reconciliation uses an internal SQLite reference-set lookup: recipient, completed-withdrawal kind and up to 32 signed-derived references are filtered through the existing disclosure-root index. Cursors bind the reference set, database generation and record upper bound, so later appends cannot enter an existing page sequence. The 20-page, 50-record budget applies to matching records; unrelated recipient history does not consume it. Older `ActivityReader` adapters without `invoiceActivity` retain the bounded recipient-scan fallback. Incomplete indexing or exhausted matching-record coverage still yields `review_required`. An index checkpoint never asserts latest-chain freshness.
 
 ## Evidence and limits
 

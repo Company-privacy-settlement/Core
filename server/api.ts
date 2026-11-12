@@ -10,6 +10,7 @@ import {InvoiceProofInput,InvoiceStatusInput,verifyInvoiceMerchant,indexedInvoic
 
 class HttpError extends Error { constructor(readonly status: number, readonly code: string) { super(code); } }
 function readIndex<T>(read:()=>T):T{try{return read();}catch(error){if(error instanceof IndexError)throw error;throw new HttpError(503,'INDEX_READ_FAILED');}}
+async function readIndexAsync<T>(read:()=>Promise<T>):Promise<T>{try{return await read();}catch(error){if(error instanceof IndexError)throw error;throw new HttpError(503,'INDEX_READ_FAILED');}}
 function json(res: ServerResponse, status: number, value: unknown) {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
   res.end(JSON.stringify(value));
@@ -61,7 +62,7 @@ export function createReadOnlyApi(options: { source: OperationsSource; policy: S
         if(url.pathname==='/v1/invoices/verify'&&req.method==='POST'){
           if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');json(res,200,await verifyInvoiceMerchant(options.source,policy,input(InvoiceProofInput,await body(req))));
         }else if(url.pathname==='/v1/invoices/status'&&req.method==='POST'){
-          if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');if(!options.index)throw new HttpError(503,'INDEX_DISABLED');json(res,200,await indexedInvoiceStatus(options.index,policy,input(InvoiceStatusInput,await body(req))));
+          if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');if(!options.index)throw new HttpError(503,'INDEX_DISABLED');const request=input(InvoiceStatusInput,await body(req));json(res,200,await readIndexAsync(()=>indexedInvoiceStatus(options.index!,policy,request)));
         }else if ((url.pathname === '/v1/activity'||url.pathname === '/v1/index/status') && req.method === 'GET') {
           if(!options.index)throw new HttpError(503,'INDEX_DISABLED');
           if(new Set(url.searchParams.keys()).size!==[...url.searchParams.keys()].length)throw new HttpError(400,'DUPLICATE_QUERY');

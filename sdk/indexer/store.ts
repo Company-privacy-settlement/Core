@@ -8,6 +8,7 @@ import { SharedPolicySchema, type SharedPolicy } from "../shared.js";
 import { recordFingerprint } from "../evidence.js";
 import {
   ActivityQuery,
+  InvoiceActivityQuery,
   CheckpointSchema,
   IndexError,
   IndexTxRef,
@@ -24,6 +25,7 @@ export interface ActivityReader {
   readonly policy: SharedPolicy;
   status(): unknown;
   activity(query: ActivityQuery): unknown;
+  invoiceActivity?(query: InvoiceActivityQuery): unknown;
 }
 const Cursor = z
   .object({
@@ -362,8 +364,11 @@ export class IndexStore implements ActivityReader {
   activity(input: ActivityQuery) {
     return this.readSnapshot(() => this.activitySnapshot(input));
   }
-  private activitySnapshot(input: ActivityQuery) {
-    const query = ActivityQuery.parse(input),
+  invoiceActivity(input: InvoiceActivityQuery) {
+    return this.readSnapshot(() => this.activitySnapshot(input, true));
+  }
+  private activitySnapshot(input: ActivityQuery | InvoiceActivityQuery, invoice = false) {
+    const query = invoice ? InvoiceActivityQuery.parse(input) : ActivityQuery.parse(input),
       { cursor, limit, ...filters } = query,
       checkpoint = this.checkpoint();
     if (!checkpoint)
@@ -400,12 +405,18 @@ export class IndexStore implements ActivityReader {
     const where = ["record_index < ?", "record_index < ?"],
       params: (string | number)[] = [upper, before];
     for (const [key, value] of Object.entries(filters)) {
-      where.push(`${key} = ?`);
-      params.push(value);
+      if (key === 'disclosure_roots') {
+        const roots = value as string[];
+        where.push(`disclosure_root IN (${roots.map(() => '?').join(',')})`);
+        params.push(...roots);
+      } else {
+        where.push(`${key} = ?`);
+        params.push(value as string);
+      }
     }
     const rows = this.db
         .prepare(
-          `SELECT * FROM records WHERE ${where.join(" AND ")} ORDER BY record_index DESC LIMIT ?`,
+          `SELECT * FROM records${invoice ? ' INDEXED BY record_disclosure_root' : ''} WHERE ${where.join(" AND ")} ORDER BY record_index DESC LIMIT ?`,
         )
         .all(...params, limit + 1),
       items = rows.slice(0, limit).map((row) => this.item(row));
