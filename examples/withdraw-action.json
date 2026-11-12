@@ -1,0 +1,5 @@
+{
+  "kind": "withdraw",
+  "target": "replace-with-recipient.testnet",
+  "disclosureRoot": "replace-with-64-character-receipt-root"
+}

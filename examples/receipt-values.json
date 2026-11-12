@@ -1,0 +1,10 @@
+{
+  "sender": "Example US business — self-declared demo label",
+  "recipient": "Example Abu Dhabi business — self-declared demo label",
+  "asset": "NEAR",
+  "amount": "1000000000000000000000000",
+  "purpose": "B2B invoice settlement",
+  "reference": "DEMO-001",
+  "occurredAt": "2026-11-12T00:00:00Z",
+  "credentialHash": ""
+}

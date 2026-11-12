@@ -1,0 +1,5 @@
+{
+  "network": "testnet",
+  "contract": "replace-with-your-pool.testnet",
+  "denomination": "1000000000000000000000000"
+}

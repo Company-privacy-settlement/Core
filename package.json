@@ -1,0 +1,40 @@
+{
+  "name": "@company-privacy-settlement/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "zk:setup": "node scripts/setup-zk.mjs",
+    "demo": "tsx scripts/demo.ts",
+    "vectors:generate": "tsx scripts/vectors.ts",
+    "cli": "tsx scripts/cli.ts",
+    "contract:test": "cargo test --manifest-path contracts/pool/Cargo.toml",
+    "contract:build": "node scripts/build-contract.mjs"
+  },
+  "dependencies": {
+    "bs58": "^6.0.0",
+    "circomlibjs": "0.1.7",
+    "snarkjs": "0.7.6",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "binaryen": "^132.0.0",
+    "circom2": "0.2.23",
+    "circomlib": "2.0.5",
+    "near-workspaces": "^5.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  },
+  "overrides": {
+    "tar": "7.5.23",
+    "ws": "8.22.2",
+    "underscore": "1.13.8",
+    "bfj": "9.1.4"
+  }
+}

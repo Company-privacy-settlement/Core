@@ -1,0 +1,14 @@
+node_modules/
+target/
+artifacts/
+demo-output/
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+.DS_Store
+*.encrypted.json
+private-receipt*.json
+withdrawal-args.json
+commitments.json
