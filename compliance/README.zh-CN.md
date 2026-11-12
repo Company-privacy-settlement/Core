@@ -1,6 +1,6 @@
 # 后续合规范围
 
-[한국어](README.md) · [简体中文](README.zh-CN.md) · [English](README.en.md)
+[English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md)
 
 初始司法辖区为美国（联邦层面，州尚未确定）和阿拉伯联合酋长国阿布扎比（尚未确定采用 ADGM 还是本土司法辖区）。
 

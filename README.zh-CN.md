@@ -1,6 +1,6 @@
 # Core
 
-[한국어](README.md) · [简体中文](README.zh-CN.md) · [English](README.en.md)
+[English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md)
 
 这是 NEAR 隐私结算协议的**钱包 SDK、CLI 与集成代码**。Rust 合约、ZK 电路和合约测试保存在独立的 [Contract 仓库](https://github.com/Company-privacy-settlement/Contract) 中。当前仓库不包含可运行的 HTTP 服务器 API。
 
