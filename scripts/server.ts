@@ -10,6 +10,8 @@ const policy = SharedPolicySchema.parse(JSON.parse(await readFile(path,'utf8')))
 const port = z.coerce.number().int().min(1).max(65535).parse(process.env.PORT ?? '3001');
 const host = process.env.CORE_API_HOST ?? '127.0.0.1';
 const origins = (process.env.CORE_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean);
-const server = createReadOnlyApi({policy,source:new NearRpcOperationsSource(policy.network,policy.registry,rpc),allowedOrigins:origins});
+const index=process.env.CORE_INDEX_DB?new (await import('../sdk/indexer/store.js')).IndexStore(process.env.CORE_INDEX_DB,policy,true):undefined;
+const server = createReadOnlyApi({policy,source:new NearRpcOperationsSource(policy.network,policy.registry,rpc),allowedOrigins:origins,index});
 server.listen(port,host,() => console.log(`Core read-only API listening on http://${host}:${port}; chain readiness is checked per operation.`));
 for (const signal of ['SIGINT','SIGTERM'] as const) process.once(signal,() => { server.close(); setTimeout(()=>server.closeAllConnections(),5000).unref(); });
+server.once('close',()=>index?.close());

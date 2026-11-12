@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   },
   "scripts": {
     "check": "tsc --noEmit",
@@ -22,7 +22,8 @@
     "demo:ft": "tsx scripts/ft-demo.ts",
     "vectors:ft": "tsx scripts/shared-vectors.ts --ft",
     "serve": "tsx scripts/server.ts",
-    "build:client": "node scripts/build-client.mjs"
+    "build:client": "node scripts/build-client.mjs",
+    "index": "tsx scripts/indexer.ts"
   },
   "dependencies": {
     "bs58": "^6.0.0",

@@ -13,7 +13,9 @@ NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust
 
 ## 개발 현황과 운영 연결
 
-이번 단계에서는 브라우저용 FT 실행 SDK, 지갑 호출별 검토, 암호화 작업 기록, 최종 확정 TX 대조를 추가했습니다. [Front의 `/live/` 화면](https://github.com/Company-privacy-settlement/Front)은 독립적으로 신뢰한 배포 정책을 이용해 NEAR Connect로 테스트넷 지갑을 연결합니다. 서명 결과가 불확실하면 재시작 후에도 재송금을 막고 기존 TX를 확인합니다. 토큰 수락과 최종 지급은 구분합니다. [지갑 연동·복구 안내](docs/WALLET.md)를 확인하세요. 비밀 노트 생성·증명은 CLI에 남겨두었으며 영속 인덱싱, 공개 테스트넷 배포, 실제 KYB·세무 연동은 [개발 목록](docs/ROADMAP.md)의 후속 작업입니다.
+이번 단계에서는 브라우저용 FT 실행 SDK, 지갑 호출별 검토, 암호화 작업 기록, 최종 확정 TX 대조를 추가했습니다. [Front의 `/live/` 화면](https://github.com/Company-privacy-settlement/Front)은 독립적으로 신뢰한 배포 정책을 이용해 NEAR Connect로 테스트넷 지갑을 연결합니다. 서명 결과가 불확실하면 재시작 후에도 재송금을 막고 기존 TX를 확인합니다. 토큰 수락과 최종 지급은 구분합니다. [지갑 연동·복구 안내](docs/WALLET.md)를 확인하세요. 비밀 노트 생성·증명은 CLI에 남겨두었으며 TX 출처 자동 탐색, 공개 테스트넷 배포, 실제 KYB·세무 연동은 [개발 목록](docs/ROADMAP.md)의 후속 작업입니다.
+
+확정된 registry 정산 기록을 SQLite에 체크포인트와 함께 저장하는 인덱서를 추가했습니다. 재시작 시 중복 없이 이어가고, 제공한 공개 TX 참조의 영수증 출처를 검증하며, 필터·고정 커서 기반 거래 내역을 조회합니다. `CORE_INDEX_DB`를 설정하고 `npm run index -- once` 또는 `watch`로 실행합니다. API는 같은 DB를 읽기 전용으로 엽니다. 출처 미확인 기록은 별도로 표시하며 전체 기업 거래 내역이라고 주장하지 않습니다. [인덱서 실행·범위 안내](docs/INDEXER.md)를 확인하세요.
 
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
@@ -30,7 +32,7 @@ API 기본 주소는 `127.0.0.1:3001`이며 실제 신뢰 배포 정책이 필�
 
 ## 실행
 
-Node.js 22+가 필요합니다. 계약 빌드는 Contract에 고정한 Rust 1.99.1 및 C/C++ 빌드 도구를 사용합니다. 두 저장소를 형제 폴더로 체크아웃합니다.
+Node.js 22.13.0+가 필요합니다. 계약 빌드는 Contract에 고정한 Rust 1.99.1 및 C/C++ 빌드 도구를 사용합니다. 두 저장소를 형제 폴더로 체크아웃합니다.
 
 ```text
 workspace/

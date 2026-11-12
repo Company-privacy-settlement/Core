@@ -3,8 +3,12 @@ import { z } from 'zod';
 import { SharedPolicySchema, type SharedPolicy } from '../sdk/shared.js';
 import { operationCatalog, preflightFt, observeSettlement, PreflightInput, SettlementReference, OperationsError, type OperationsSource } from '../sdk/operations.js';
 import { VerifyTransactionInput, verifyTransaction } from '../sdk/transactions.js';
+import { ActivityQuery, IndexError } from '../sdk/indexer/types.js';
+import type { ActivityReader } from '../sdk/indexer/store.js';
+import { canonical } from '../sdk/client/crypto.js';
 
 class HttpError extends Error { constructor(readonly status: number, readonly code: string) { super(code); } }
+function readIndex<T>(read:()=>T):T{try{return read();}catch(error){if(error instanceof IndexError)throw error;throw new HttpError(503,'INDEX_READ_FAILED');}}
 function json(res: ServerResponse, status: number, value: unknown) {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
   res.end(JSON.stringify(value));
@@ -26,9 +30,10 @@ function body(req: IncomingMessage): Promise<unknown> {
     req.on('error',reject); req.on('aborted',() => reject(new HttpError(400,'REQUEST_ABORTED')));
   });
 }
-export function createReadOnlyApi(options: { source: OperationsSource; policy: SharedPolicy; allowedOrigins?: string[]; maxConcurrent?: number }) {
+export function createReadOnlyApi(options: { source: OperationsSource; policy: SharedPolicy; allowedOrigins?: string[]; maxConcurrent?: number; index?:ActivityReader }) {
   const policy = SharedPolicySchema.parse(options.policy);
   if (options.source.network !== policy.network || options.source.factory !== policy.registry) throw new Error('API source does not match policy');
+  if(options.index&&canonical(options.index.policy)!==canonical(policy))throw new Error('API index does not match policy');
   const allowedOrigins = new Set((options.allowedOrigins ?? []).map(origin => {
     const parsed = new URL(origin); if (!['http:','https:'].includes(parsed.protocol) || parsed.origin !== origin) throw new Error('Use exact HTTP(S) CORS origins'); return origin;
   }));
@@ -52,7 +57,12 @@ export function createReadOnlyApi(options: { source: OperationsSource; policy: S
       if (active >= maxConcurrent) throw new HttpError(429,'TOO_MANY_REQUESTS');
       active++;
       try {
-        if (url.pathname === '/v1/vaults' && req.method === 'GET') {
+        if ((url.pathname === '/v1/activity'||url.pathname === '/v1/index/status') && req.method === 'GET') {
+          if(!options.index)throw new HttpError(503,'INDEX_DISABLED');
+          if(new Set(url.searchParams.keys()).size!==[...url.searchParams.keys()].length)throw new HttpError(400,'DUPLICATE_QUERY');
+          if(url.pathname==='/v1/index/status'){if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');json(res,200,readIndex(()=>options.index!.status()));}
+          else{const query=input(ActivityQuery,Object.fromEntries(url.searchParams));json(res,200,readIndex(()=>options.index!.activity(query)));}
+        } else if (url.pathname === '/v1/vaults' && req.method === 'GET') {
           const params = input(z.object({ fromIndex: z.coerce.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(), maxRecords: z.coerce.number().int().min(1).max(50).optional() }).strict(), Object.fromEntries(url.searchParams));
           json(res,200,await operationCatalog(options.source,policy,{fromIndex:params.fromIndex,maxRecords:params.maxRecords??20}));
         } else if (url.pathname === '/v1/ft/preflight' && req.method === 'POST') {
@@ -71,6 +81,7 @@ export function createReadOnlyApi(options: { source: OperationsSource; policy: S
       if (res.destroyed || res.writableEnded) return;
       if (error instanceof HttpError) { if (error.status === 413) res.setHeader('connection','close'); json(res,error.status,{error:error.code}); }
       else if (error instanceof OperationsError) json(res,409,{error:error.code,message:error.message});
+      else if (error instanceof IndexError) json(res,error.code==='INVALID_CURSOR'?400:error.code==='INDEX_NOT_READY'?503:409,{error:error.code});
       else json(res,502,{error:'CHAIN_READ_FAILED'});
     }
   });

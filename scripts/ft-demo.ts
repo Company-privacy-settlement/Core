@@ -5,6 +5,9 @@ import { NearRpcOperationsSource, preflightFt, observeSettlement } from '../sdk/
 import { createReadOnlyApi } from '../server/api.js';
 import { HttpGateway, OperationJournal, SettlementSession, type Call } from '../sdk/client/index.js';
 import { fileJournalStorage } from '../sdk/client-node.js';
+import { IndexStore } from '../sdk/indexer/store.js';
+import { NearRpcIndexSource } from '../sdk/indexer/source.js';
+import { SettlementIndexer } from '../sdk/indexer/worker.js';
 import { resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { Worker, type NearAccount, type TransactionResult } from 'near-workspaces';
@@ -22,6 +25,7 @@ const mockWasm = await readFile(resolve(process.env.CORE_CONTRACT_REPO || '../Co
 const vk = encodeVerificationKey(JSON.parse(await readFile('artifacts/verification_key.json','utf8')));
 await ensureSandbox(); const worker = await Worker.init();
 let apiServer: ReturnType<typeof createReadOnlyApi> | undefined;
+let indexedApi:ReturnType<typeof createReadOnlyApi>|undefined,indexStore:IndexStore|undefined,indexReader:IndexStore|undefined;
 try {
   const root = worker.rootAccount;
   const forest = await root.createSubAccount('forest'.padEnd(20,'x'),{initialBalance:25n*NEAR});
@@ -171,12 +175,30 @@ try {
     }
   }
   const verified=await verifyBundle(bundle,new NearRpcEvidenceSource('sandbox',forest.accountId,rpc)); assert.equal(verified.feeSummary!.assetTokenId,token.accountId); assert.equal(verified.feeSummary!.protocolFeesCharged,'9000'); assert.equal(verified.feeSummary!.protocolFeesEarned,'9000');
+  const indexPath=`demo-output/ft-index-${randomBytes(12).toString('hex')}.sqlite`,indexSource=new NearRpcIndexSource('sandbox',forest.accountId,rpc);
+  indexStore=new IndexStore(indexPath,policy);let indexer=new SettlementIndexer(indexSource,indexStore);
+  const indexed=await indexer.sync();assert.equal(indexed.indexedRecords,verified.records.length);assert.equal(indexed.remainingRecords,0);
+  indexStore.close();indexStore=new IndexStore(indexPath,policy);indexer=new SettlementIndexer(indexSource,indexStore);assert.equal((await indexer.sync()).added,0);
+  indexStore.enqueue(transactions.map(tx=>({hash:tx.transactionReceipt.hash,signer:tx.transactionReceipt.signer_id})));
+  const linked=await indexer.linkPending({limit:100});assert.equal(linked.invalid,0,JSON.stringify(linked));assert.equal(linked.readErrors,0,JSON.stringify(linked));assert.equal(linked.pending,0,JSON.stringify(linked));assert.equal(indexStore.status().linkedRecords,verified.records.length,JSON.stringify(indexStore.status()));
+  indexReader=new IndexStore(indexPath,policy,true);indexedApi=createReadOnlyApi({source:indexSource,policy,index:indexReader});indexedApi.listen(0,'127.0.0.1');await once(indexedApi,'listening');const indexedAddress=indexedApi.address();assert.ok(indexedAddress&&typeof indexedAddress!=='string');
+  let cursor:string|null=null;const activityIndices:number[]=[];
+  do {
+    const response:Response=await fetch(`http://127.0.0.1:${indexedAddress.port}/v1/activity?limit=3${cursor?`&cursor=${cursor}`:''}`);
+    assert.equal(response.status,200);
+    const page:ReturnType<IndexStore['activity']>=await response.json();
+    activityIndices.push(...page.items.map(item=>{assert.ok(item.provenance);assert.ok(item.provenance.transaction.hash);assert.equal(item.provenance.outerOutcome,'succeeded');return item.record.index;}));
+    cursor=page.nextCursor;
+  } while(cursor);
+  assert.deepEqual(activityIndices,[...verified.records.map(r=>r.index)].sort((a,b)=>b-a));
+  console.log('Durable index reopened without duplicates; all 14 records linked to finalized transaction/receipt provenance and paged through the read-only API.');
   const remaining:any=await forest.view('get_storage_credit',{account_id:alice.accountId});
   if(BigInt(remaining.available)>0n) { const tx=await alice.callRaw(forest,'withdraw_storage_credit',{},{attachedDeposit:1n,gas:GAS}); assert.equal(tx.parseResult(),true); assert.equal((await forest.view<any>('get_storage_credit',{account_id:alice.accountId})).available,'0'); }
   assert.deepEqual((await journal.list()).map(o=>o.outcome),['complete','complete']);
-  await mkdir('demo-output',{recursive:true}); await writeFile('demo-output/ft-validation.json',JSON.stringify({fixture:'NEP-141 sandbox token, NOT Circle-issued USDC',policy,bundle,verification:verified,recipientReceivedTokens:(await balance(token,recipient.accountId)).toString(),treasuryReceivedTokens:'9000',principalNeverPooled:true,concurrentSpendPaidOnce:true,retryChargedTokenFeeOnce:true,operationsApiVerified:true,preflightReadinessVerified:true,finalizedRecoveryObserverVerified:true,walletSessionSandboxVerified:true,encryptedJournalVerified:true,exactTransactionVerificationVerified:true},null,2));
+  await mkdir('demo-output',{recursive:true}); await writeFile('demo-output/ft-validation.json',JSON.stringify({fixture:'NEP-141 sandbox token, NOT Circle-issued USDC',policy,bundle,verification:verified,recipientReceivedTokens:(await balance(token,recipient.accountId)).toString(),treasuryReceivedTokens:'9000',principalNeverPooled:true,concurrentSpendPaidOnce:true,retryChargedTokenFeeOnce:true,operationsApiVerified:true,preflightReadinessVerified:true,finalizedRecoveryObserverVerified:true,walletSessionSandboxVerified:true,encryptedJournalVerified:true,exactTransactionVerificationVerified:true,durableIndexRestartVerified:true,transactionReceiptCorrelationVerified:true,indexActivityPaginationVerified:true},null,2));
   console.log(`FT shared demo verified: ${verified.records.length} finalized records, full 3 TESTUSD received, 0.009 TESTUSD total fees; report demo-output/ft-validation.json`);
 } finally {
+  if(indexedApi){indexedApi.closeAllConnections();await new Promise<void>(resolve=>indexedApi!.close(()=>resolve()));}indexReader?.close();indexStore?.close();
   if(apiServer) { apiServer.closeAllConnections(); await new Promise<void>(resolve=>apiServer!.close(()=>resolve())); }
   await worker.tearDown(); await shutdownProver();
 }

@@ -14,7 +14,7 @@ This backlog is based on the current code. Contract and circuit work stays in th
 - [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
 - [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
 
-Validation commands: `npm run check`, `npm test`, and `npm run demo:ft`. The sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling and exact transaction verification.
+Validation: `npm run check`, **91 tests** via `npm test`, and `npm run demo:ft` pass. The sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, receipt correlation and activity pagination.
 
 Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
 
@@ -24,13 +24,17 @@ Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `
 - [x] Wallet port and NEAR Connect testnet frontend; explicit single-call review, trusted policy, fees, payer/network binding and finalized observation.
 - [x] Encrypted local operation journal, cross-tab exclusion, backup/restore and unresolved signature reconciliation. No automatic resubmission after reconnect.
 - [x] Exact finalized wallet transaction verification and sandbox coverage of storage, deposit and withdrawal recovery.
+- [x] Durable registry-journal index with SQLite transactions/checkpoints, finalized-block conflict checks, restart/resume and bounded record replay.
+- [x] Persistent public TX-reference queue, exact finalized receipt correlation, and read-only activity/status APIs with stable filtered pagination.
 
 Integration: [WALLET.md](WALLET.md). Private note creation/proving remains in the CLI. A publicly deployed/funded testnet wallet smoke test is still outstanding.
+
+Index scope and deployment: [INDEXER.md](INDEXER.md). All configured registry records are copied; transaction provenance is enriched only from supplied public references. It does not claim complete business history or automatically discover every transaction across NEAR shards.
 
 | Task | Deliverable / acceptance condition | Dependency |
 | --- | --- | --- |
 | Browser note/prover expansion | Generate encrypted notes and new Groth16 proofs locally in the browser, with mobile memory/performance measurements and the same committed vectors. Current bundle executes prepared CLI plans. | Prover packaging and browser measurements |
-| Finalized event indexer | Durable checkpoints, reorg/finality handling, transaction/receipt correlation and paginated activity; retain selected-history evidence claims. | Persistent datastore and RPC provider |
+| Automatic provenance discovery and activity UI | Discover transaction origins across shards/providers and display indexed activity in Front with checkpoint age and unresolved links. Current index accepts explicit public TX references and exposes backend APIs. | Archival/indexed data provider and Front integration |
 | API deployment hardening | Authentication for any future private business data, rate limits, per-route budgets, OpenAPI/client generation, redacted telemetry and deployment health checks. | Hosting/access model; current API defaults to loopback |
 | Testnet deployment workflow | Reproducible artifact/policy release, verified token registration, explicit key-removal phase and a real-wallet smoke test. | Funded deployer account and reviewed setup hashes |
 | Group capacity management | Discover and display full groups, route new deposits to separately approved groups, preserve withdrawal access to old groups. No implied private cross-group migration. | New group deployment/policy distribution |

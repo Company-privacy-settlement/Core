@@ -49,7 +49,8 @@ test('fresh implicit account keys are client-generated and only exported encrypt
 });
 test('independent-vault selection keeps pool domains separate', () => {
   const vaults = [pool, { ...pool, contract: 'other.test.near' }];
-  assert.ok(vaults.some(p => p.contract === chooseIndependentVault(vaults).contract));
+  const selected = chooseIndependentVault(vaults);
+  assert.ok(vaults.some(p => p.contract === selected.contract));
   assert.throws(() => chooseIndependentVault([]));
   assert.throws(() => chooseIndependentVault([pool, pool]));
   assert.throws(() => chooseIndependentVault([pool, { ...pool, denomination: '42' }]));

@@ -9,7 +9,7 @@ export type ChainRecord = {
   vault?: string | null; asset_token_id?: string | null;
 };
 const Money = z.string().regex(/^(0|[1-9][0-9]*)$/);
-const RecordSchema = z.object({
+export const RecordSchema = z.object({
   index: z.number().int().nonnegative(), kind: z.string(), commitment: z.string().nullable(),
   nullifier: z.string().nullable(), recipient: z.string().nullable(), disclosure_root: z.string().regex(/^[a-f0-9]{64}$/),
   block_height: z.number().int().nonnegative(), timestamp_ns: z.string().regex(/^[0-9]+$/),
@@ -27,7 +27,7 @@ export interface EvidenceSource {
   getRecord(index: number): Promise<ChainRecord>;
   getTransaction(ref: TxRef): Promise<unknown>;
 }
-function recordFingerprint(record: ChainRecord): string {
+export function recordFingerprint(record: ChainRecord): string {
   return sha256(JSON.stringify([record.index, record.kind, record.commitment, record.nullifier, record.recipient, record.disclosure_root, record.block_height, record.timestamp_ns,
     record.amount ?? null, record.protocol_fee_charged ?? null, record.protocol_fee_earned ?? null, record.storage_fee_charged ?? null, record.vault ?? null, record.asset_token_id ?? null]));
 }
