@@ -19,6 +19,8 @@ The finalized registry-journal index now persists records and checkpoints in loc
 
 Automatic discovery now enumerates all shard transactions from a configured start block, checks complete finalized receipt graphs, and persists its position even inside a block. Front’s `/live/` shows public indexed activity, checkpoint age, discovery progress, unresolved provenance and stable filtered pages. Set `CORE_DISCOVERY_START_HEIGHT` to opt in; supplied public TX references remain supported. Coverage before the start and current worker/provider freshness are not implied.
 
+Recipient-issued invoices now support merchant NEP-413 signing, fragment checkout links, invoice-bound withdrawal plans and indexed partial/paid/late/overpayment reconciliation. Front `/invoices/` issues and tracks requests; `/pay/` verifies them and connects to the existing wallet journal. Terms remain client-held; the read-only API verifies merchant key ownership and public confirmation totals. See [invoice architecture and usage](docs/INVOICES.md).
+
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
 npm run cli -- settlement-status trusted-policy.json https://rpc.testnet.near.org public-reference.json

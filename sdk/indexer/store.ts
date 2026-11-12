@@ -93,6 +93,11 @@ export class IndexStore implements ActivityReader {
           CREATE INDEX IF NOT EXISTS record_recipient ON records(recipient,record_index);
           CREATE TABLE IF NOT EXISTS candidates (hash TEXT NOT NULL,signer TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'pending',attempts INTEGER NOT NULL DEFAULT 0,error TEXT,last_attempt INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(hash,signer));
           CREATE TABLE IF NOT EXISTS discovery (id INTEGER PRIMARY KEY CHECK(id=1),body TEXT NOT NULL);`);
+        this.db.exec('BEGIN IMMEDIATE');
+        try{
+          if(!this.db.prepare('PRAGMA table_info(records)').all().some(c=>c.name==='disclosure_root'))this.db.exec('ALTER TABLE records ADD COLUMN disclosure_root TEXT');
+          this.db.exec("UPDATE records SET disclosure_root=json_extract(body,'$.disclosure_root') WHERE disclosure_root IS NULL; CREATE INDEX IF NOT EXISTS record_disclosure_root ON records(disclosure_root,kind,recipient,record_index); COMMIT");
+        }catch(error){this.db.exec('ROLLBACK');throw error;}
         this.db
           .prepare("INSERT OR IGNORE INTO metadata VALUES (1,1,?,?)")
           .run(canonical(this.policy), randomUUID());
@@ -208,7 +213,7 @@ export class IndexStore implements ActivityReader {
           "Another worker advanced the checkpoint",
         );
       const insert = this.db.prepare(
-        "INSERT INTO records(record_index,kind,vault,recipient,nullifier,commitment,body,fingerprint,observed_at) VALUES (?,?,?,?,?,?,?,?,?)",
+          "INSERT INTO records(record_index,kind,vault,recipient,nullifier,commitment,body,fingerprint,observed_at,disclosure_root) VALUES (?,?,?,?,?,?,?,?,?,?)",
       );
       for (const input of records) {
         const r = sharedRecord(
@@ -226,6 +231,7 @@ export class IndexStore implements ActivityReader {
           canonical(r),
           recordFingerprint(r),
           canonical(next.block),
+          r.disclosure_root,
         );
       }
       this.db

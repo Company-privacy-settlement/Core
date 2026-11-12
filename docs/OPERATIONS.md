@@ -91,6 +91,8 @@ Default bind: `127.0.0.1:3001`. `CORE_API_HOST` and `PORT` can override it. Ther
 | GET | `/v1/vaults?fromIndex=0&maxRecords=20` | Verified catalog at one final block; max 50 records per API request and explicit pagination |
 | POST | `/v1/ft/preflight` | Strict public preflight request; prerequisite calls and blockers |
 | POST | `/v1/settlements/status` | Strict settlement reference; finalized state and bound recovery calls |
+| POST | `/v1/invoices/verify` | Public invoice digest/signature; current merchant FullAccess key check |
+| POST | `/v1/invoices/status` | Public invoice commitment/recipient/units/expiry; confirmed indexed payout totals |
 | POST | `/v1/transactions/verify` | `{transaction:{hash,signer},call}`; exact single reviewed action and finality, with accepted / not-accepted / unknown effect |
 | GET | `/v1/index/status` | Optional SQLite index checkpoint, lag and provenance coverage; no current-chain readiness claim |
 | GET | `/v1/activity` | Optional indexed record pages with stable cursors and explicitly nullable TX/receipt provenance |
@@ -111,3 +113,5 @@ This is a local/development read-only integration service. Wallet signing and en
 The optional [finalized journal index](INDEXER.md) runs as a separate worker. Set `CORE_INDEX_DB` after initializing it; the API opens that database read-only. Index routes return 503 when disabled/uninitialized, accept no ingestion/write calls, and report their observed checkpoint rather than implying fresh chain reads. Existing settlement status remains the source for current bound recovery decisions.
 
 References: [NEAR FT integration](https://docs.near.org/integrations/fungible-tokens), [NEAR RPC query errors](https://docs.near.org/api/rpc/contracts), [Contract settlement behavior](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/USDC.md).
+
+Recipient-issued invoice architecture, privacy boundary and checkout limitations: [INVOICES.md](INVOICES.md). Invoice routes are public read-only queries; full business terms are rejected.

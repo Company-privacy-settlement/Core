@@ -19,6 +19,8 @@ NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust
 
 지정한 시작 블록부터 모든 샤드의 TX를 읽고 확정 영수증 그래프를 검사하는 자동 탐색을 추가했습니다. 블록 중간 위치도 저장합니다. Front `/live/`에서 공개 정산 내역, 수집 시점, 탐색 진행, 출처 미확인 여부와 고정 필터·페이지를 확인할 수 있습니다. `CORE_DISCOVERY_START_HEIGHT`로 활성화하며 기존 공개 TX 참조 입력도 지원합니다. 시작 블록 이전이나 현재 체인 최신 상태까지 수집됐다는 뜻은 아닙니다.
 
+수취인 발행 인보이스를 추가했습니다. 판매자 NEP-413 지갑 서명, fragment 결제 링크, 청구서에 묶인 출금 증명, 일부·완료·지연·과입금 집계를 지원합니다. Front `/invoices/`에서 발행·조회하고 `/pay/`에서 검증 후 기존 지갑 기록으로 결제합니다. 청구 내용은 클라이언트에 남고 읽기 전용 API는 지갑 소유권과 공개 지급 확인만 조회합니다. [인보이스 구조·사용법](docs/INVOICES.md)을 참고하세요.
+
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
 npm run cli -- settlement-status trusted-policy.json https://rpc.testnet.near.org public-reference.json

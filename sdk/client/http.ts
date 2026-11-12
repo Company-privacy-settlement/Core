@@ -1,6 +1,16 @@
 import { parsePolicy } from "./payment.js";
 import { canonical } from "./crypto.js";
 import {
+  verifySignedInvoice,
+  invoiceProof,
+  invoiceHash,
+  invoiceRoot,
+  invoiceQuote,
+  validateInvoiceStatus,
+  type SignedInvoice,
+  type InvoiceStatus,
+} from "./invoices.js";
+import {
   parseIndexStatus,
   parseActivityPage,
   type ActivityFilters,
@@ -77,6 +87,55 @@ export class HttpGateway implements Gateway {
   private async trusted(policy: Policy) {
     if (canonical(await this.policy()) !== canonical(policy))
       throw new Error("API policy differs from the trusted group");
+  }
+  async verifyInvoice(input: SignedInvoice) {
+    const signed = await verifySignedInvoice(input);
+    await this.trusted(signed.invoice.policy);
+    const result = await this.request(
+      "/v1/invoices/verify",
+      await invoiceProof(signed),
+    );
+    if (
+      result.invoiceHash !== (await invoiceHash(signed.invoice)) ||
+      result.merchantAccount !== signed.invoice.merchantAccount ||
+      result.verified !== true ||
+      result.claims?.legalIdentityVerified !== false ||
+      result.claims?.kybVerified !== false
+    )
+      throw new Error(
+        "Invoice signer is not a current merchant full-access key",
+      );
+    return signed;
+  }
+  async invoiceStatus(input: SignedInvoice): Promise<InvoiceStatus> {
+    const signed = await this.verifyInvoice(input),
+      hash = await invoiceHash(signed.invoice),
+      result = await this.request("/v1/invoices/status", {
+        invoiceHash: hash,
+        recipient: signed.invoice.recipient,
+        units: signed.invoice.units,
+        expiresAt: signed.invoice.expiresAt,
+      });
+    if (
+      result.invoiceHash !== hash ||
+      result.settlementRoot !== (await invoiceRoot(signed.invoice)) ||
+      result.expectedTokens !== invoiceQuote(signed.invoice).principalTokens ||
+      ![
+        "awaiting_payment",
+        "partial",
+        "paid",
+        "paid_late",
+        "overpaid",
+        "expired",
+        "partial_expired",
+        "review_required",
+      ].includes(result.state) ||
+      result.chainFreshnessChecked !== false ||
+      !Array.isArray(result.confirmations) ||
+      result.confirmations.length > 1000
+    )
+      throw new Error("Invalid invoice settlement status");
+    return validateInvoiceStatus(result, signed.invoice);
   }
   async indexStatus(policy: Policy) {
     await this.trusted(policy);

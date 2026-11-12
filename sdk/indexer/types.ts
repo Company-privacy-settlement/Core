@@ -33,6 +33,7 @@ export const ActivityQuery = z
     kind: Kinds.optional(),
     vault: AccountId.optional(),
     recipient: AccountId.optional(),
+    disclosure_root:z.string().regex(/^[a-f0-9]{64}$/).optional(),
     nullifier: z
       .string()
       .regex(/^(0|[1-9][0-9]*)$/)

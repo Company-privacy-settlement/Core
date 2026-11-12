@@ -19,6 +19,8 @@
 
 新增从配置起始区块枚举全部分片交易的自动发现，检查完整最终确认收据图，并保存区块内进度。Front `/live/` 展示公开索引记录、检查点时间、发现进度、未关联来源及固定过滤分页。通过 `CORE_DISCOVERY_START_HEIGHT` 启用，也继续支持公开交易引用输入。不声明覆盖起始区块之前或当前最新链状态。
 
+新增收款人开具发票：商户 NEP-413 钱包签名、fragment 结账链接、绑定发票的提款证明，以及部分/完成/迟付/超额付款核对。Front `/invoices/` 开具和跟踪请求，`/pay/` 验证后连接现有钱包日志。业务条款保留在客户端；只读 API 核实商户密钥及公开确认金额。参见[发票架构与使用说明](docs/INVOICES.md)。
+
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
 npm run cli -- settlement-status trusted-policy.json https://rpc.testnet.near.org public-reference.json

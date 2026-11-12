@@ -11,6 +11,7 @@ export const activityKinds = [
 ] as const;
 export type ActivityKind = (typeof activityKinds)[number];
 export type ActivityFilters = {
+  disclosure_root?:string;
   kind?: ActivityKind;
   vault?: string;
   recipient?: string;

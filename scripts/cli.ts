@@ -10,6 +10,9 @@ import { discoverSharedVaults, loadSharedTree, chooseSharedVault, NearRpcSharedS
 import { buildFtDeposit, buildFtWithdrawal, parseUsdc, quoteFtFees } from '../sdk/ft.js';
 
 import { NearRpcOperationsSource, preflightFt, observeSettlement, waitForSettlement, PreflightInput, SettlementReference } from '../sdk/operations.js';
+import {verifySignedInvoice,invoiceRoot,requireOpenInvoice} from '../sdk/client/invoices.js';
+import {canonical} from '../sdk/client/crypto.js';
+import {parsePolicy} from '../sdk/client/payment.js';
 
 const [command, ...args] = process.argv.slice(2);
 const json = async (path: string) => JSON.parse(await readFile(path, 'utf8'));
@@ -25,6 +28,11 @@ async function loadNote(path: string): Promise<Note> {
 }
 try {
   switch (command) {
+    case 'invoice-action':{
+      if(args.length!==3)throw new Error('invoice-action trusted-policy.json signed-invoice.json action-output.json');
+      const trusted=parsePolicy(await json(args[0])),signed=await verifySignedInvoice(await json(args[1]));if(canonical(trusted)!==canonical(signed.invoice.policy))throw new Error('Invoice policy differs from trusted group');requireOpenInvoice(signed.invoice);
+      await save(args[2],JSON.stringify({kind:'withdraw',target:signed.invoice.recipient,disclosureRoot:await invoiceRoot(signed.invoice)},null,2));output({prepared:args[2],note:'Verify merchant account ownership through Core API before signing the payment'});break;
+    }
     case 'ft-preflight': {
       if (args.length !== 3) throw new Error('ft-preflight trusted-policy.json trusted-rpc-url public-request.json');
       const policy = await json(args[0]);
@@ -179,7 +187,7 @@ try {
       break;
     }
     default:
-      console.log('Commands: ft-preflight, settlement-status, settlement-wait, wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
+      console.log('Commands: invoice-action, ft-preflight, settlement-status, settlement-wait, wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
       process.exitCode = command ? 1 : 0;
   }
 } catch (error) {

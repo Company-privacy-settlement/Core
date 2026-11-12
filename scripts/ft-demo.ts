@@ -10,7 +10,9 @@ import { NearRpcIndexSource } from '../sdk/indexer/source.js';
 import { SettlementIndexer } from '../sdk/indexer/worker.js';
 import { TransactionDiscovery } from '../sdk/indexer/discovery.js';
 import { resolve } from 'node:path';
-import { randomBytes } from 'node:crypto';
+import { randomBytes,createPrivateKey,sign } from 'node:crypto';
+import bs58 from 'bs58';
+import {invoiceHash,invoiceRoot,invoiceProof,invoiceSigningDigest,type Invoice,type SignedInvoice} from '../sdk/client/invoices.js';
 import { Worker, type NearAccount, type TransactionResult } from 'near-workspaces';
 import { createNote, proveSpend, encodeVerificationKey, sha256, STORAGE_FEE, shutdownProver } from '../sdk/core.js';
 import { NearRpcSharedSource, discoverSharedVaults, loadSharedTree, predictSharedVault, type SharedPolicy } from '../sdk/shared.js';
@@ -137,7 +139,12 @@ try {
   const transfer=await relay.callRaw(forest,'transfer',{output_commitment:output.commitment,disclosure_root:transferRoot,...transferred.args},{attachedDeposit:STORAGE_FEE,gas:GAS}); assert.equal(transfer.parseResult(),3); transactions.push(transfer); await final(transfer);
   const recipient=createFreshRecipient('ft-sandbox-local-recipient'); const activation=await root.transfer(recipient.accountId,NEAR/10n); await final(activation);
   catalog=await discoverSharedVaults(source,policy); tree=await loadSharedTree(source,catalog);
-  const withdrawalRoot=receipt(),proof=await proveSpend(pool,output,tree,{kind:'withdraw',vault:b.accountId,target:recipient.accountId,disclosureRoot:withdrawalRoot});
+  const merchantKey=await bob.getKey();assert.ok(merchantKey);
+  const invoice:Invoice={version:1,id:crypto.randomUUID(),merchantAccount:bob.accountId,recipient:recipient.accountId,title:'Sandbox recipient invoice',reference:'INV-SANDBOX-001',policy,units:1,createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+3600000).toISOString(),nonce:randomBytes(32).toString('hex')};
+  const seed=bs58.decode(merchantKey.toString().split(':')[1]).slice(0,32),privateKey=createPrivateKey({key:Buffer.concat([Buffer.from('302e020100300506032b657004220420','hex'),Buffer.from(seed)]),format:'der',type:'pkcs8'});
+  const signedInvoice:SignedInvoice={invoice,signature:{accountId:bob.accountId,publicKey:merchantKey.getPublicKey().toString(),signature:sign(null,await invoiceSigningDigest(await invoiceHash(invoice),'sandbox',invoice.nonce),privateKey).toString('base64')}};
+  assert.equal((await api('/v1/invoices/verify',await invoiceProof(signedInvoice))).verified,true);
+  const withdrawalRoot=await invoiceRoot(invoice),proof=await proveSpend(pool,output,tree,{kind:'withdraw',vault:b.accountId,target:recipient.accountId,disclosureRoot:withdrawalRoot});
   const plan=buildFtWithdrawal(catalog,b.accountId,recipient.accountId,withdrawalRoot,proof.args); await prepay(relay,forest);
   const payoutReadiness=await preflightFt(operations,policy,{operation:'withdraw',payer:relay.accountId,vault:b.accountId,recipient:recipient.accountId});
   assert.equal(payoutReadiness.canPrepare,true);assert.ok(payoutReadiness.prerequisites.some(p=>p.method==='storage_deposit' && p.args.account_id===recipient.accountId));
@@ -173,7 +180,7 @@ try {
   for(const tx of transactions) for(const outcome of tx.result.receipts_outcome as any[]) {
     if(outcome.outcome.executor_id!==forest.accountId)continue;
     for(const log of outcome.outcome.logs) { if(!log.startsWith('EVENT_JSON:'))continue; const event=JSON.parse(log.slice(11)); if(event.version!=='3.0.0')continue;
-      for(const record of event.data??[]) { if(typeof record.index!=='number')continue; const r=receipts.get(record.disclosure_root); assert.ok(r); bundle.transactions.push({tx:{hash:tx.transactionReceipt.hash,signer:tx.transactionReceipt.signer_id,recordIndex:record.index},disclosure:disclose(r,['asset','amount'])}); }
+      for(const record of event.data??[]) { if(typeof record.index!=='number')continue; const r=receipts.get(record.disclosure_root); assert.ok(r||record.disclosure_root===withdrawalRoot); bundle.transactions.push({tx:{hash:tx.transactionReceipt.hash,signer:tx.transactionReceipt.signer_id,recordIndex:record.index},...(r?{disclosure:disclose(r,['asset','amount'])}:{})}); }
     }
   }
   const verified=await verifyBundle(bundle,new NearRpcEvidenceSource('sandbox',forest.accountId,rpc)); assert.equal(verified.feeSummary!.assetTokenId,token.accountId); assert.equal(verified.feeSummary!.protocolFeesCharged,'9000'); assert.equal(verified.feeSummary!.protocolFeesEarned,'9000');
@@ -199,6 +206,7 @@ try {
     cursor=page.nextCursor;
   } while(cursor);
   assert.deepEqual(activityIndices,[...verified.records.map(r=>r.index)].sort((a,b)=>b-a));
+  const invoiceResponse=await fetch(`http://127.0.0.1:${indexedAddress.port}/v1/invoices/status`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({invoiceHash:await invoiceHash(invoice),recipient:invoice.recipient,units:1,expiresAt:invoice.expiresAt})});assert.equal(invoiceResponse.status,200);const paidInvoice=await invoiceResponse.json();assert.equal(paidInvoice.state,'paid');assert.equal(paidInvoice.paidTokens,'1000000');assert.equal(paidInvoice.confirmedPayments,1);console.log('Recipient-signed invoice matched exactly one finalized payout after retry, with full principal and its bound invoice root.');
   console.log('All-shard discovery found transaction origins without a supplied reference list; durable index linked all 14 records and served stable activity pages.');
   const remaining:any=await forest.view('get_storage_credit',{account_id:alice.accountId});
   if(BigInt(remaining.available)>0n) { const tx=await alice.callRaw(forest,'withdraw_storage_credit',{},{attachedDeposit:1n,gas:GAS}); assert.equal(tx.parseResult(),true); assert.equal((await forest.view<any>('get_storage_credit',{account_id:alice.accountId})).available,'0'); }

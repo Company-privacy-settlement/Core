@@ -5,6 +5,31 @@ export { OperationJournal, browserJournalStorage } from "./journal.js";
 export { SettlementSession, type Review } from "./session.js";
 export { HttpGateway, CoreApiError } from "./http.js";
 export {
+  INVOICE_SIGNING_RECIPIENT,
+  parseInvoice,
+  parseSignedInvoice,
+  invoiceHash,
+  invoiceRoot,
+  invoiceMessage,
+  nonceBytes,
+  invoiceSigningDigest,
+  invoiceProof,
+  verifySignedInvoice,
+  invoiceQuote,
+  requireOpenInvoice,
+  matchInvoicePlan,
+  invoiceLink,
+  invoiceFromFragment,
+} from "./invoices.js";
+export type {
+  Invoice,
+  InvoiceSignature,
+  SignedInvoice,
+  InvoiceProof,
+  InvoiceState,
+  InvoiceStatus,
+} from "./invoices.js";
+export {
   activityKinds,
   parseIndexStatus,
   parseActivityPage,

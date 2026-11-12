@@ -6,6 +6,7 @@ import { VerifyTransactionInput, verifyTransaction } from '../sdk/transactions.j
 import { ActivityQuery, IndexError } from '../sdk/indexer/types.js';
 import type { ActivityReader } from '../sdk/indexer/store.js';
 import { canonical } from '../sdk/client/crypto.js';
+import {InvoiceProofInput,InvoiceStatusInput,verifyInvoiceMerchant,indexedInvoiceStatus} from '../sdk/invoices.js';
 
 class HttpError extends Error { constructor(readonly status: number, readonly code: string) { super(code); } }
 function readIndex<T>(read:()=>T):T{try{return read();}catch(error){if(error instanceof IndexError)throw error;throw new HttpError(503,'INDEX_READ_FAILED');}}
@@ -57,7 +58,11 @@ export function createReadOnlyApi(options: { source: OperationsSource; policy: S
       if (active >= maxConcurrent) throw new HttpError(429,'TOO_MANY_REQUESTS');
       active++;
       try {
-        if ((url.pathname === '/v1/activity'||url.pathname === '/v1/index/status') && req.method === 'GET') {
+        if(url.pathname==='/v1/invoices/verify'&&req.method==='POST'){
+          if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');json(res,200,await verifyInvoiceMerchant(options.source,policy,input(InvoiceProofInput,await body(req))));
+        }else if(url.pathname==='/v1/invoices/status'&&req.method==='POST'){
+          if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');if(!options.index)throw new HttpError(503,'INDEX_DISABLED');json(res,200,await indexedInvoiceStatus(options.index,policy,input(InvoiceStatusInput,await body(req))));
+        }else if ((url.pathname === '/v1/activity'||url.pathname === '/v1/index/status') && req.method === 'GET') {
           if(!options.index)throw new HttpError(503,'INDEX_DISABLED');
           if(new Set(url.searchParams.keys()).size!==[...url.searchParams.keys()].length)throw new HttpError(400,'DUPLICATE_QUERY');
           if(url.pathname==='/v1/index/status'){if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');json(res,200,readIndex(()=>options.index!.status()));}
