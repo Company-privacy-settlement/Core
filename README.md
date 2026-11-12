@@ -1,5 +1,7 @@
 # Core
 
+[한국어](README.md) · [简体中文](README.zh-CN.md) · [English](README.en.md)
+
 NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust 계약, ZK 회로, 계약 테스트는 별도 [Contract 저장소](https://github.com/Company-privacy-settlement/Contract)에 보관합니다. 현재 실행 가능한 서버 HTTP API는 포함하지 않습니다.
 
 현재 버전은 native NEAR **공유 익명성 v2**와 **USDC/NEP-141 v3**를 지원합니다. 송금 원금은 각 vault에 분산 보관하고, 공통 forest가 하나의 노트 트리와 전역 nullifier를 관리합니다. A에 예치한 노트로 B에서 출금할 수 있으며, 동시 요청과 재시도에서도 한 노트를 두 번 지급하지 않습니다. v1 독립 풀과 팩토리도 호환 유지합니다.
