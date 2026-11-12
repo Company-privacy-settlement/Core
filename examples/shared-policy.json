@@ -1,0 +1,9 @@
+{
+  "network": "testnet",
+  "registry": "replace-with-forest.testnet",
+  "denomination": "1000000000000000000000000",
+  "feeRecipient": "replace-with-treasury.testnet",
+  "registryWasmSha256": "replace-with-trusted-build-manifest-forest-hash",
+  "vaultWasmSha256": "replace-with-trusted-build-manifest-shared_vault-hash",
+  "verifierSha256": "replace-with-sha256-of-decoded-verification-key"
+}

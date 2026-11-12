@@ -1,143 +1,102 @@
 # Core
 
-NEAR 위에서 기업·개인의 자금을 비공개 노트로 이전하고, 필요한 거래만 선택 공개하는 해커톤 프로토콜 코어.
+NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust 계약, ZK 회로, 계약 테스트는 별도 [Contract 저장소](https://github.com/Company-privacy-settlement/Contract)에 보관합니다. 현재 실행 가능한 서버 HTTP API는 포함하지 않습니다.
 
-```text
-송금자 지갑 ── 예치 ──> 온체인 풀 ── ZK 노트 이전 ──> 수신자 소유 노트 ── 출금 ──> 수신자 지갑
-                           │
-                           └─ 거래 기록 커밋먼트 ──> 선택 공개 영수증 + 확정 TX 증빙 묶음
-```
+현재 버전은 **vault 간 공유 익명성 v2**를 지원합니다. 송금 원금은 각 vault에 분산 보관하고, 공통 forest가 하나의 노트 트리와 전역 nullifier를 관리합니다. A에 예치한 노트로 B에서 출금할 수 있으며, 동시 요청과 재시도에서도 한 노트를 두 번 지급하지 않습니다. v1 독립 풀과 팩토리도 호환 유지합니다.
 
-운영 서버가 비밀키나 자금을 보관하지 않습니다. 계약이 Groth16 증명을 직접 검증하며 출금 승인자가 없습니다. 외부 relayer는 누구나 사용할 수 있고, 증명에 지정된 수신자나 출력 노트를 바꿀 수 없습니다. NEAR 트랜잭션 서명에는 가스와 storage fee를 내는 계정이 필요합니다.
-
-## 구현 범위
-
-| 구성 | 현재 구현 |
+| 저장소 | 보관 내용 |
 | --- | --- |
-| 자산 | Native NEAR, 풀마다 고정 denomination |
-| 입출금 수수료 | 입금·출금 각각 원금의 0.15% 추가 납부, 수신자는 원금 전액 수령 |
-| 비공개 이전 | Circom + Poseidon + Groth16 BN254, 실제 증명 생성·온체인 검증 |
-| 소유권 | 수신자가 생성한 비밀 노트, 송금자에게 commitment만 전달 |
-| 이중 사용 방지 | 도메인별 nullifier, 소비 즉시 기록 |
-| 출금 | NEAR 비동기 transfer, 성공 callback, 실패 시 같은 주소로만 재시도 |
-| 영수증 | 8개 필드의 독립 salt + SHA-256 Merkle opening, 필드별 선택 공개 |
-| TX 증빙 | 확정 TX·풀 계약 이벤트·온체인 journal을 대조 |
-| 기업 KYB | 신뢰한 발급기관의 Ed25519 서명, 노트 commitment, 만료·폐기 검증 |
-| 새 출금 지갑 | 수신자 기기에서 Ed25519 implicit 계정 생성, 첫 송금으로 온체인 계정 생성 |
-| 분산 보관 | 키 없는 vault 자동 배포, 생성 실패 환불, 코드·키 검증 후 선택 |
-| 세금·AI | 이후 단계. 미국 / UAE 아부다비 경계만 기록 |
+| [Contract](https://github.com/Company-privacy-settlement/Contract) | `pool`, `factory`, `shared-vault`, `forest`, Circom 회로, native 테스트, WASM 빌드 |
+| Core (현재) | 비밀 노트·지갑, 로컬 증명 생성, 검증된 vault 선택, 선택 공개, TX 증빙, KYB 서명 검증, CLI·통합 데모 |
 
 ## 실행
 
-Node.js 22+, Rust 1.99.1, C/C++ 빌드 도구가 필요합니다. 데모가 공식 NEAR sandbox 2.14.1을 별도로 내려받습니다(Linux x64 / macOS arm64). 계약 빌드는 풀을 먼저 최적화하고 팩토리에 포함해 `artifacts/core_pool.wasm`, `core_factory.wasm`, `build-manifest.json`을 생성합니다.
+Node.js 22+가 필요합니다. 계약 빌드는 Contract에 고정한 Rust 1.99.1 및 C/C++ 빌드 도구를 사용합니다. 두 저장소를 형제 폴더로 체크아웃합니다.
 
-```bash
-npm ci
-rustup target add wasm32-unknown-unknown
-npm run check
-npm test
-npm run contract:test
-npm run contract:build
-npm run factory:test
-npm run zk:setup
-npm run demo
-npm run demo:factory
+```text
+workspace/
+  Contract/
+  Core/
 ```
 
-`demo`는 별도의 로컬 NEAR 체인을 시작해 계약 배포, 예치, 실제 ZK 노트 이전, 출금, 이중 사용 거부, 수신자 변조 거부, 확정 TX 증빙 검증을 실행합니다. `demo-output/bundle.json`과 `verification.json`을 저장한 뒤 로컬 체인을 종료합니다. 이 파일의 TX는 테스트넷 TX가 아니며 체인 종료 후 RPC로 재조회할 수 없습니다.
-
-`demo:factory`는 키 없는 vault 2개 배포, 실제 생성 실패와 환불, 팩토리 키 제거 후에도 가능한 생성, 직접 예치, 새 지갑 출금, vault 간 증명 재사용 거부와 TX 증빙을 검증합니다. 결과는 `demo-output/factory-validation.json`에 저장합니다. 자동 키 제거는 이 일회용 로컬 체인 안에서만 수행합니다.
-
-`npm test`와 Rust 테스트는 커밋된 공개 검증 벡터를 사용하므로 ZK setup 없이 실행할 수 있습니다. 벡터를 새 setup과 맞춰 재생성하려면 `npm run vectors:generate`를 실행합니다. 벡터에 note 비밀값과 proving key는 포함되지 않습니다.
-
-팩토리 테스트에는 포함할 vault WASM이 필요하므로 `contract:build` 이후 실행합니다. 공유 트리·공유 nullifier·비공개 cross-vault 이동은 아직 구현하지 않았습니다.
-
-## 지갑과 연결하는 CLI
-
-`examples/pool.json`의 계약 주소를 교체합니다. private note 파일은 AES-256-GCM으로 암호화하고 새 파일로만 저장합니다. 실제 지갑 서명·전송은 사용 중인 NEAR 지갑/CLI가 담당하며, 아래 명령은 호출 인자를 생성합니다.
+Core 폴더에서:
 
 ```bash
-# 별도 안전한 입력으로 환경변수를 설정. 비밀번호를 명령행 인자에 쓰지 않습니다.
+(cd ../Contract && npm ci)
+npm ci
+npm run contract:build
+npm run zk:setup
+npm run check
+npm test
+npm run demo:shared
+```
+
+`CORE_CONTRACT_REPO`를 export하면 다른 Contract 경로를 사용할 수 있습니다. Core 빌드 명령은 Contract의 빌드를 호출한 뒤 manifest의 SHA-256을 검증해 WASM을 복사합니다. `zk:setup`도 Contract에서 실행하고 검증한 proving artifacts를 가져옵니다. 생성 파일은 Git에 포함하지 않습니다.
+
+`npm test`는 커밋된 공개 벡터를 사용하므로 계약 checkout·Rust·setup 없이 단독 실행할 수 있습니다. `npm run contract:test` / `npm run factory:test`는 Contract의 v1 테스트를 호출합니다. 전체 계약 검증은 `(cd ../Contract && npm test)`로 실행합니다. 계약 테스트 전에 빌드가 필요합니다.
+
+데모는 공식 NEAR sandbox 2.14.1을 사용합니다(Linux x64 / macOS arm64). 실제 WASM, 실제 Groth16 증명, 최종 확정 RPC를 검증하며 종료 시 일회용 체인을 제거합니다. 보고서의 TX는 테스트넷 TX가 아닙니다.
+
+| 데모 | 검증 |
+| --- | --- |
+| `npm run demo:shared` | 공유 트리, 교차 출금, 동시 이중 사용 방지, 중복 예치 환불, 실패 지급 재시도, 수수료, 12개 확정 기록 |
+| `npm run demo:factory` | v1 keyless 자동 배포·실패 환불·독립 출금 |
+| `npm run demo` | v1 비공개 노트 이전·새 지갑 출금·영수증 검증 |
+
+v2 보고서는 `demo-output/shared-validation.json`입니다. 자동 관리자 키 제거는 일회용 로컬 체인 안에서만 수행합니다. 공개 네트워크 배포나 키 제거는 실행하지 않습니다.
+
+## 공유 v2 사용 흐름
+
+1. Contract를 빌드하고 독립적으로 확인한 forest/vault WASM 해시와 verifier 해시로 `examples/shared-policy.json`을 작성합니다. 모르는 계약에서 복사한 해시를 신뢰 기준으로 삼지 않습니다.
+2. SDK가 하나의 최종 확정 블록에서 registry·vault의 코드, 빈 키 목록, 소속 그룹, 수수료와 가용 잔액을 검증합니다.
+3. 수신자는 공통 그룹의 비밀 노트를 만들고 commitment만 송금자에게 전달합니다. 송금자는 검증된 vault에 직접 예치합니다.
+4. SDK는 공통 트리를 재구성하고 로컬에서 증명을 생성합니다. 출금 시 선택한 vault와 수신자를 증명에 묶습니다.
+5. Forest가 nullifier를 먼저 사용 처리하고 선택 vault가 원금을 직접 지급합니다. 실패 시 목적지와 사용 상태를 유지한 채 같은 요청을 재시도합니다.
+
+```bash
+# 비밀번호는 안전하게 입력하고 명령행 인자나 저장소에 넣지 않습니다.
 read -rs CORE_NOTE_PASSWORD
 export CORE_NOTE_PASSWORD
 
-# 수신자가 실행. stdout의 paymentRequest만 송금자에게 전달합니다.
-npm run cli -- note examples/pool.json receiver-note.encrypted.json
-
-# 매 출금마다 새 외부 지갑이 필요할 때 수신자 기기에서 실행합니다.
-npm run cli -- wallet receiver-wallet.encrypted.json
-
-# 각 동작마다 새 영수증을 생성합니다.
+npm run cli -- discover-shared examples/shared-policy.json https://rpc.testnet.near.org
+npm run cli -- shared-note examples/shared-policy.json https://rpc.testnet.near.org receiver-note.encrypted.json
 npm run cli -- receipt examples/receipt-values.json private-receipt.json
-
-# 예치 / 초기화 인자 출력
-npm run cli -- deposit-args examples/pool.json receiver-note.encrypted.json RECEIPT_ROOT
-npm run cli -- init-args examples/pool.json
-
-# 1 NEAR의 입금·출금 수수료 및 실제 attached deposit 견적
-npm run cli -- quote-fees 1000000000000000000000000
-
-# 온체인 get_commitments 결과를 commitments.json에 저장한 뒤 증명 생성
-npm run cli -- spend-args examples/pool.json receiver-note.encrypted.json commitments.json examples/withdraw-action.json withdrawal-args.json
-
-# 거래처/회계 담당자에게 공개할 필드만 출력
-npm run cli -- disclose private-receipt.json asset,amount,reference
-
-# 배포된 테스트넷 풀의 증빙 검증
-npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
-
-# 신뢰한 빌드 해시로 factory-policy.json 작성 후 keyless vault 탐색
-npm run cli -- discover-vaults examples/factory-policy.json https://rpc.testnet.near.org
-
-# 팩토리의 코드·키·설정을 검증하고 새 vault 생성 인자 출력
-npm run cli -- create-vault-args examples/factory-policy.json creator.testnet https://rpc.testnet.near.org
+npm run cli -- shared-deposit-args examples/shared-policy.json https://rpc.testnet.near.org receiver-note.encrypted.json RECEIPT_ROOT
+npm run cli -- shared-spend-args examples/shared-policy.json https://rpc.testnet.near.org receiver-note.encrypted.json examples/withdraw-action.json withdrawal-args.json
 ```
 
-이후 `CORE_NOTE_PASSWORD`를 unset하고 암호화 노트를 안전하게 백업합니다. 비밀 노트를 잃으면 프로토콜 운영자도 복구할 수 없습니다. `transfer`의 `target`은 수신자가 만든 commitment이며, 송금자가 수신자의 비밀 노트를 대신 만들어 전달하지 않습니다.
+위 명령은 payload를 준비합니다. 실제 NEAR 지갑이 서명·전송해야 합니다. action의 `vault`가 없으면 검증된 유동성에서 선택합니다. 원금 수신자 `target`과 새로운 `disclosureRoot`는 실제 값으로 교체합니다. Private transfer는 `kind: transfer`, `target: 수신자 commitment`를 사용하며 vault를 지정하지 않습니다.
 
-## 계약 API
+Vault 입금이 `Active`로 등록되었는지 확인합니다. 등록 거절은 원래 송금자에게 principal + protocol fee를 환불할 수 있고, 네트워크 실패는 `retry_deposit`로 재개합니다. 출금은 forest의 `get_withdrawal`이 `Complete`여야 완료입니다. 요청 이벤트만으로 지급 완료를 판단하지 않습니다. 명세: [Shared v2](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md).
 
-모든 금액은 yoctoNEAR 십진 문자열입니다. 입금·출금 수수료는 각각 원금의 **0.15% (15 bps)**이며 **원금에 추가**해 납부합니다. 금액은 정수 yoctoNEAR 단위로 내림합니다. 보관 비용 0.02 NEAR와 네트워크 가스는 별도입니다.
+## 수수료
 
-1 NEAR 노트 기준 입금 시 `1 + 0.0015 + 0.02 = 1.0215 NEAR`, 출금 시 별도로 `0.0015 + 0.02 = 0.0215 NEAR`를 내고 수신자는 **1 NEAR 전액**을 받습니다. 노트 이전에는 비율 수수료가 없고 보관 비용만 납부합니다. 실패한 출금 재시도에는 보관 비용만 다시 내며 0.15%는 중복 부과하지 않습니다.
+입금·출금 각각 원금의 **0.15%를 추가**로 내며 수신자는 원금 전액을 받습니다. 정수 yoctoNEAR로 내림합니다. 보관 비용 0.02 NEAR와 가스는 별도입니다.
 
-초기 reserve는 1 NEAR이며 WASM 배포 storage 잔액도 별도로 필요합니다. 보관 비용은 반환하지 않고 storage reserve로 남습니다. 수수료 수취 주소 `fee_recipient`는 배포 시 필수 지정하고 변경할 수 없습니다. `examples/pool.json`의 `feeRecipient`를 실제 주소로 교체한 뒤 초기화 인자를 생성합니다.
+1 NEAR 기준 입금은 **1.0215 NEAR**, 출금은 별도로 **0.0215 NEAR**를 내고 수신자는 **1 NEAR**를 받습니다. v2에서 보관 비용은 forest 0.015 / vault 0.005로 배분하며 추가 요금이 아닙니다. 이전·재시도는 보관 비용만 납부하고 protocol fee를 중복 부과하지 않습니다.
 
-| 메서드 | 핵심 인자 | attached deposit |
-| --- | --- | --- |
-| `new` | 직접 배포용: `network`, `denomination`, `verification_key` (base64), `fee_recipient` | 1 NEAR 이상 |
-| `new_from_factory` | 위와 동일, 직접 부모 팩토리만 호출 가능 | 1 NEAR 이상 |
-| `deposit` | `commitment`, `disclosure_root` | denomination + 0.15% + 0.02 NEAR |
-| `transfer` | `output_commitment`, `disclosure_root`, `proof`, `public_inputs` | 0.02 NEAR |
-| `withdraw` | `recipient`, `disclosure_root`, `proof`, `public_inputs` | denomination의 0.15% + 0.02 NEAR |
-| `retry_withdrawal` | `nullifier` | 0.02 NEAR |
-| `collect_protocol_fees` | 없음; 배포 시 고정한 수취 주소로만 전송 | 1 yoctoNEAR |
-| views | `get_config`, `get_commitments`, `get_records`, `get_payout`, `is_spent` | 없음 |
+```bash
+npm run cli -- quote-fees 1000000000000000000000000
+```
 
-`get_commitments` / `get_records`: `from_index`, `limit`. 가스는 변경 메서드에 300 Tgas를 권장합니다. `withdraw` 반환 성공 여부와 `get_payout`의 `Complete`를 확인해야 출금 완료입니다. 요청 이벤트만으로 지급 완료를 판단하지 않습니다.
+수취 주소는 초기화 시 `fee_recipient`로 고정합니다. 입금 수수료는 vault, 성공한 출금 수수료는 forest가 적립합니다. 확정 수수료만 고정 treasury로 회수하며 원금·대기 지급·환불·보관 잔액을 보호합니다. 수수료 전송 실패 시 장부를 복원합니다.
 
-입금 수수료는 즉시 적립하고, 출금 수수료는 지급 성공 callback에서 수익으로 확정합니다. 실패한 출금의 수수료는 별도 보류하며 재시도에서 재사용합니다. 누구나 `collect_protocol_fees`를 호출할 수 있지만 확정 수수료만 고정 수취 주소로 보냅니다. 원금·보류 수수료·보관 잔액은 보호합니다. 수수료 전송이 실패하면 적립 장부를 복원합니다.
+## 영수증·KYB·새 지갑
 
-수수료가 기록된 TX 증빙은 청구액·확정 수익·보관 비용을 분리해 검증합니다. 출금 요청과 성공 기록을 함께 제출해도 수수료를 두 번 합산하지 않습니다. 예전 기록에 수수료 필드가 없으면 `feeSummary`는 `null`입니다. 새 초기화 인자와 상태 형식은 새 배포부터 적용하며 기존 keyless 계약을 변경하지 않습니다.
+```bash
+npm run cli -- wallet receiver-wallet.encrypted.json
+npm run cli -- disclose private-receipt.json asset,amount,reference
+npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
+```
 
-## 프라이버시와 증명 범위
+새 implicit 지갑의 키는 사용자 기기에서 만들고 AES-256-GCM으로 암호화해 백업합니다. 계약이 비밀키를 생성·보관하지 않습니다. 비밀 노트를 잃으면 운영자도 복구할 수 없습니다.
 
-- 공개되는 정보: 예치 계정, 출금 주소, 고정 금액, 시간, relayer, output commitment, nullifier, receipt root. ZK는 사용한 입력 노트와 출력의 직접 연결을 숨깁니다. 실제 익명성은 풀 참여자 수와 사용 패턴에 좌우됩니다. 단일 참여자 데모가 익명성을 보장하지는 않습니다.
-- 지갑 회전만으로 추적이 끊기지 않습니다. 수신자는 풀 안의 새 비밀 노트를 제어하며, 마지막 출금만 공개 주소로 보냅니다. 자신의 알려진 지갑으로 private spend를 직접 제출하면 계정 정보가 드러납니다.
-- **동작마다 새 영수증과 salt를 생성합니다.** 같은 receipt root를 여러 동작에서 재사용하면 공개적으로 연결됩니다. 전체 영수증·노트·KYB 서류는 오프체인에 보관합니다.
-- 증빙 묶음은 선택한 TX가 해당 풀에서 확정됐고 공개 필드가 원래 receipt root에 포함됐음을 검증합니다. 전체 자금 흐름의 연결성, 빠짐없는 거래 이력, 실명, 금액 필드의 경제적 진실, 세무 신고 수리는 증명하지 않습니다. 영수증의 당사자·목적 등은 작성자의 주장입니다.
-- KYB 증명은 외부 기관이 실제 법인·실소유자 확인을 수행했다는 서명에 의존합니다. 현재는 지갑 SDK에서 검증하는 첨부 자료이며, 회로가 강제하는 입장 조건이 아닙니다. 폐기 목록 최신성도 검증 주체가 확보해야 합니다.
+영수증은 필드마다 독립 salt를 사용하며 **동작마다 새 root를 만듭니다**. 같은 root를 재사용하면 공개적으로 연결됩니다. v2 증빙은 실제 registry executor의 최종 확정 이벤트와 journal을 대조하고, vault·원금·수수료·공개 필드가 변조되지 않았는지 확인합니다. 선택한 TX의 포함·무결성을 검증하며 전체 이력·노트 간 자금 흐름·실명·세무 수리를 증명하지 않습니다.
 
-## 중앙화 경계
+기업 KYB는 신뢰한 외부 발급기관의 Ed25519 서명, subject commitment, 만료와 제공된 폐기 목록을 검증합니다. 실제 법인/실소유자 심사나 회로가 강제하는 자격 정책은 아닙니다. 미국·UAE 아부다비 세금/AI 초안은 후속 범위이며 [compliance/README.md](compliance/README.md)에 경계를 기록합니다.
 
-계약에는 owner, 강제출금, verifier 교체, pause 또는 관리자 원금 회수 메서드가 없습니다. `collect_protocol_fees`는 확정 수수료만 고정 주소로 보냅니다. 네트워크·계약 주소·denomination이 증명 도메인에 포함되어 다른 풀로 replay할 수 없습니다. relayer에 관리자 권한이 없으며, 동일 증명을 먼저 제출해도 목적지를 바꿀 수 없습니다.
+## 한계
 
-직접 배포한 계정에 full-access key가 남으면 그 키로 계약을 교체할 수 있습니다. 팩토리가 만든 vault는 키를 한 번도 추가하지 않습니다. 팩토리 자체는 초기화·검증 후 별도로 키를 제거해야 하며, SDK는 팩토리와 vault 모두 access key가 0개일 때만 승인합니다. 공개 네트워크의 키 제거는 자동화하지 않습니다. verifier hash와 WASM hash는 별도로 고정해 검증합니다. 탐색 조회는 하나의 최종 확정 블록에서 수행하며, RPC 운영자에 대한 신뢰는 여전히 필요합니다.
+공유되는 것은 암호학적 membership 집합입니다. 작은 참여자 수, 시간·금액·수신자·가스 지갑·공개 자료로 추정될 수 있으므로 네트워크 익명성까지 보장하지 않습니다. 공통 registry는 논리적 상태 조정 지점이며 운영자 승인 키를 갖지 않습니다. RPC에 대한 신뢰는 남습니다.
 
-## 현재 제한
-
-깊이 8, 총 256개 output note를 담는 append-only 트리입니다. 가득 차면 추가 예치/이전은 중단되고 기존 노트 출금은 가능합니다. 고정 denomination, 단일 노트 입출력이며 split/merge, FT/USDC, 가변 금액, 정기 급여, 실시간 KYB 서비스, 세금 계산, AI 법률 서류 준비는 후속 범위입니다.
-
-로컬 1인 Groth16 setup은 개발용입니다. 이 설정과 새 회로는 감사되지 않았습니다. network 설정값은 `testnet` / `sandbox`만 허용하지만, 계약이 실행 중인 실제 네트워크를 식별하거나 메인넷 배포를 기술적으로 차단하지는 않습니다. 테스트넷/로컬에서만 사용하며, 실제 자금용 배포에는 별도 회로 검토·독립 setup·운영 검증이 필요합니다.
-
-프로토콜 상세: [docs/PROTOCOL.md](docs/PROTOCOL.md). 자동 배포: [docs/FACTORY.md](docs/FACTORY.md). 분산 보관: [docs/DISTRIBUTED_VAULTS.md](docs/DISTRIBUTED_VAULTS.md). 확장 경계: [compliance/README.md](compliance/README.md).
+Native NEAR, 고정 denomination, 공유 트리 총 256 output의 해커톤 코어입니다. v1과 v2는 별도 도메인이며 기존 v1 노트를 자동 이동하지 않습니다. 가변 금액·FT·USDC, 실제 법정 신고, production 감사·분산 trusted setup은 포함하지 않습니다. 네트워크 label은 설정값이며 실제 메인넷 배포를 자동 차단하지 않습니다. 개발 setup은 로컬/테스트넷 시연용입니다.

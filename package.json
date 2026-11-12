@@ -12,10 +12,12 @@
     "zk:setup": "node scripts/setup-zk.mjs",
     "demo": "tsx scripts/demo.ts",
     "demo:factory": "tsx scripts/factory-demo.ts",
+    "demo:shared": "tsx scripts/shared-demo.ts",
+    "vectors:shared": "tsx scripts/shared-vectors.ts",
     "vectors:generate": "tsx scripts/vectors.ts",
     "cli": "tsx scripts/cli.ts",
-    "contract:test": "cargo test --manifest-path contracts/pool/Cargo.toml",
-    "factory:test": "cargo test --locked --manifest-path contracts/factory/Cargo.toml --target-dir contracts/pool/target",
+    "contract:test": "node scripts/contract-test.mjs test:pool",
+    "factory:test": "node scripts/contract-test.mjs test:factory",
     "contract:build": "node scripts/build-contract.mjs"
   },
   "dependencies": {
@@ -26,9 +28,6 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "binaryen": "^132.0.0",
-    "circom2": "0.2.23",
-    "circomlib": "2.0.5",
     "near-workspaces": "^5.0.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"

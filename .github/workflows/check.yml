@@ -9,12 +9,5 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.99.1
-          targets: wasm32-unknown-unknown
       - run: npm ci
       - run: npm run check && npm test
-      - run: cargo test --locked --manifest-path contracts/pool/Cargo.toml
-      - run: npm run contract:build
-      - run: npm run factory:test

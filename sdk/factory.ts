@@ -91,14 +91,14 @@ export class NearRpcFactorySource implements FactoryChainSource {
     const url = new URL(rpcUrl);
     if (url.protocol !== 'https:' && !(network === 'sandbox' && url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname))) throw new Error('Use HTTPS outside sandbox');
   }
-  private async rpc(method: string, params: unknown): Promise<any> {
+  protected async rpc(method: string, params: unknown): Promise<any> {
     const response = await fetch(this.rpcUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: ++this.id, method, params }), signal: AbortSignal.timeout(20_000) });
     if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
     const body: any = await response.json();
     if (body.error) throw new Error(`RPC error: ${JSON.stringify(body.error)}`);
     return body.result;
   }
-  private async view(account: string, method: string, args: unknown, block: string): Promise<unknown> {
+  protected async view(account: string, method: string, args: unknown, block: string): Promise<unknown> {
     const result = await this.rpc('query', { request_type: 'call_function', block_id: block, account_id: account, method_name: method, args_base64: Buffer.from(JSON.stringify(args)).toString('base64') });
     return JSON.parse(Buffer.from(result.result).toString());
   }

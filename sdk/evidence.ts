@@ -6,6 +6,7 @@ export type ChainRecord = {
   index: number; kind: string; commitment: string | null; nullifier: string | null;
   recipient: string | null; disclosure_root: string; block_height: number; timestamp_ns: string;
   amount?: string; protocol_fee_charged?: string; protocol_fee_earned?: string; storage_fee_charged?: string;
+  vault?: string | null;
 };
 const Money = z.string().regex(/^(0|[1-9][0-9]*)$/);
 const RecordSchema = z.object({
@@ -13,10 +14,11 @@ const RecordSchema = z.object({
   nullifier: z.string().nullable(), recipient: z.string().nullable(), disclosure_root: z.string().regex(/^[a-f0-9]{64}$/),
   block_height: z.number().int().nonnegative(), timestamp_ns: z.string().regex(/^[0-9]+$/),
   amount: Money.optional(), protocol_fee_charged: Money.optional(), protocol_fee_earned: Money.optional(), storage_fee_charged: Money.optional(),
+  vault: z.string().nullable().optional(),
 }).refine(r => [r.amount, r.protocol_fee_charged, r.protocol_fee_earned, r.storage_fee_charged].filter(x => x !== undefined).length % 4 === 0, 'Include all fee fields or none for legacy records');
 export type TxRef = { hash: string; signer: string; recordIndex: number };
 export type SettlementBundle = {
-  version: 1; network: 'testnet' | 'sandbox'; contract: string;
+  version: 1 | 2; network: 'testnet' | 'sandbox'; contract: string;
   scope: 'selected_transactions'; transactions: { tx: TxRef; disclosure?: Receipt }[];
 };
 export interface EvidenceSource {
@@ -27,9 +29,9 @@ export interface EvidenceSource {
 }
 function recordFingerprint(record: ChainRecord): string {
   return sha256(JSON.stringify([record.index, record.kind, record.commitment, record.nullifier, record.recipient, record.disclosure_root, record.block_height, record.timestamp_ns,
-    record.amount ?? null, record.protocol_fee_charged ?? null, record.protocol_fee_earned ?? null, record.storage_fee_charged ?? null]));
+    record.amount ?? null, record.protocol_fee_charged ?? null, record.protocol_fee_earned ?? null, record.storage_fee_charged ?? null, record.vault ?? null]));
 }
-function isAnchored(tx: any, ref: TxRef, record: ChainRecord, contract: string): boolean {
+function isAnchored(tx: any, ref: TxRef, record: ChainRecord, contract: string, version: 1 | 2): boolean {
   if (tx?.final_execution_status !== 'FINAL' || !tx?.status || !Object.hasOwn(tx.status, 'SuccessValue')) return false;
   if (tx.transaction?.hash !== ref.hash || tx.transaction?.signer_id !== ref.signer) return false;
   // Cross-contract logs are trusted only when this pool was the receipt executor.
@@ -40,7 +42,7 @@ function isAnchored(tx: any, ref: TxRef, record: ChainRecord, contract: string):
       try {
         if (!log.startsWith('EVENT_JSON:')) return false;
         const event = JSON.parse(log.slice(11));
-        return event.standard === 'core_privacy' && event.version === '1.0.0' && event.event === record.kind && event.data.some((r: unknown) => {
+        return event.standard === (version === 2 ? 'core_shared' : 'core_privacy') && event.version === (version === 2 ? '2.0.0' : '1.0.0') && event.event === record.kind && event.data.some((r: unknown) => {
           const parsed = RecordSchema.safeParse(r);
           return parsed.success && recordFingerprint(parsed.data) === recordFingerprint(record);
         });
@@ -49,7 +51,7 @@ function isAnchored(tx: any, ref: TxRef, record: ChainRecord, contract: string):
   });
 }
 export async function verifyBundle(bundle: SettlementBundle, source: EvidenceSource) {
-  if (bundle.version !== 1 || bundle.scope !== 'selected_transactions' || bundle.network !== source.network || bundle.contract !== source.contract || bundle.transactions.length === 0) throw new Error('Bundle domain or scope mismatch');
+  if ((bundle.version !== 1 && bundle.version !== 2) || bundle.scope !== 'selected_transactions' || bundle.network !== source.network || bundle.contract !== source.contract || bundle.transactions.length === 0) throw new Error('Bundle domain or scope mismatch');
   const seen = new Set<number>();
   const verified: ChainRecord[] = [];
   for (const item of bundle.transactions) {
@@ -58,7 +60,8 @@ export async function verifyBundle(bundle: SettlementBundle, source: EvidenceSou
     const record = RecordSchema.parse(await source.getRecord(item.tx.recordIndex));
     if (record.index !== item.tx.recordIndex) throw new Error('Wrong chain record');
     const transaction = await source.getTransaction(item.tx);
-    if (!isAnchored(transaction, item.tx, record, bundle.contract)) throw new Error('Transaction does not anchor the record');
+    if (bundle.version === 2 && (record.vault === undefined || record.amount === undefined)) throw new Error('Incomplete shared record');
+    if (!isAnchored(transaction, item.tx, record, bundle.contract, bundle.version)) throw new Error('Transaction does not anchor the record');
     if (item.disclosure && !verifyDisclosure(item.disclosure, record.disclosure_root)) throw new Error('Disclosure mismatch');
     verified.push(record);
   }
