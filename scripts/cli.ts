@@ -29,9 +29,11 @@ async function loadNote(path: string): Promise<Note> {
 try {
   switch (command) {
     case 'invoice-action':{
-      if(args.length!==3)throw new Error('invoice-action trusted-policy.json signed-invoice.json action-output.json');
+      if(args.length!==3&&args.length!==4)throw new Error('invoice-action trusted-policy.json signed-invoice.json action-output.json [payment-unit: 1-based]');
       const trusted=parsePolicy(await json(args[0])),signed=await verifySignedInvoice(await json(args[1]));if(canonical(trusted)!==canonical(signed.invoice.policy))throw new Error('Invoice policy differs from trusted group');requireOpenInvoice(signed.invoice);
-      await save(args[2],JSON.stringify({kind:'withdraw',target:signed.invoice.recipient,disclosureRoot:await invoiceRoot(signed.invoice)},null,2));output({prepared:args[2],note:'Verify merchant account ownership through Core API before signing the payment'});break;
+      const unit=args[3]===undefined?undefined:Number(args[3]);
+      if(unit!==undefined&&(!/^[1-9][0-9]*$/.test(args[3])||!Number.isSafeInteger(unit)))throw new Error('Payment unit must be a positive integer');
+      await save(args[2],JSON.stringify({kind:'withdraw',target:signed.invoice.recipient,disclosureRoot:await invoiceRoot(signed.invoice,unit===undefined?undefined:unit-1)},null,2));output({prepared:args[2],note:'Verify merchant account ownership and fresh indexed reference availability through Core API before signing the payment'});break;
     }
     case 'ft-preflight': {
       if (args.length !== 3) throw new Error('ft-preflight trusted-policy.json trusted-rpc-url public-request.json');

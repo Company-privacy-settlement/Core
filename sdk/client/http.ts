@@ -4,7 +4,8 @@ import {
   verifySignedInvoice,
   invoiceProof,
   invoiceHash,
-  invoiceRoot,
+  invoicePaymentRoots,
+  invoiceStatusRequest,
   invoiceQuote,
   validateInvoiceStatus,
   type SignedInvoice,
@@ -110,15 +111,11 @@ export class HttpGateway implements Gateway {
   async invoiceStatus(input: SignedInvoice): Promise<InvoiceStatus> {
     const signed = await this.verifyInvoice(input),
       hash = await invoiceHash(signed.invoice),
-      result = await this.request("/v1/invoices/status", {
-        invoiceHash: hash,
-        recipient: signed.invoice.recipient,
-        units: signed.invoice.units,
-        expiresAt: signed.invoice.expiresAt,
-      });
+      result = await this.request("/v1/invoices/status", await invoiceStatusRequest(signed.invoice)),
+      roots = await invoicePaymentRoots(signed.invoice);
     if (
       result.invoiceHash !== hash ||
-      result.settlementRoot !== (await invoiceRoot(signed.invoice)) ||
+      (signed.invoice.version === 1 ? result.settlementRoot !== roots[0] : result.settlementRoot !== null || canonical(result.settlementRoots) !== canonical(roots)) ||
       result.expectedTokens !== invoiceQuote(signed.invoice).principalTokens ||
       ![
         "awaiting_payment",

@@ -21,15 +21,15 @@ sequenceDiagram
     P->>P: Prepare invoice-bound local withdrawal proof
     P->>F: Approve storage / token fee / proof calls
     F->>M: Vault pays full principal to the signed payout account
-    F->>I: Finalized withdrawal_succeeded record + invoice root
+    F->>I: Finalized payout + selected payment reference
     M->>A: Refresh invoice confirmation totals
-    A->>I: Match root, recipient, asset and unique nullifiers
+    A->>I: Match signed-derived references, recipient, asset, nullifiers
     A-->>M: Partial / paid / late / overpaid as of checkpoint
 ```
 
 The protocol holds no invoice-operator signing key and collects no principal in a central merchant wallet. Existing keyless vault settlement, global nullifiers and fixed-destination recovery keep their behavior. Invoice business terms are not saved by the Core API.
 
-## What the first version implements
+## Implemented flow
 
 | Part | Implemented behavior |
 | --- | --- |
@@ -38,19 +38,21 @@ The protocol holds no invoice-operator signing key and collects no principal in 
 | Share | Signed JSON download and a `/pay/#invoice=...` link, with the terms in the fragment |
 | Checkout | Local signature verification, independently trusted group policy, merchant verification and invoice-bound public plan import |
 | Pay | Existing local proof generation, encrypted wallet-operation journal, one reviewed wallet call at a time and fixed-destination recovery |
-| Reconcile | Read-only indexed confirmations matched to the invoice root, recipient, pinned token and denomination; unique successful nullifiers only |
+| Reconcile | Read-only indexed confirmations matched to the signed reference set, recipient, pinned token and denomination; unique successful nullifiers only |
 | Export | Signed request and indexed settlement summary; neither is labeled a tax certificate |
 
 The merchant page is client-held: download the signed JSON before leaving. Open that file to inspect/track it later. It does not silently persist business terms in localStorage or a server database. Sharing visibility follows the hosting site's access settings; the existing Sites preview remains owner-private. External customer checkout requires hosting/access appropriate to those customers.
 
 ## Signed terms and chain binding
 
-`Invoice` v1 contains `id`, `merchantAccount`, `recipient`, `title`, `reference`, exact `policy`, `units`, UTC `createdAt`/`expiresAt` and a fresh 32-byte random `nonce`. `version` is fixed to 1. Amounts derive from the trusted group's denomination; the request cannot swap the token, registry, fee recipient or reviewed code/verifier hashes. Unknown fields are rejected.
+New `Invoice` terms v2 contain `id`, `merchantAccount`, `recipient`, `title`, `reference`, exact `policy`, `units`, UTC `createdAt`/`expiresAt`, a fresh 32-byte signing `nonce`, and one distinct random 32-byte `paymentNonces` entry per unit. Unknown fields are rejected. Amounts derive from the independently trusted group; terms cannot swap its token, registry, fee recipient or reviewed code/verifier hashes.
 
 ```text
-invoiceHash    = SHA256("core:invoice:v1|" + canonical(invoice))
-settlementRoot = SHA256("core:invoice:settlement:v1|" + invoiceHash)
+invoiceHash    = SHA256("core:invoice:v2|" + canonical(invoice))
+settlementRoot[i] = SHA256("core:invoice:payment:v2|" + invoiceHash + "|" + paymentNonces[i])
 ```
+
+Each unit publishes a different reference. SDK `invoiceRoot(invoice, zeroBasedIndex)` requires an explicit index for multi-unit v2 invoices. `invoicePaymentRoots` returns the signed-derived set. Existing v1 terms retain their original digest `SHA256("core:invoice:v1|" + canonical(invoice))` and common reference `SHA256("core:invoice:settlement:v1|" + invoiceHash)`; they are not silently upgraded. Terms v2 use the existing **signing envelope v1**:
 
 The merchant signs this NEP-413 message:
 
@@ -64,7 +66,7 @@ The NEP recipient is `core.invoice.v1`; the invoice nonce is the 32-byte NEP non
 
 Browser verification checks the signature and all signed terms. `POST /v1/invoices/verify` additionally reads the named merchant account's keys at one final block and requires that exact key's permission to be `FullAccess`. A valid signature under an unrelated key, removed key or function-call key does not pass. The payout account may differ from the merchant signer because the signed request explicitly authorizes that destination. Wallet control is **not** legal-entity identity or KYB. Current-key verification can stop new checkout after key removal; historical key/issuer attestations are a later integration.
 
-A payer's withdrawal proof must use `recipient = invoice.recipient` and `disclosureRoot = settlementRoot`. Existing v3 action context binds these values, the chosen vault, registry, token and denomination. Importing a valid proof for another invoice/root or recipient is rejected by checkout. Reusing one completed nullifier cannot increase the confirmed invoice amount. Different invoices receive independent random IDs/nonces and roots, even when their human references happen to match.
+A payer's withdrawal proof must use `recipient = invoice.recipient` and `disclosureRoot = settlementRoot[i]` (one of the signed-derived references). Existing v3 action context binds these values, the chosen vault, registry, token and denomination. Importing a valid proof for another invoice/root or recipient is rejected by checkout. Reusing one completed nullifier cannot increase the confirmed invoice amount. Different invoices receive independent random IDs/nonces and roots, even when their human references happen to match.
 
 ## Amount and fee model
 
@@ -85,12 +87,12 @@ Run the verified Core API and index worker as described in [INDEXER.md](INDEXER.
 5. Prepare an action locally and generate one withdrawal plan per private note:
 
 ```sh
-npm run cli -- invoice-action trusted-policy.json signed-invoice.json invoice-action.json
+npm run cli -- invoice-action trusted-policy.json signed-invoice.json invoice-action.json 1
 npm run cli -- shared-spend-args trusted-policy.json https://rpc.testnet.near.org \
   encrypted-note.json invoice-action.json public-invoice-payment.json
 ```
 
-`invoice-action` validates the local signature, policy and open time; merchant on-chain key ownership is checked by checkout before signing. A failed/missing API verification must not be replaced with trusting the included key. Existing CLI password handling stays in `CORE_NOTE_PASSWORD`; private note files stay on the payer's device. Front can also download the same public proof action.
+`invoice-action` validates the local signature, policy and open time; merchant on-chain key ownership is checked by checkout before signing. A failed/missing API verification must not be replaced with trusting the included key. Existing CLI password handling stays in `CORE_NOTE_PASSWORD`; private note files stay on the payer's device. The final CLI argument selects a **1-based payment unit**, required for multi-unit v2 invoices. Choose 2 for the next unit, and so on. Front’s Payment unit selector downloads the corresponding public proof action. Legacy v1 and single-unit v2 accept the original three-file command.
 
 6. Import `public-invoice-payment.json` into checkout. Approve each prerequisite/payment. Refresh the merchant's indexed invoice status as the worker observes completed payouts. Repeat for the required units.
 7. Export the indexed summary for reconciliation. Existing evidence bundles can independently verify selected linked transaction records. The request signature proves its terms; the index observations report settlement. Neither proves legal identity, complete company history or tax filing acceptance.
@@ -108,7 +110,7 @@ npm run cli -- shared-spend-args trusted-policy.json https://rpc.testnet.near.or
 | `partial_expired` | Deadline passed with an outstanding balance |
 | `review_required` | The known journal or bounded confirmation scan is incomplete |
 
-Only `withdrawal_succeeded` records with the exact root, recipient and asset count. Deposit, request, failure and retry events do not count. Identical nullifiers are counted once. Block timestamps determine late settlement; refreshing an old invoice after its deadline does not turn an already timely paid invoice into an expired one.
+Only `withdrawal_succeeded` records with a root in the signed-derived set and the exact recipient and asset count. Deposit, request, failure and retry events do not count. Identical nullifiers are counted once. Block timestamps determine late settlement; refreshing an old invoice after its deadline does not turn an already timely paid invoice into an expired one.
 
 Checkout blocks new imports/signatures after expiry or a fully covered/review-needed invoice. Recovery of an already committed operation keeps the original destination and remains possible after expiry. Expiry is a browser/application rule: the existing contracts do **not** enforce invoice deadlines, cancellation, expected unit caps or a global invoice-paid flag. An already signed transaction can settle late, and simultaneous independent payers can overpay. Those cases remain visible and require merchant handling; the application never invents an automatic refund or resets a nullifier.
 
@@ -119,12 +121,16 @@ Status is indexed history with `chainFreshnessChecked: false`, not a latest-chai
 | Endpoint | Accepted public input |
 | --- | --- |
 | `POST /v1/invoices/verify` | `invoiceHash`, merchant account, nonce, public key and signature |
-| `POST /v1/invoices/status` | `invoiceHash`, payout recipient, unit count and expiry |
+| `POST /v1/invoices/status` | v1: `invoiceHash`, `recipient`, `units`, `expiresAt`; v2 additionally: `version: 2`, `paymentNonces` |
 | `GET /v1/activity?disclosure_root=...` | Existing public activity query with an indexed commitment filter |
 
 Full titles, human references and business documents are not sent to these endpoints. Unknown fields, including accidentally supplied private material, are rejected. The API has no invoice-create write route, custody key, sender broadcast route or arbitrary merchant callback target. It can still observe public invoice lookups and addresses. URL fragments are not sent in the page's HTTP request, but link holders, browser extensions and page code can see their contents; a fragment is not encrypted storage.
 
-The on-chain root commits to the salted request. Public recipients, token amounts, timing, nullifiers and the common root can link parts of one invoice. This intentional reconciliation link does not hide network activity or guarantee anonymity beyond the existing input-note proof. Keep legal names, payroll documents and tax forms in separately encrypted business-document storage, a later integration.
+New v2 payments avoid a shared public invoice root. Public recipient reuse, token amounts, timing, signers and nullifiers still permit correlation. Link holders and the API can derive all the invoice's references. This reduces explicit identifier reuse; it does not guarantee transaction-graph anonymity. Keep legal names, payroll documents and tax forms in separately encrypted business-document storage, a later integration. See [the full privacy model](PRIVACY.md).
+
+V2 status responses set `settlementRoot: null`, return `settlementRoots` in signed unit order, include `settlementRoot` on each confirmation, and report `reusedPaymentReferences`. V1 keeps its original shape and common root. The SDK checks that the returned reference set matches the signed terms. Run the updated API with the updated Front SDK; an older API rejects v2 status fields.
+
+Checkout rejects a v2 reference already observed as paid before a new import/signature. This is an indexed client guard, not an on-chain reservation. Different nullifiers can race on one reference; their actual payouts are counted and reuse is reported. V2 status scans one consistent recipient-history snapshot, filters its signed reference set and stops after 20 pages of 50 records. Reaching incomplete coverage yields `review_required`, never an invented complete status. V1 retains its root-filtered scan.
 
 SQLite adds a disclosure-root column/index through an additive writer migration. Run the updated worker before attaching an existing database to new invoice routes. The API remains read-only.
 

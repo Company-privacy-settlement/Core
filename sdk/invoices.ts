@@ -3,6 +3,7 @@ import { AccountId, Count, Sha256 } from "./validation.js";
 import { canonical, sha256 } from "./client/crypto.js";
 import {
   verifyInvoiceProofSignature,
+  invoiceRootsFromHash,
   type InvoiceProof,
   type InvoiceStatus,
 } from "./client/invoices.js";
@@ -20,14 +21,14 @@ export const InvoiceProofInput = z
     signature: z.string().regex(/^[A-Za-z0-9+/]{86}==$/),
   })
   .strict();
-export const InvoiceStatusInput = z
-  .object({
-    invoiceHash: Sha256,
-    recipient: AccountId,
-    units: z.number().int().min(1).max(32),
-    expiresAt: z.string().datetime(),
-  })
-  .strict();
+const invoiceLookup = {
+  invoiceHash: Sha256, recipient: AccountId, units: z.number().int().min(1).max(32), expiresAt: z.string().datetime(),
+};
+export const InvoiceStatusInput = z.union([
+  z.object(invoiceLookup).strict(),
+  z.object({ ...invoiceLookup, version: z.literal(2), paymentNonces: z.array(Sha256).min(1).max(32) }).strict()
+    .refine(r => r.paymentNonces.length === r.units && new Set(r.paymentNonces).size === r.units, "Distinct payment nonces must match units"),
+]);
 export async function verifyInvoiceMerchant(
   source: OperationsSource,
   policy: SharedPolicy,
@@ -72,9 +73,9 @@ export async function indexedInvoiceStatus(
   const request = InvoiceStatusInput.parse(input);
   if (canonical(index.policy) !== canonical(policy))
     throw new Error("Invoice index policy mismatch");
-  const root = await sha256(
-      "core:invoice:settlement:v1|" + request.invoiceHash,
-    ),
+  const scoped = "version" in request && request.version === 2,
+    roots = scoped ? await invoiceRootsFromHash(request.invoiceHash, request.paymentNonces) : [await sha256("core:invoice:settlement:v1|" + request.invoiceHash)],
+    rootSet = new Set(roots),
     seen = new Set<string>(),
     confirmations: InvoiceStatus["confirmations"] = [];
   let cursor: string | undefined,
@@ -103,7 +104,7 @@ export async function indexedInvoiceStatus(
         index.activity({
           kind: "withdrawal_succeeded",
           recipient: request.recipient,
-          disclosure_root: root,
+          ...(!scoped ? { disclosure_root: roots[0] } : {}),
           limit: 50,
           ...(cursor ? { cursor } : {}),
         }),
@@ -124,12 +125,13 @@ export async function indexedInvoiceStatus(
       if (
         r.kind !== "withdrawal_succeeded" ||
         r.recipient !== request.recipient ||
-        r.disclosure_root !== root ||
+        (!scoped && r.disclosure_root !== roots[0]) ||
         r.amount !== policy.denomination ||
         (r.asset_token_id ?? undefined) !== policy.tokenId ||
         !r.nullifier
       )
         throw new Error("Invoice confirmation binding mismatch");
+      if (!rootSet.has(r.disclosure_root)) continue;
       if (seen.has(r.nullifier)) continue;
       seen.add(r.nullifier);
       const paidLate =
@@ -144,6 +146,7 @@ export async function indexedInvoiceStatus(
             .parse(item.provenance).transaction
         : null;
       confirmations.push({
+        ...(scoped ? { settlementRoot: r.disclosure_root } : {}),
         recordIndex: r.index,
         nullifier: r.nullifier,
         blockHeight: r.block_height,
@@ -180,7 +183,8 @@ export async function indexedInvoiceStatus(
             : "awaiting_payment";
   return {
     invoiceHash: request.invoiceHash,
-    settlementRoot: root,
+    settlementRoot: scoped ? null : roots[0],
+    ...(scoped ? { settlementRoots: roots, reusedPaymentReferences: confirmations.length - new Set(confirmations.map(c => c.settlementRoot)).size } : {}),
     state,
     expectedTokens: expected.toString(),
     paidTokens: paid.toString(),

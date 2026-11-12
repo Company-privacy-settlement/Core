@@ -2,6 +2,8 @@
 
 [English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md)
 
+Principal stays in independent vaults; one shared ZK note set authorizes a direct payout from one funded vault. This is not a chain of principal hops. New invoice terms v2 use a distinct signed reference per payment unit, while legacy v1 remains readable. Recipients, amounts, timing and signers remain public; vault count is not a measured anonymity set. See [privacy model and limits](docs/PRIVACY.md).
+
 The **wallet SDK, CLI, and integration code** for private settlement on NEAR. Rust contracts, ZK circuits, and contract tests live in the separate [Contract repository](https://github.com/Company-privacy-settlement/Contract). It includes a runnable read-only HTTP API for verified vault discovery, FT preflight, and finalized settlement state. Signing and proof generation remain local client operations.
 
 The current version supports native NEAR **shared anonymity v2** and **USDC/NEP-141 v3**. Principal remains distributed among vaults, while a common forest maintains one note tree and global nullifiers. A note deposited in A can withdraw from B, and concurrent requests or retries cannot pay the same note twice. V1 independent pools and the factory remain compatible.

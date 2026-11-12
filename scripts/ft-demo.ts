@@ -12,7 +12,7 @@ import { TransactionDiscovery } from '../sdk/indexer/discovery.js';
 import { resolve } from 'node:path';
 import { randomBytes,createPrivateKey,sign } from 'node:crypto';
 import bs58 from 'bs58';
-import {invoiceHash,invoiceRoot,invoiceProof,invoiceSigningDigest,type Invoice,type SignedInvoice} from '../sdk/client/invoices.js';
+import {invoiceHash,invoiceRoot,invoiceProof,invoiceSigningDigest,createInvoice,invoiceStatusRequest,type Invoice,type SignedInvoice} from '../sdk/client/invoices.js';
 import { Worker, type NearAccount, type TransactionResult } from 'near-workspaces';
 import { createNote, proveSpend, encodeVerificationKey, sha256, STORAGE_FEE, shutdownProver } from '../sdk/core.js';
 import { NearRpcSharedSource, discoverSharedVaults, loadSharedTree, predictSharedVault, type SharedPolicy } from '../sdk/shared.js';
@@ -140,7 +140,7 @@ try {
   const recipient=createFreshRecipient('ft-sandbox-local-recipient'); const activation=await root.transfer(recipient.accountId,NEAR/10n); await final(activation);
   catalog=await discoverSharedVaults(source,policy); tree=await loadSharedTree(source,catalog);
   const merchantKey=await bob.getKey();assert.ok(merchantKey);
-  const invoice:Invoice={version:1,id:crypto.randomUUID(),merchantAccount:bob.accountId,recipient:recipient.accountId,title:'Sandbox recipient invoice',reference:'INV-SANDBOX-001',policy,units:1,createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+3600000).toISOString(),nonce:randomBytes(32).toString('hex')};
+  const invoice:Invoice=createInvoice({merchantAccount:bob.accountId,recipient:recipient.accountId,title:'Sandbox recipient invoice',reference:'INV-SANDBOX-001',policy,units:1,createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+3600000).toISOString()});
   const seed=bs58.decode(merchantKey.toString().split(':')[1]).slice(0,32),privateKey=createPrivateKey({key:Buffer.concat([Buffer.from('302e020100300506032b657004220420','hex'),Buffer.from(seed)]),format:'der',type:'pkcs8'});
   const signedInvoice:SignedInvoice={invoice,signature:{accountId:bob.accountId,publicKey:merchantKey.getPublicKey().toString(),signature:sign(null,await invoiceSigningDigest(await invoiceHash(invoice),'sandbox',invoice.nonce),privateKey).toString('base64')}};
   assert.equal((await api('/v1/invoices/verify',await invoiceProof(signedInvoice))).verified,true);
@@ -206,7 +206,7 @@ try {
     cursor=page.nextCursor;
   } while(cursor);
   assert.deepEqual(activityIndices,[...verified.records.map(r=>r.index)].sort((a,b)=>b-a));
-  const invoiceResponse=await fetch(`http://127.0.0.1:${indexedAddress.port}/v1/invoices/status`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({invoiceHash:await invoiceHash(invoice),recipient:invoice.recipient,units:1,expiresAt:invoice.expiresAt})});assert.equal(invoiceResponse.status,200);const paidInvoice=await invoiceResponse.json();assert.equal(paidInvoice.state,'paid');assert.equal(paidInvoice.paidTokens,'1000000');assert.equal(paidInvoice.confirmedPayments,1);console.log('Recipient-signed invoice matched exactly one finalized payout after retry, with full principal and its bound invoice root.');
+  const invoiceResponse=await fetch(`http://127.0.0.1:${indexedAddress.port}/v1/invoices/status`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(await invoiceStatusRequest(invoice))});assert.equal(invoiceResponse.status,200);const paidInvoice=await invoiceResponse.json();assert.equal(paidInvoice.state,'paid');assert.equal(paidInvoice.paidTokens,'1000000');assert.equal(paidInvoice.confirmedPayments,1);assert.equal(paidInvoice.settlementRoot,null);assert.deepEqual(paidInvoice.settlementRoots,[withdrawalRoot]);assert.equal(paidInvoice.confirmations[0].settlementRoot,withdrawalRoot);console.log('Recipient-signed invoice matched exactly one finalized payout after retry, with full principal and its bound invoice root.');
   console.log('All-shard discovery found transaction origins without a supplied reference list; durable index linked all 14 records and served stable activity pages.');
   const remaining:any=await forest.view('get_storage_credit',{account_id:alice.accountId});
   if(BigInt(remaining.available)>0n) { const tx=await alice.callRaw(forest,'withdraw_storage_credit',{},{attachedDeposit:1n,gas:GAS}); assert.equal(tx.parseResult(),true); assert.equal((await forest.view<any>('get_storage_credit',{account_id:alice.accountId})).available,'0'); }

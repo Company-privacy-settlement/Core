@@ -7,6 +7,11 @@ export { HttpGateway, CoreApiError } from "./http.js";
 export {
   INVOICE_SIGNING_RECIPIENT,
   parseInvoice,
+  createInvoice,
+  invoicePaymentRoots,
+  invoiceRootsFromHash,
+  invoiceStatusRequest,
+  assertInvoiceReferenceAvailable,
   parseSignedInvoice,
   invoiceHash,
   invoiceRoot,

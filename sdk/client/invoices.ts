@@ -8,8 +8,7 @@ import {
 } from "./payment.js";
 import type { Policy } from "./types.js";
 export const INVOICE_SIGNING_RECIPIENT = "core.invoice.v1";
-export type Invoice = {
-  version: 1;
+type InvoiceTerms = {
   id: string;
   merchantAccount: string;
   recipient: string;
@@ -21,6 +20,7 @@ export type Invoice = {
   expiresAt: string;
   nonce: string;
 };
+export type Invoice = InvoiceTerms & ({ version: 1 } | { version: 2; paymentNonces: string[] });
 export type InvoiceSignature = {
   accountId: string;
   publicKey: string;
@@ -45,7 +45,9 @@ export type InvoiceState =
   | "review_required";
 export type InvoiceStatus = {
   invoiceHash: string;
-  settlementRoot: string;
+  settlementRoot: string | null;
+  settlementRoots?: string[];
+  reusedPaymentReferences?: number;
   state: InvoiceState;
   expectedTokens: string;
   paidTokens: string;
@@ -57,6 +59,7 @@ export type InvoiceStatus = {
   checkedAt: { hash: string; height: number; updatedAt: string };
   chainFreshnessChecked: false;
   confirmations: {
+    settlementRoot?: string;
     recordIndex: number;
     nullifier: string;
     blockHeight: number;
@@ -106,9 +109,10 @@ export function parseInvoice(input: unknown): Invoice {
     "createdAt",
     "expiresAt",
     "nonce",
+    ...(o.version === 2 ? ["paymentNonces"] : []),
   ]);
   if (
-    o.version !== 1 ||
+    (o.version !== 1 && o.version !== 2) ||
     typeof o.id !== "string" ||
     !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(
       o.id,
@@ -134,8 +138,7 @@ export function parseInvoice(input: unknown): Invoice {
     recipient.endsWith("." + policy.registry)
   )
     throw new Error("Invoice must pay an external recipient");
-  return {
-    version: 1,
+  const terms: InvoiceTerms = {
     id: o.id,
     merchantAccount: account(o.merchantAccount),
     recipient,
@@ -147,6 +150,22 @@ export function parseInvoice(input: unknown): Invoice {
     expiresAt,
     nonce: hex(o.nonce),
   };
+  if (o.version === 1) return { ...terms, version: 1 };
+  const paymentNonces = parsePaymentNonces(o.paymentNonces, terms.units);
+  if (paymentNonces.includes(terms.nonce)) throw new Error("Invoice signing and payment nonces must differ");
+  return { ...terms, version: 2, paymentNonces };
+}
+function parsePaymentNonces(input: unknown, units?: number): string[] {
+  if (!Array.isArray(input) || input.length < 1 || input.length > 32 || (units !== undefined && input.length !== units))
+    throw new Error("Provide one unique nonce per invoice payment unit");
+  const values = input.map(hex);
+  if (new Set(values).size !== values.length) throw new Error("Invoice payment nonces must be distinct");
+  return values;
+}
+export function createInvoice(input: Omit<InvoiceTerms, "id" | "nonce">): Invoice {
+  if (!Number.isInteger(input.units) || input.units < 1 || input.units > 32) throw new Error("Invoice requires 1–32 fixed-denomination notes");
+  const random = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, "0")).join("");
+  return parseInvoice({ ...input, version: 2, id: crypto.randomUUID(), nonce: random(), paymentNonces: Array.from({ length: input.units }, random) });
 }
 export function parseSignedInvoice(input: unknown): SignedInvoice {
   const o = object(input);
@@ -173,10 +192,36 @@ export function parseSignedInvoice(input: unknown): SignedInvoice {
   };
 }
 export async function invoiceHash(invoice: Invoice) {
-  return sha256("core:invoice:v1|" + canonical(parseInvoice(invoice)));
+  const i = parseInvoice(invoice);
+  return sha256(`core:invoice:v${i.version}|` + canonical(i));
 }
-export async function invoiceRoot(invoice: Invoice) {
-  return sha256("core:invoice:settlement:v1|" + (await invoiceHash(invoice)));
+export async function invoiceRootsFromHash(hash: string, nonces: unknown): Promise<string[]> {
+  hex(hash);
+  return Promise.all(parsePaymentNonces(nonces).map(nonce => sha256(`core:invoice:payment:v2|${hash}|${nonce}`)));
+}
+export async function invoicePaymentRoots(invoice: Invoice): Promise<string[]> {
+  const i = parseInvoice(invoice), digest = await invoiceHash(i);
+  return i.version === 1 ? [await sha256("core:invoice:settlement:v1|" + digest)] : invoiceRootsFromHash(digest, i.paymentNonces);
+}
+export async function invoiceRoot(invoice: Invoice, paymentIndex?: number) {
+  const roots = await invoicePaymentRoots(invoice);
+  if (invoice.version === 2 && roots.length > 1 && paymentIndex === undefined) throw new Error("Choose a payment index for this v2 invoice");
+  const index = paymentIndex ?? 0;
+  if (!Number.isInteger(index) || index < 0 || index >= roots.length) throw new Error("Invalid invoice payment index");
+  return roots[index];
+}
+export async function invoiceStatusRequest(invoice: Invoice) {
+  const i = parseInvoice(invoice);
+  return { invoiceHash: await invoiceHash(i), recipient: i.recipient, units: i.units, expiresAt: i.expiresAt,
+    ...(i.version === 2 ? { version: 2 as const, paymentNonces: [...i.paymentNonces] } : {}) };
+}
+export async function assertInvoiceReferenceAvailable(invoice: Invoice, root: string, status: InvoiceStatus) {
+  const roots = await invoicePaymentRoots(invoice);
+  if (status.invoiceHash !== await invoiceHash(invoice) || !roots.includes(root)) throw new Error("Payment reference is not bound to this invoice");
+  if (invoice.version === 2 ? status.settlementRoot !== null || canonical(status.settlementRoots) !== canonical(roots) : status.settlementRoot !== roots[0]) throw new Error("Invoice reference set differs from signed terms");
+  validateInvoiceStatus(status, invoice);
+  if (invoice.version === 2 && status.confirmations.some(c => c.settlementRoot === root))
+    throw new Error("This payment reference already has an indexed payment; choose an unused reference");
 }
 export function invoiceMessage(hash: string, network: Policy["network"]) {
   return `Core invoice v1\nNetwork: ${network}\nDigest: ${hex(hash)}`;
@@ -294,7 +339,7 @@ export async function matchInvoicePlan(
   if (
     p.reference.kind !== "withdrawal" ||
     p.reference.expectedRecipient !== invoice.recipient ||
-    p.reference.expectedDisclosureRoot !== (await invoiceRoot(invoice))
+    !(await invoicePaymentRoots(invoice)).includes(p.reference.expectedDisclosureRoot ?? "")
   )
     throw new Error("Payment proof must bind this invoice root and recipient");
   return p;
@@ -398,7 +443,9 @@ export function validateInvoiceStatus(
     !Number.isFinite(Date.parse(c.updatedAt))
   )
     throw new Error("Invalid invoice checkpoint");
-  const nullifiers = new Set<string>();
+  if (invoice.version === 2 && (s.settlementRoot !== null || !Array.isArray(s.settlementRoots) || s.settlementRoots.length !== invoice.units || s.settlementRoots.some(r => typeof r !== "string" || !/^[a-f0-9]{64}$/.test(r)) || new Set(s.settlementRoots).size !== invoice.units))
+    throw new Error("Invalid per-payment invoice references");
+  const nullifiers = new Set<string>(), recordIndices = new Set<number>();
   for (const entry of s.confirmations) {
     const r = object(entry);
     if (
@@ -408,6 +455,8 @@ export function validateInvoiceStatus(
       typeof r.recordIndex !== "number" ||
       !Number.isSafeInteger(r.recordIndex) ||
       r.recordIndex < 0 ||
+      recordIndices.has(r.recordIndex) ||
+      (invoice.version === 2 && !(s.settlementRoots as string[]).includes(String(r.settlementRoot))) ||
       typeof r.blockHeight !== "number" ||
       !Number.isSafeInteger(r.blockHeight) ||
       r.blockHeight < 0 ||
@@ -416,6 +465,11 @@ export function validateInvoiceStatus(
     )
       throw new Error("Invalid invoice confirmation");
     nullifiers.add(r.nullifier);
+    recordIndices.add(r.recordIndex);
+  }
+  if (invoice.version === 2) {
+    const unique = new Set(s.confirmations.map(entry => object(entry).settlementRoot)).size;
+    if (s.reusedPaymentReferences !== s.confirmations.length - unique) throw new Error("Invalid invoice reference reuse count");
   }
   return input as InvoiceStatus;
 }

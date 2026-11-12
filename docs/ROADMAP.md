@@ -31,6 +31,7 @@ Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `
 - [x] Front public group activity with validated index responses, checkpoint age, unresolved provenance, discovery coverage and stable filters/pages.
 
 - [x] Recipient-signed FT invoices, merchant full-access key checks, private checkout plan binding and indexed partial/paid/late/overpayment reconciliation.
+- [x] Invoice terms v2 with distinct per-unit signed references, indexed reuse checks, honest race accounting and legacy v1 compatibility. [Privacy model and public metadata limits](PRIVACY.md).
 
 Invoice scope and next service layer: [INVOICES.md](INVOICES.md). Business terms stay client-held; merchant API persistence, signed webhooks, fiat conversion and contract-enforced invoice caps/deadlines remain future work.
 
