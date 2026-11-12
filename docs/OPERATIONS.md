@@ -91,6 +91,7 @@ Default bind: `127.0.0.1:3001`. `CORE_API_HOST` and `PORT` can override it. Ther
 | GET | `/v1/vaults?fromIndex=0&maxRecords=20` | Verified catalog at one final block; max 50 records per API request and explicit pagination |
 | POST | `/v1/ft/preflight` | Strict public preflight request; prerequisite calls and blockers |
 | POST | `/v1/settlements/status` | Strict settlement reference; finalized state and bound recovery calls |
+| POST | `/v1/transactions/verify` | `{transaction:{hash,signer},call}`; exact single reviewed action and finality, with accepted / not-accepted / unknown effect |
 
 ```bash
 curl http://127.0.0.1:3001/healthz
@@ -103,6 +104,6 @@ The API accepts one configured policy/RPC, not a request-selected RPC or arbitra
 
 Errors: 400 malformed/invalid input; 403 disallowed origin; 409 incompatible destination or unavailable vault/asset; 413 body limit; 415 content type/encoding; 429 concurrency limit; 502 chain read/validation failure. Only RPC `UNKNOWN_ACCOUNT` is treated as absence. Other RPC failures must not become misleading registration instructions.
 
-This is a local/development read-only integration service. Authentication for future private data, durable jobs, deployment rate limits/telemetry, wallet signing, and a production deployment are listed in [ROADMAP.md](ROADMAP.md). CORS is not authentication. Direct SDK use avoids adding this service as an observer of payment preparation.
+This is a local/development read-only integration service. Wallet signing and encrypted client recovery are documented in [WALLET.md](WALLET.md). Authentication for future private data, durable jobs, deployment rate limits/telemetry and a production deployment remain in [ROADMAP.md](ROADMAP.md). CORS is not authentication. Direct SDK use avoids adding this service as an observer of payment preparation.
 
 References: [NEAR FT integration](https://docs.near.org/integrations/fungible-tokens), [NEAR RPC query errors](https://docs.near.org/api/rpc/contracts), [Contract settlement behavior](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/USDC.md).

@@ -13,7 +13,7 @@ NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust
 
 ## 개발 현황과 운영 연결
 
-남은 작업은 [개발 목록](docs/ROADMAP.md)에 정리했습니다. 이번 단계에서는 하나의 확정 블록에서 FT 준비 상태 점검, 순서가 있는 등록·스토리지 사전 작업, 목적지에 묶인 정산 상태·복구 안내, 제한된 폴링, CLI와 읽기 전용 API를 추가했습니다. 실제 지갑·프론트 서명 연결, 영속 거래 저장·인덱싱, 실제 KYB·세무 연동은 후속 단계입니다.
+이번 단계에서는 브라우저용 FT 실행 SDK, 지갑 호출별 검토, 암호화 작업 기록, 최종 확정 TX 대조를 추가했습니다. [Front의 `/live/` 화면](https://github.com/Company-privacy-settlement/Front)은 독립적으로 신뢰한 배포 정책을 이용해 NEAR Connect로 테스트넷 지갑을 연결합니다. 서명 결과가 불확실하면 재시작 후에도 재송금을 막고 기존 TX를 확인합니다. 토큰 수락과 최종 지급은 구분합니다. [지갑 연동·복구 안내](docs/WALLET.md)를 확인하세요. 비밀 노트 생성·증명은 CLI에 남겨두었으며 영속 인덱싱, 공개 테스트넷 배포, 실제 KYB·세무 연동은 [개발 목록](docs/ROADMAP.md)의 후속 작업입니다.
 
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
@@ -26,7 +26,7 @@ export CORE_ALLOWED_ORIGINS=http://localhost:3000
 npm run serve
 ```
 
-API 기본 주소는 `127.0.0.1:3001`이며 실제 신뢰 배포 정책이 필요합니다. 시뮬레이션으로 대체하지 않습니다. `/v1/vaults`, `/v1/ft/preflight`, `/v1/settlements/status`를 제공하며 지갑·비밀 노트·서명 키는 서비스 밖에 둡니다. 트랜잭션 수락이나 관찰 시간 초과만으로 지급 완료·실패를 판단하지 않습니다. 입력 형식, 준비 상태와 복구 동작은 [운영 기능과 HTTP 명세](docs/OPERATIONS.md)를 확인하세요.
+API 기본 주소는 `127.0.0.1:3001`이며 실제 신뢰 배포 정책이 필요합니다. 시뮬레이션으로 대체하지 않습니다. `/v1/vaults`, `/v1/ft/preflight`, `/v1/settlements/status`, `/v1/transactions/verify`를 제공하며 지갑·비밀 노트·서명 키는 서비스 밖에 둡니다. 트랜잭션 수락이나 관찰 시간 초과만으로 지급 완료·실패를 판단하지 않습니다. 입력 형식, 준비 상태와 복구 동작은 [운영 기능과 HTTP 명세](docs/OPERATIONS.md)를 확인하세요.
 
 ## 실행
 

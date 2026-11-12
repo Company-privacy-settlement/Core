@@ -3,6 +3,8 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { once } from 'node:events';
 import { NearRpcOperationsSource, preflightFt, observeSettlement } from '../sdk/operations.js';
 import { createReadOnlyApi } from '../server/api.js';
+import { HttpGateway, OperationJournal, SettlementSession, type Call } from '../sdk/client/index.js';
+import { fileJournalStorage } from '../sdk/client-node.js';
 import { resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { Worker, type NearAccount, type TransactionResult } from 'near-workspaces';
@@ -66,6 +68,24 @@ try {
     assert.fail(`${method} did not reach ${expected}: ${JSON.stringify(await contract.view(method,args))}`);
   }
   const receipts=new Map<string,Receipt>(),transactions:TransactionResult[]=[];
+  await mkdir('demo-output',{recursive:true});
+  const journal=new OperationJournal(fileJournalStorage(`demo-output/wallet-${randomBytes(12).toString('hex')}.encrypted.json`),randomBytes(32).toString('hex'));
+  await journal.create();const gateway=new HttpGateway(apiUrl);
+  async function walletFlow(owner:NearAccount,tokenCall:Call,expectedKinds:string[]){
+    const kinds:string[]=[],signed:TransactionResult[]=[];
+    const session=new SettlementSession(journal,gateway,{identity:async()=>({network:'sandbox',accountId:owner.accountId}),sign:async(plan,context)=>{
+      assert.equal(context.identity.accountId,owner.accountId);const tx=await call(owner,plan);signed.push(tx);
+      const ref={hash:tx.transactionReceipt.hash,signer:owner.accountId};const checked=await gateway.verify(ref,plan);
+      assert.equal(checked.status,'final');assert.equal((checked as {effect:string}).effect,'accepted');return ref;
+    }},policy);
+    const op=await session.importPlan({tokenCall});
+    for(let attempt=0;attempt<30;attempt++){
+      const review=await session.review(op.id);if(review.action==='complete'){assert.deepEqual(kinds,expectedKinds);return signed;}
+      if(review.action==='sign'){kinds.push(review.kind!);await session.submitReviewed(op.id,review.callHash!);}
+      else{assert.equal(review.action,'wait',review.message);await new Promise(r=>setTimeout(r,150));}
+    }
+    assert.fail('Wallet session did not reach finalized completion');
+  }
   function receipt() { const r=createReceipt({sender:'sample sender',recipient:'sample recipient',asset:`nep141:${token.accountId}`,amount:USD.toString(),purpose:'FT cross-vault sandbox',reference:randomBytes(12).toString('hex'),occurredAt:new Date().toISOString(),credentialHash:''}); receipts.set(r.root,r); return r.root; }
   const quote=quoteFtFees(USD.toString()),pool=catalog.pool;
   const notes=[await createNote(pool),await createNote(pool),await createNote(pool)];
@@ -75,12 +95,13 @@ try {
   const readiness=await api('/v1/ft/preflight',{operation:'deposit',payer:alice.accountId,vault:a.accountId});
   assert.equal(readiness.canPrepare,true); assert.equal(readiness.prerequisitesSatisfied,false);
   assert.deepEqual(readiness.prerequisites.map((p:any)=>p.method),['prepay_storage']);
-  for(const prerequisite of readiness.prerequisites) await call(alice,prerequisite);
-  assert.equal((await preflightFt(operations,policy,{operation:'deposit',payer:alice.accountId,vault:a.accountId})).prerequisitesSatisfied,true);
   const wrongAmount=await send(alice,a,USD,firstMessage); assert.equal(wrongAmount.parseResult(),'0'); assert.equal(await balance(token,alice),beforeAlice);
   for(const [i,vault,owner] of [[0,a,alice],[1,b,bob],[2,b,bob]] as const) {
     catalog=await discoverSharedVaults(source,policy); const plan=await buildFtDeposit(catalog,vault.accountId,notes[i],i===0?firstRoot:receipt());
-    await prepay(owner,vault); const tx=await call(owner,plan.tokenCall); assert.equal(tx.parseResult(),quote.depositTransferTokens,tx.summary());
+    let tx:TransactionResult;
+    if(i===0){const signed=await walletFlow(owner,plan.tokenCall,['prerequisite','payment']);tx=signed.at(-1)!;}
+    else{await prepay(owner,vault);tx=await call(owner,plan.tokenCall);}
+    assert.equal(tx.parseResult(),quote.depositTransferTokens,tx.summary());
     await state(vault,'get_deposit',{commitment:notes[i].commitment},'Active'); transactions.push(tx);
   }
   assert.equal(await balance(token,forest),0n); assert.equal(await balance(token,a),USD+1500n); assert.equal(await balance(token,b),2n*USD+3000n);
@@ -120,7 +141,7 @@ try {
   const payoutRef={kind:'withdrawal' as const,nullifier:proof.publicSignals[0],expectedVault:b.accountId,expectedRecipient:recipient.accountId,expectedDisclosureRoot:withdrawalRoot};
   const failedStatus=await api('/v1/settlements/status',payoutRef);assert.equal(failedStatus.state,'Retryable');assert.equal(failedStatus.complete,false);assert.equal(failedStatus.retryCall.method,'retry_withdrawal');
   await register(token,recipient.accountId);
-  const retry=await relay.callRaw(forest,'retry_withdrawal',{nullifier:proof.publicSignals[0]},{attachedDeposit:STORAGE_FEE,gas:GAS}); assert.equal(retry.parseResult(),true,retry.summary()); transactions.push(retry); await final(retry);
+  const retry=(await walletFlow(relay,plan.tokenCall,['retry']))[0];assert.equal(retry.parseResult(),true,retry.summary());transactions.push(retry);
   assert.equal(await balance(token,recipient.accountId),USD);
   assert.equal((await api('/v1/settlements/status',payoutRef)).complete,true);
   console.log('A-origin note transferred privately, then paid from B to fresh recipient after FT registration; retry charged no second USDC fee.');
@@ -152,7 +173,8 @@ try {
   const verified=await verifyBundle(bundle,new NearRpcEvidenceSource('sandbox',forest.accountId,rpc)); assert.equal(verified.feeSummary!.assetTokenId,token.accountId); assert.equal(verified.feeSummary!.protocolFeesCharged,'9000'); assert.equal(verified.feeSummary!.protocolFeesEarned,'9000');
   const remaining:any=await forest.view('get_storage_credit',{account_id:alice.accountId});
   if(BigInt(remaining.available)>0n) { const tx=await alice.callRaw(forest,'withdraw_storage_credit',{},{attachedDeposit:1n,gas:GAS}); assert.equal(tx.parseResult(),true); assert.equal((await forest.view<any>('get_storage_credit',{account_id:alice.accountId})).available,'0'); }
-  await mkdir('demo-output',{recursive:true}); await writeFile('demo-output/ft-validation.json',JSON.stringify({fixture:'NEP-141 sandbox token, NOT Circle-issued USDC',policy,bundle,verification:verified,recipientReceivedTokens:(await balance(token,recipient.accountId)).toString(),treasuryReceivedTokens:'9000',principalNeverPooled:true,concurrentSpendPaidOnce:true,retryChargedTokenFeeOnce:true,operationsApiVerified:true,preflightReadinessVerified:true,finalizedRecoveryObserverVerified:true},null,2));
+  assert.deepEqual((await journal.list()).map(o=>o.outcome),['complete','complete']);
+  await mkdir('demo-output',{recursive:true}); await writeFile('demo-output/ft-validation.json',JSON.stringify({fixture:'NEP-141 sandbox token, NOT Circle-issued USDC',policy,bundle,verification:verified,recipientReceivedTokens:(await balance(token,recipient.accountId)).toString(),treasuryReceivedTokens:'9000',principalNeverPooled:true,concurrentSpendPaidOnce:true,retryChargedTokenFeeOnce:true,operationsApiVerified:true,preflightReadinessVerified:true,finalizedRecoveryObserverVerified:true,walletSessionSandboxVerified:true,encryptedJournalVerified:true,exactTransactionVerificationVerified:true},null,2));
   console.log(`FT shared demo verified: ${verified.records.length} finalized records, full 3 TESTUSD received, 0.009 TESTUSD total fees; report demo-output/ft-validation.json`);
 } finally {
   if(apiServer) { apiServer.closeAllConnections(); await new Promise<void>(resolve=>apiServer!.close(()=>resolve())); }

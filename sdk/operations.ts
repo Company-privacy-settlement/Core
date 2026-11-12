@@ -10,8 +10,13 @@ export interface OperationsSource extends SharedChainSource {
   finalBlock(): Promise<FinalBlock>;
   account(account: string, block: string): Promise<unknown | null>;
   contractView(account: string, method: string, args: Record<string, unknown>, block: string): Promise<unknown>;
+  transaction?(hash: string, signer: string): Promise<unknown | null>;
 }
 export class NearRpcOperationsSource extends NearRpcSharedSource implements OperationsSource {
+  async transaction(hash: string, signer: string): Promise<unknown | null> {
+    try { return await this.rpc('tx', { tx_hash: hash, sender_account_id: signer, wait_until: 'FINAL' }); }
+    catch (e) { if (e instanceof NearRpcError && e.causeName === 'UNKNOWN_TRANSACTION') return null; throw e; }
+  }
   async finalBlock(): Promise<FinalBlock> {
     const result = await this.rpc('block', { finality: 'final' });
     return z.object({ hash: z.string().min(1), height: Count }).parse(result.header);

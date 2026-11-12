@@ -14,17 +14,22 @@ This backlog is based on the current code. Contract and circuit work stays in th
 - [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
 - [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
 
-Validation: `npm run check`, **54 SDK/API tests**, and `npm run demo:ft` with **14 finalized settlement records** pass. The sandbox report confirms live preflight, HTTP API, and finalized recovery observation.
+Validation commands: `npm run check`, `npm test`, and `npm run demo:ft`. The sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling and exact transaction verification.
 
 Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
 
 ## P1 — connect a real product flow
 
+- [x] Browser-safe FT execution bundle with declarations and SHA-256 manifest; independent Front build verifies its vendored copy.
+- [x] Wallet port and NEAR Connect testnet frontend; explicit single-call review, trusted policy, fees, payer/network binding and finalized observation.
+- [x] Encrypted local operation journal, cross-tab exclusion, backup/restore and unresolved signature reconciliation. No automatic resubmission after reconnect.
+- [x] Exact finalized wallet transaction verification and sandbox coverage of storage, deposit and withdrawal recovery.
+
+Integration: [WALLET.md](WALLET.md). Private note creation/proving remains in the CLI. A publicly deployed/funded testnet wallet smoke test is still outstanding.
+
 | Task | Deliverable / acceptance condition | Dependency |
 | --- | --- | --- |
-| Wallet adapter and frontend integration | User reviews prerequisites and fees, signs locally, and tracks the original commitment/nullifier until finalized completion. Reject account/network changes and avoid duplicate submission after reconnect. | Front changes and a selected wallet integration |
-| Browser SDK packaging | Separate browser-safe field/receipt/proof code from Node CLI, file I/O and key management; verify the same public vectors in both environments. | Browser prover performance and memory measurements |
-| Encrypted local operation journal | Persist submitted transaction references, expected bindings and recovery state without plaintext note secrets; resume after restart. | Storage format and user-controlled encryption/backup UX |
+| Browser note/prover expansion | Generate encrypted notes and new Groth16 proofs locally in the browser, with mobile memory/performance measurements and the same committed vectors. Current bundle executes prepared CLI plans. | Prover packaging and browser measurements |
 | Finalized event indexer | Durable checkpoints, reorg/finality handling, transaction/receipt correlation and paginated activity; retain selected-history evidence claims. | Persistent datastore and RPC provider |
 | API deployment hardening | Authentication for any future private business data, rate limits, per-route budgets, OpenAPI/client generation, redacted telemetry and deployment health checks. | Hosting/access model; current API defaults to loopback |
 | Testnet deployment workflow | Reproducible artifact/policy release, verified token registration, explicit key-removal phase and a real-wallet smoke test. | Funded deployer account and reviewed setup hashes |

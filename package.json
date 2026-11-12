@@ -21,7 +21,8 @@
     "contract:build": "node scripts/build-contract.mjs",
     "demo:ft": "tsx scripts/ft-demo.ts",
     "vectors:ft": "tsx scripts/shared-vectors.ts --ft",
-    "serve": "tsx scripts/server.ts"
+    "serve": "tsx scripts/server.ts",
+    "build:client": "node scripts/build-client.mjs"
   },
   "dependencies": {
     "bs58": "^6.0.0",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "esbuild": "0.28.2",
     "near-workspaces": "^5.0.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"
@@ -40,5 +42,11 @@
     "ws": "8.22.2",
     "underscore": "1.13.8",
     "bfj": "9.1.4"
+  },
+  "exports": {
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    }
   }
 }

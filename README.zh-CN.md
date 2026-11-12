@@ -13,7 +13,7 @@
 
 ## 开发状态与运行集成
 
-剩余工作见[开发清单](docs/ROADMAP.md)。本阶段新增同一最终确认区块上的 FT 就绪检查、有序的注册/存储准备调用、绑定原始目的地的结算状态与恢复指引、有上限的轮询、CLI 和只读 API。真实钱包/前端签名连接、持久化交易存储与索引、真实 KYB/税务集成属于后续阶段。
+本阶段新增浏览器 FT 执行 SDK、逐笔钱包调用审核、加密操作日志及最终确认交易核对。[Front 的 `/live/` 页面](https://github.com/Company-privacy-settlement/Front) 使用独立可信的部署策略，通过 NEAR Connect 连接测试网钱包。签名结果不确定时，重启后仍会阻止重复发送并核实原交易；代币被接受与最终付款完成分开判断。详见[钱包集成与恢复](docs/WALLET.md)。秘密票据生成与证明仍使用本地 CLI。持久索引、公开测试网部署和真实 KYB/税务集成仍列于[开发清单](docs/ROADMAP.md)。
 
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
@@ -26,7 +26,7 @@ export CORE_ALLOWED_ORIGINS=http://localhost:3000
 npm run serve
 ```
 
-API 默认监听 `127.0.0.1:3001`，需要真实且受信任的部署策略，不会回退到模拟链。提供 `/v1/vaults`、`/v1/ft/preflight` 和 `/v1/settlements/status`；钱包、秘密票据及签名密钥不进入服务。交易被接受或观察超时本身不代表付款完成或失败。输入格式、就绪标记和恢复行为见[运行功能与 HTTP 规范](docs/OPERATIONS.md)。
+API 默认监听 `127.0.0.1:3001`，需要真实且受信任的部署策略，不会回退到模拟链。提供 `/v1/vaults`、`/v1/ft/preflight` 、`/v1/settlements/status` 和 `/v1/transactions/verify`；钱包、秘密票据及签名密钥不进入服务。交易被接受或观察超时本身不代表付款完成或失败。输入格式、就绪标记和恢复行为见[运行功能与 HTTP 规范](docs/OPERATIONS.md)。
 
 ## 开始使用
 

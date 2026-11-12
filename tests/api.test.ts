@@ -45,3 +45,11 @@ test('API caps simultaneous chain work while still serving health checks',async 
   const first=fetch(f.url+'/v1/vaults');await entered;
   try{assert.equal((await fetch(f.url+'/v1/vaults')).status,429);assert.equal((await fetch(f.url+'/healthz')).status,200);}finally{release();await first;}
 });
+test('API verifies exact finalized wallet transactions without a signing or broadcast route',async t=>{
+  const f=await api(t),transaction={hash:'1'.repeat(44),signer:f.payer};
+  const call={contract:f.policy.tokenId!,method:'ft_transfer_call',args:{receiver_id:f.vault,amount:'1001500',msg:JSON.stringify({commitment:'42',disclosure_root:'ab'.repeat(32)})},attachedYoctoNear:'1',gas:'300000000000000'};
+  f.source.transaction=async()=>({final_execution_status:'FINAL',transaction:{hash:transaction.hash,signer_id:f.payer,receiver_id:call.contract,actions:[{FunctionCall:{method_name:call.method,args:Buffer.from(JSON.stringify(call.args)).toString('base64'),deposit:'1',gas:call.gas}}]},status:{SuccessValue:Buffer.from('"1001500"').toString('base64')}});
+  let response=await f.post('/v1/transactions/verify',{transaction,call});assert.equal(response.status,200);assert.equal((await response.json()).effect,'accepted');
+  response=await f.post('/v1/transactions/verify',{transaction,call:{...call,privateKey:'do-not-send'}});assert.equal(response.status,400);
+  response=await f.post('/v1/transactions/verify',{transaction,call:{...call,attachedYoctoNear:'2'}});assert.equal(response.status,502);assert.ok(!(await response.text()).includes('do-not-send'));
+});

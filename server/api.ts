@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { z } from 'zod';
 import { SharedPolicySchema, type SharedPolicy } from '../sdk/shared.js';
 import { operationCatalog, preflightFt, observeSettlement, PreflightInput, SettlementReference, OperationsError, type OperationsSource } from '../sdk/operations.js';
+import { VerifyTransactionInput, verifyTransaction } from '../sdk/transactions.js';
 
 class HttpError extends Error { constructor(readonly status: number, readonly code: string) { super(code); } }
 function json(res: ServerResponse, status: number, value: unknown) {
@@ -57,6 +58,10 @@ export function createReadOnlyApi(options: { source: OperationsSource; policy: S
         } else if (url.pathname === '/v1/ft/preflight' && req.method === 'POST') {
           if (url.search) throw new HttpError(400,'QUERY_NOT_ALLOWED');
           json(res,200,await preflightFt(options.source,policy,input(PreflightInput,await body(req))));
+        } else if (url.pathname === '/v1/transactions/verify' && req.method === 'POST') {
+          if (url.search) throw new HttpError(400,'QUERY_NOT_ALLOWED');
+          const request=input(VerifyTransactionInput,await body(req));
+          json(res,200,await verifyTransaction(options.source,policy,request.transaction,request.call));
         } else if (url.pathname === '/v1/settlements/status' && req.method === 'POST') {
           if (url.search) throw new HttpError(400,'QUERY_NOT_ALLOWED');
           json(res,200,await observeSettlement(options.source,policy,input(SettlementReference,await body(req))));

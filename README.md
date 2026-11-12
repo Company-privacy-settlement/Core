@@ -13,7 +13,7 @@ The current version supports native NEAR **shared anonymity v2** and **USDC/NEP-
 
 ## Development status and operations
 
-The remaining work is tracked in [the development backlog](docs/ROADMAP.md). This iteration adds one-final-block FT readiness checks, ordered registration/storage prerequisite calls, destination-bound settlement status/recovery, bounded polling, CLI commands and a read-only API. Wallet/frontend signing, durable activity storage/indexing, and real KYB/tax integrations remain later milestones.
+This iteration adds a browser-safe FT execution SDK, explicit wallet-call review, an encrypted operation journal, and exact finalized transaction verification. [Front’s `/live/` workspace](https://github.com/Company-privacy-settlement/Front) uses NEAR Connect on testnet with your independently trusted deployment policy. Uncertain signatures stay blocked across restart; acceptance is distinct from final payout. See [wallet integration and recovery](docs/WALLET.md). Private note creation/proving stays in the CLI. Durable indexing, public testnet deployment, and real KYB/tax integrations remain on [the development backlog](docs/ROADMAP.md).
 
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
@@ -26,7 +26,7 @@ export CORE_ALLOWED_ORIGINS=http://localhost:3000
 npm run serve
 ```
 
-The API defaults to `127.0.0.1:3001` and uses an actual trusted deployment policy, with no simulated fallback. It exposes `/v1/vaults`, `/v1/ft/preflight` and `/v1/settlements/status`; wallets, private notes and signing keys stay outside the service. A transaction being accepted or an observation timing out does not establish payout completion or failure. See [operations usage and HTTP endpoints](docs/OPERATIONS.md) for inputs, readiness flags and recovery behavior.
+The API defaults to `127.0.0.1:3001` and uses an actual trusted deployment policy, with no simulated fallback. It exposes `/v1/vaults`, `/v1/ft/preflight`, `/v1/settlements/status`, and `/v1/transactions/verify`; wallets, private notes and signing keys stay outside the service. A transaction being accepted or an observation timing out does not establish payout completion or failure. See [operations usage and HTTP endpoints](docs/OPERATIONS.md) for inputs, readiness flags and recovery behavior.
 
 ## Getting started
 
