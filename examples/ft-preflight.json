@@ -1,0 +1,6 @@
+{
+  "operation": "withdraw",
+  "payer": "replace-with-fee-payer.testnet",
+  "vault": "replace-with-verified-vault.testnet",
+  "recipient": "replace-with-recipient.testnet"
+}

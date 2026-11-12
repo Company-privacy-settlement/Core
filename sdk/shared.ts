@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { randomInt } from 'node:crypto';
 import { domain, sha256, quoteFees, NoteTree, STORAGE_FEE, type Pool } from './core.js';
+import { AccountId, Atomic } from './validation.js';
 import { NearRpcFactorySource, type FactoryChainSource } from './factory.js';
 
 const Amount = z.string().regex(/^(0|[1-9][0-9]*)$/);
@@ -19,7 +20,8 @@ const VaultConfig = z.object({
   fee_recipient: z.string(), deposit_fee_bps: z.literal(15), withdrawal_fee_bps: z.literal(15), storage_fee: Amount,
   deposit_attached: Amount, withdrawal_received: Amount, available_notes: Count, reserved_notes: Count, pending_deposits: Count, held_notes: Count,
 });
-export type SharedPolicy = { network: Pool['network']; registry: string; denomination: string; feeRecipient: string; registryWasmSha256: string; vaultWasmSha256: string; verifierSha256: string; tokenId?: string };
+export const SharedPolicySchema = z.object({ network: z.enum(['sandbox', 'testnet']), registry: AccountId.max(30), denomination: Atomic.refine(v => BigInt(v) > 0n), feeRecipient: AccountId, registryWasmSha256: Hash, vaultWasmSha256: Hash, verifierSha256: Hash, tokenId: AccountId.optional() }).strict();
+export type SharedPolicy = z.infer<typeof SharedPolicySchema>;
 export interface SharedChainSource extends FactoryChainSource { commitments(block: string): Promise<unknown>; }
 export class NearRpcSharedSource extends NearRpcFactorySource implements SharedChainSource {
   commitments(block: string): Promise<unknown> { return this.view(this.factory, 'get_commitments', { from_index: 0, limit: 256 }, block); }
@@ -32,6 +34,7 @@ export function predictSharedVault(registry: string, creator: string, salt: stri
 }
 
 export async function discoverSharedVaults(source: SharedChainSource, policy: SharedPolicy, options: { fromIndex?: number; maxRecords?: number } = {}) {
+  policy = SharedPolicySchema.parse(policy);
   if (source.network !== policy.network || source.factory !== policy.registry) throw new Error('Wrong shared registry');
   [policy.registryWasmSha256, policy.vaultWasmSha256, policy.verifierSha256].forEach(h => Hash.parse(h));
   domain({ network: policy.network, contract: policy.feeRecipient, denomination: '1' });

@@ -9,6 +9,8 @@ import { discoverSharedVaults, loadSharedTree, chooseSharedVault, NearRpcSharedS
 
 import { buildFtDeposit, buildFtWithdrawal, parseUsdc, quoteFtFees } from '../sdk/ft.js';
 
+import { NearRpcOperationsSource, preflightFt, observeSettlement, waitForSettlement, PreflightInput, SettlementReference } from '../sdk/operations.js';
+
 const [command, ...args] = process.argv.slice(2);
 const json = async (path: string) => JSON.parse(await readFile(path, 'utf8'));
 const output = (value: unknown) => console.log(JSON.stringify(value, null, 2));
@@ -23,6 +25,21 @@ async function loadNote(path: string): Promise<Note> {
 }
 try {
   switch (command) {
+    case 'ft-preflight': {
+      if (args.length !== 3) throw new Error('ft-preflight trusted-policy.json trusted-rpc-url public-request.json');
+      const policy = await json(args[0]);
+      output(await preflightFt(new NearRpcOperationsSource(policy.network, policy.registry, args[1]), policy, PreflightInput.parse(await json(args[2]))));
+      break;
+    }
+    case 'settlement-status':
+    case 'settlement-wait': {
+      if (args.length !== 3) throw new Error(`${command} trusted-policy.json trusted-rpc-url public-reference.json`);
+      const policy = await json(args[0]), ref = SettlementReference.parse(await json(args[2]));
+      const source = new NearRpcOperationsSource(policy.network, policy.registry, args[1]);
+      const result = command === 'settlement-wait' ? await waitForSettlement(source, policy, ref) : await observeSettlement(source, policy, ref);
+      output(result);
+      break;
+    }
     case 'discover-shared': {
       if (args.length !== 2 && args.length !== 4) throw new Error('discover-shared trusted-policy.json trusted-rpc-url [from-index max-records]');
       const policy: SharedPolicy = await json(args[0]);
@@ -162,7 +179,7 @@ try {
       break;
     }
     default:
-      console.log('Commands: wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
+      console.log('Commands: ft-preflight, settlement-status, settlement-wait, wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
       process.exitCode = command ? 1 : 0;
   }
 } catch (error) {

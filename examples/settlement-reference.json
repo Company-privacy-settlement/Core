@@ -1,0 +1,7 @@
+{
+  "kind": "withdrawal",
+  "nullifier": "42",
+  "expectedVault": "replace-with-verified-vault.testnet",
+  "expectedRecipient": "replace-with-recipient.testnet",
+  "expectedDisclosureRoot": "REPLACE_WITH_64_LOWERCASE_HEX"
+}

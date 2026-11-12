@@ -20,7 +20,8 @@
     "factory:test": "node scripts/contract-test.mjs test:factory",
     "contract:build": "node scripts/build-contract.mjs",
     "demo:ft": "tsx scripts/ft-demo.ts",
-    "vectors:ft": "tsx scripts/shared-vectors.ts --ft"
+    "vectors:ft": "tsx scripts/shared-vectors.ts --ft",
+    "serve": "tsx scripts/server.ts"
   },
   "dependencies": {
     "bs58": "^6.0.0",

@@ -2,7 +2,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md)
 
-NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust 계약, ZK 회로, 계약 테스트는 별도 [Contract 저장소](https://github.com/Company-privacy-settlement/Contract)에 보관합니다. 현재 실행 가능한 서버 HTTP API는 포함하지 않습니다.
+NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust 계약, ZK 회로, 계약 테스트는 별도 [Contract 저장소](https://github.com/Company-privacy-settlement/Contract)에 보관합니다. 검증된 vault 조회, FT 사전 점검, 최종 확정 정산 상태를 제공하는 읽기 전용 HTTP API를 포함합니다. 서명과 증명 생성은 로컬 클라이언트에서 처리합니다.
 
 현재 버전은 native NEAR **공유 익명성 v2**와 **USDC/NEP-141 v3**를 지원합니다. 송금 원금은 각 vault에 분산 보관하고, 공통 forest가 하나의 노트 트리와 전역 nullifier를 관리합니다. A에 예치한 노트로 B에서 출금할 수 있으며, 동시 요청과 재시도에서도 한 노트를 두 번 지급하지 않습니다. v1 독립 풀과 팩토리도 호환 유지합니다.
 
@@ -10,6 +10,23 @@ NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust
 | --- | --- |
 | [Contract](https://github.com/Company-privacy-settlement/Contract) | `pool`, `factory`, `shared-vault`, `forest`, Circom 회로, native 테스트, WASM 빌드 |
 | Core (현재) | 비밀 노트·지갑, 로컬 증명 생성, 검증된 vault 선택, 선택 공개, TX 증빙, KYB 서명 검증, CLI·통합 데모 |
+
+## 개발 현황과 운영 연결
+
+남은 작업은 [개발 목록](docs/ROADMAP.md)에 정리했습니다. 이번 단계에서는 하나의 확정 블록에서 FT 준비 상태 점검, 순서가 있는 등록·스토리지 사전 작업, 목적지에 묶인 정산 상태·복구 안내, 제한된 폴링, CLI와 읽기 전용 API를 추가했습니다. 실제 지갑·프론트 서명 연결, 영속 거래 저장·인덱싱, 실제 KYB·세무 연동은 후속 단계입니다.
+
+```bash
+npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
+npm run cli -- settlement-status trusted-policy.json https://rpc.testnet.near.org public-reference.json
+npm run cli -- settlement-wait trusted-policy.json https://rpc.testnet.near.org public-reference.json
+
+export CORE_POLICY_FILE=/absolute/path/to/trusted-policy.json
+export CORE_RPC_URL=https://rpc.testnet.near.org
+export CORE_ALLOWED_ORIGINS=http://localhost:3000
+npm run serve
+```
+
+API 기본 주소는 `127.0.0.1:3001`이며 실제 신뢰 배포 정책이 필요합니다. 시뮬레이션으로 대체하지 않습니다. `/v1/vaults`, `/v1/ft/preflight`, `/v1/settlements/status`를 제공하며 지갑·비밀 노트·서명 키는 서비스 밖에 둡니다. 트랜잭션 수락이나 관찰 시간 초과만으로 지급 완료·실패를 판단하지 않습니다. 입력 형식, 준비 상태와 복구 동작은 [운영 기능과 HTTP 명세](docs/OPERATIONS.md)를 확인하세요.
 
 ## 실행
 

@@ -85,6 +85,14 @@ export async function discoverVaults(source: FactoryChainSource, policy: Factory
   return { blockHash, factory: policy.factory, creationDeposit: config.creation_deposit, checkedRecords: Math.max(0, end - fromIndex), nextIndex: end < config.vault_count ? end : null, vaults };
 }
 
+export class NearRpcError extends Error {
+  constructor(readonly detail: unknown) { super(`RPC error: ${JSON.stringify(detail)}`); this.name = 'NearRpcError'; }
+  get causeName(): string | undefined {
+    const error = this.detail as { cause?: { name?: string } } | null;
+    return error?.cause?.name;
+  }
+}
+
 export class NearRpcFactorySource implements FactoryChainSource {
   private id = 0;
   constructor(readonly network: Pool['network'], readonly factory: string, private readonly rpcUrl: string) {
@@ -95,7 +103,9 @@ export class NearRpcFactorySource implements FactoryChainSource {
     const response = await fetch(this.rpcUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: ++this.id, method, params }), signal: AbortSignal.timeout(20_000) });
     if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
     const body: any = await response.json();
-    if (body.error) throw new Error(`RPC error: ${JSON.stringify(body.error)}`);
+    if (body.error) throw new NearRpcError(body.error);
+    if (body.result === undefined || body.result === null) throw new Error('RPC response has no result');
+    if (body.result.error !== undefined) throw new NearRpcError(body.result.error);
     return body.result;
   }
   protected async view(account: string, method: string, args: unknown, block: string): Promise<unknown> {

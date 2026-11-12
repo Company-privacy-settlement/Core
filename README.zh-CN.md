@@ -2,7 +2,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md)
 
-这是 NEAR 隐私结算协议的**钱包 SDK、CLI 与集成代码**。Rust 合约、ZK 电路和合约测试保存在独立的 [Contract 仓库](https://github.com/Company-privacy-settlement/Contract) 中。当前仓库不包含可运行的 HTTP 服务器 API。
+这是 NEAR 隐私结算协议的**钱包 SDK、CLI 与集成代码**。Rust 合约、ZK 电路和合约测试保存在独立的 [Contract 仓库](https://github.com/Company-privacy-settlement/Contract) 中。仓库包含可运行的只读 HTTP API，用于已验证 vault 查询、FT 事前检查和最终确认的结算状态。签名与证明生成仍在本地客户端进行。
 
 当前版本支持原生 NEAR **共享匿名集 v2** 和 **USDC/NEP-141 v3**。汇款本金分散保存在各 vault 中，共享 forest 管理统一的票据树和全局 nullifier。存入 A 的票据可从 B 提款；并发请求和重试也不会对同一票据重复付款。同时保留对 v1 独立池与工厂的兼容。
 
@@ -10,6 +10,23 @@
 | --- | --- |
 | [Contract](https://github.com/Company-privacy-settlement/Contract) | `pool`、`factory`、`shared-vault`、`forest`、Circom 电路、原生测试和 WASM 构建 |
 | Core（当前仓库） | 秘密票据与钱包、本地证明生成、已验证 vault 选择、选择性披露、交易凭证、KYB 签名验证、CLI 和集成演示 |
+
+## 开发状态与运行集成
+
+剩余工作见[开发清单](docs/ROADMAP.md)。本阶段新增同一最终确认区块上的 FT 就绪检查、有序的注册/存储准备调用、绑定原始目的地的结算状态与恢复指引、有上限的轮询、CLI 和只读 API。真实钱包/前端签名连接、持久化交易存储与索引、真实 KYB/税务集成属于后续阶段。
+
+```bash
+npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
+npm run cli -- settlement-status trusted-policy.json https://rpc.testnet.near.org public-reference.json
+npm run cli -- settlement-wait trusted-policy.json https://rpc.testnet.near.org public-reference.json
+
+export CORE_POLICY_FILE=/absolute/path/to/trusted-policy.json
+export CORE_RPC_URL=https://rpc.testnet.near.org
+export CORE_ALLOWED_ORIGINS=http://localhost:3000
+npm run serve
+```
+
+API 默认监听 `127.0.0.1:3001`，需要真实且受信任的部署策略，不会回退到模拟链。提供 `/v1/vaults`、`/v1/ft/preflight` 和 `/v1/settlements/status`；钱包、秘密票据及签名密钥不进入服务。交易被接受或观察超时本身不代表付款完成或失败。输入格式、就绪标记和恢复行为见[运行功能与 HTTP 规范](docs/OPERATIONS.md)。
 
 ## 开始使用
 

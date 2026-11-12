@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { once } from 'node:events';
+import { NearRpcOperationsSource, preflightFt, observeSettlement } from '../sdk/operations.js';
+import { createReadOnlyApi } from '../server/api.js';
 import { resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { Worker, type NearAccount, type TransactionResult } from 'near-workspaces';
@@ -16,6 +19,7 @@ const forestWasm = await readFile('artifacts/core_forest.wasm'), vaultWasm = awa
 const mockWasm = await readFile(resolve(process.env.CORE_CONTRACT_REPO || '../Contract', 'artifacts/core_test_ft.wasm'));
 const vk = encodeVerificationKey(JSON.parse(await readFile('artifacts/verification_key.json','utf8')));
 await ensureSandbox(); const worker = await Worker.init();
+let apiServer: ReturnType<typeof createReadOnlyApi> | undefined;
 try {
   const root = worker.rootAccount;
   const forest = await root.createSubAccount('forest'.padEnd(20,'x'),{initialBalance:25n*NEAR});
@@ -41,6 +45,14 @@ try {
   await final(deleted);
   const source=new NearRpcSharedSource('sandbox',forest.accountId,rpc);
   const policy:SharedPolicy={network:'sandbox',registry:forest.accountId,denomination:USD.toString(),tokenId:token.accountId,feeRecipient:treasury.accountId,registryWasmSha256:sha256(forestWasm),vaultWasmSha256:sha256(vaultWasm),verifierSha256:sha256(Buffer.from(vk,'base64'))};
+  const operations = new NearRpcOperationsSource('sandbox',forest.accountId,rpc);
+  apiServer = createReadOnlyApi({source:operations,policy}); apiServer.listen(0,'127.0.0.1'); await once(apiServer,'listening');
+  const apiAddress=apiServer.address(); assert.ok(apiAddress && typeof apiAddress!=='string');
+  const apiUrl=`http://127.0.0.1:${apiAddress.port}`;
+  async function api(path:string,value:unknown) { const response=await fetch(apiUrl+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(value)}); const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));return result; }
+  const notFunded=await api('/v1/ft/preflight',{operation:'deposit',payer:alice.accountId,vault:a.accountId});
+  assert.equal(notFunded.canPrepare,false); assert.ok(notFunded.blockers.some((b:any)=>b.code==='PAYER_NOT_REGISTERED'));
+  assert.ok(notFunded.blockers.some((b:any)=>b.code==='INSUFFICIENT_TOKENS'));
   let catalog=await discoverSharedVaults(source,policy); assert.equal(catalog.pool.version,3);
   async function call(owner:NearAccount, plan:ContractCall) { const tx = await owner.callRaw(root.getAccount(plan.contract),plan.method,plan.args,{attachedDeposit:BigInt(plan.attachedYoctoNear),gas:BigInt(plan.gas)}); await final(tx); return tx; }
   async function register(ft:NearAccount, accountId:string) { const bounds:any=await ft.view('storage_balance_bounds'); await call(root,buildFtRegistration(ft.accountId,accountId,bounds.min)); }
@@ -60,7 +72,11 @@ try {
   const firstRoot=receipt(),firstMessage=JSON.stringify({commitment:notes[0].commitment,disclosure_root:firstRoot});
   const beforeAlice=await balance(token,alice);
   const missing=await send(alice,a,BigInt(quote.depositTransferTokens),firstMessage); assert.equal(missing.parseResult(),'0'); assert.equal(await balance(token,alice),beforeAlice);
-  await prepay(alice,a);
+  const readiness=await api('/v1/ft/preflight',{operation:'deposit',payer:alice.accountId,vault:a.accountId});
+  assert.equal(readiness.canPrepare,true); assert.equal(readiness.prerequisitesSatisfied,false);
+  assert.deepEqual(readiness.prerequisites.map((p:any)=>p.method),['prepay_storage']);
+  for(const prerequisite of readiness.prerequisites) await call(alice,prerequisite);
+  assert.equal((await preflightFt(operations,policy,{operation:'deposit',payer:alice.accountId,vault:a.accountId})).prerequisitesSatisfied,true);
   const wrongAmount=await send(alice,a,USD,firstMessage); assert.equal(wrongAmount.parseResult(),'0'); assert.equal(await balance(token,alice),beforeAlice);
   for(const [i,vault,owner] of [[0,a,alice],[1,b,bob],[2,b,bob]] as const) {
     catalog=await discoverSharedVaults(source,policy); const plan=await buildFtDeposit(catalog,vault.accountId,notes[i],i===0?firstRoot:receipt());
@@ -68,10 +84,15 @@ try {
     await state(vault,'get_deposit',{commitment:notes[i].commitment},'Active'); transactions.push(tx);
   }
   assert.equal(await balance(token,forest),0n); assert.equal(await balance(token,a),USD+1500n); assert.equal(await balance(token,b),2n*USD+3000n);
+  const depositStatus=await api('/v1/settlements/status',{kind:'deposit',vault:a.accountId,commitment:notes[0].commitment,expectedOwner:alice.accountId,expectedDisclosureRoot:firstRoot});
+  assert.equal(depositStatus.complete,true); assert.equal(depositStatus.state,'Active');
+  console.log('Preflight API verified live registrations, balances and sender storage; finalized observer confirms Active deposit.');
   console.log('Three FT deposits: all principal stays in vaults; registry token balance is zero. Missing storage and fee underpayment refunded.');
   const duplicate=await send(alice,a,BigInt(quote.depositTransferTokens),firstMessage); assert.equal(duplicate.parseResult(),'0');
   await prepay(alice,b); const duplicateCross=await send(alice,b,BigInt(quote.depositTransferTokens),firstMessage); assert.equal(duplicateCross.parseResult(),quote.depositTransferTokens);
   await state(b,'get_deposit',{commitment:notes[0].commitment},'Refundable');
+  const refundable=await observeSettlement(operations,policy,{kind:'deposit',vault:b.accountId,commitment:notes[0].commitment,expectedOwner:alice.accountId});
+  assert.equal(refundable.refundAvailable,true);assert.equal(refundable.refundCall!.method,'claim_deposit_refund');
   await root.call(token,'set_blocked',{account_id:alice.accountId},{gas:GAS});
   const failedRefund=await relay.callRaw(b,'claim_deposit_refund',{commitment:notes[0].commitment},{attachedDeposit:1n,gas:GAS}); assert.equal(failedRefund.parseResult(),false);
   await state(b,'get_deposit',{commitment:notes[0].commitment},'Refundable');
@@ -87,15 +108,21 @@ try {
   catalog=await discoverSharedVaults(source,policy); let tree=await loadSharedTree(source,catalog);
   const output=await createNote(pool),transferRoot=receipt(); const transferred=await proveSpend(pool,notes[0],tree,{kind:'transfer',target:output.commitment,disclosureRoot:transferRoot});
   const transfer=await relay.callRaw(forest,'transfer',{output_commitment:output.commitment,disclosure_root:transferRoot,...transferred.args},{attachedDeposit:STORAGE_FEE,gas:GAS}); assert.equal(transfer.parseResult(),3); transactions.push(transfer); await final(transfer);
-  const recipient=createFreshRecipient('ft-sandbox-local-recipient'); await root.transfer(recipient.accountId,NEAR/10n);
+  const recipient=createFreshRecipient('ft-sandbox-local-recipient'); const activation=await root.transfer(recipient.accountId,NEAR/10n); await final(activation);
   catalog=await discoverSharedVaults(source,policy); tree=await loadSharedTree(source,catalog);
   const withdrawalRoot=receipt(),proof=await proveSpend(pool,output,tree,{kind:'withdraw',vault:b.accountId,target:recipient.accountId,disclosureRoot:withdrawalRoot});
   const plan=buildFtWithdrawal(catalog,b.accountId,recipient.accountId,withdrawalRoot,proof.args); await prepay(relay,forest);
+  const payoutReadiness=await preflightFt(operations,policy,{operation:'withdraw',payer:relay.accountId,vault:b.accountId,recipient:recipient.accountId});
+  assert.equal(payoutReadiness.canPrepare,true);assert.ok(payoutReadiness.prerequisites.some(p=>p.method==='storage_deposit' && p.args.account_id===recipient.accountId));
+  // Deliberately skip this registration once to exercise a recoverable token payout failure.
   const failed=await call(relay,plan.tokenCall); assert.equal(failed.parseResult(),'1500',failed.summary()); transactions.push(failed);
   await state(forest,'get_withdrawal',{nullifier:proof.publicSignals[0]},'Retryable'); assert.equal(await forest.view('is_spent',{nullifier:proof.publicSignals[0]}),true); assert.equal(await balance(token,recipient.accountId),0n);
+  const payoutRef={kind:'withdrawal' as const,nullifier:proof.publicSignals[0],expectedVault:b.accountId,expectedRecipient:recipient.accountId,expectedDisclosureRoot:withdrawalRoot};
+  const failedStatus=await api('/v1/settlements/status',payoutRef);assert.equal(failedStatus.state,'Retryable');assert.equal(failedStatus.complete,false);assert.equal(failedStatus.retryCall.method,'retry_withdrawal');
   await register(token,recipient.accountId);
   const retry=await relay.callRaw(forest,'retry_withdrawal',{nullifier:proof.publicSignals[0]},{attachedDeposit:STORAGE_FEE,gas:GAS}); assert.equal(retry.parseResult(),true,retry.summary()); transactions.push(retry); await final(retry);
   assert.equal(await balance(token,recipient.accountId),USD);
+  assert.equal((await api('/v1/settlements/status',payoutRef)).complete,true);
   console.log('A-origin note transferred privately, then paid from B to fresh recipient after FT registration; retry charged no second USDC fee.');
   catalog=await discoverSharedVaults(source,policy); tree=await loadSharedTree(source,catalog); const raceRoot=receipt();
   const proofs=await Promise.all([a,b].map(v=>proveSpend(pool,notes[1],tree,{kind:'withdraw',vault:v.accountId,target:recipient.accountId,disclosureRoot:raceRoot})));
@@ -125,6 +152,9 @@ try {
   const verified=await verifyBundle(bundle,new NearRpcEvidenceSource('sandbox',forest.accountId,rpc)); assert.equal(verified.feeSummary!.assetTokenId,token.accountId); assert.equal(verified.feeSummary!.protocolFeesCharged,'9000'); assert.equal(verified.feeSummary!.protocolFeesEarned,'9000');
   const remaining:any=await forest.view('get_storage_credit',{account_id:alice.accountId});
   if(BigInt(remaining.available)>0n) { const tx=await alice.callRaw(forest,'withdraw_storage_credit',{},{attachedDeposit:1n,gas:GAS}); assert.equal(tx.parseResult(),true); assert.equal((await forest.view<any>('get_storage_credit',{account_id:alice.accountId})).available,'0'); }
-  await mkdir('demo-output',{recursive:true}); await writeFile('demo-output/ft-validation.json',JSON.stringify({fixture:'NEP-141 sandbox token, NOT Circle-issued USDC',policy,bundle,verification:verified,recipientReceivedTokens:(await balance(token,recipient.accountId)).toString(),treasuryReceivedTokens:'9000',principalNeverPooled:true,concurrentSpendPaidOnce:true,retryChargedTokenFeeOnce:true},null,2));
+  await mkdir('demo-output',{recursive:true}); await writeFile('demo-output/ft-validation.json',JSON.stringify({fixture:'NEP-141 sandbox token, NOT Circle-issued USDC',policy,bundle,verification:verified,recipientReceivedTokens:(await balance(token,recipient.accountId)).toString(),treasuryReceivedTokens:'9000',principalNeverPooled:true,concurrentSpendPaidOnce:true,retryChargedTokenFeeOnce:true,operationsApiVerified:true,preflightReadinessVerified:true,finalizedRecoveryObserverVerified:true},null,2));
   console.log(`FT shared demo verified: ${verified.records.length} finalized records, full 3 TESTUSD received, 0.009 TESTUSD total fees; report demo-output/ft-validation.json`);
-} finally { await worker.tearDown(); await shutdownProver(); }
+} finally {
+  if(apiServer) { apiServer.closeAllConnections(); await new Promise<void>(resolve=>apiServer!.close(()=>resolve())); }
+  await worker.tearDown(); await shutdownProver();
+}

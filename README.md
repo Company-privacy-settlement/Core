@@ -2,7 +2,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md)
 
-The **wallet SDK, CLI, and integration code** for private settlement on NEAR. Rust contracts, ZK circuits, and contract tests live in the separate [Contract repository](https://github.com/Company-privacy-settlement/Contract). This repository does not currently contain a runnable HTTP server API.
+The **wallet SDK, CLI, and integration code** for private settlement on NEAR. Rust contracts, ZK circuits, and contract tests live in the separate [Contract repository](https://github.com/Company-privacy-settlement/Contract). It includes a runnable read-only HTTP API for verified vault discovery, FT preflight, and finalized settlement state. Signing and proof generation remain local client operations.
 
 The current version supports native NEAR **shared anonymity v2** and **USDC/NEP-141 v3**. Principal remains distributed among vaults, while a common forest maintains one note tree and global nullifiers. A note deposited in A can withdraw from B, and concurrent requests or retries cannot pay the same note twice. V1 independent pools and the factory remain compatible.
 
@@ -10,6 +10,23 @@ The current version supports native NEAR **shared anonymity v2** and **USDC/NEP-
 | --- | --- |
 | [Contract](https://github.com/Company-privacy-settlement/Contract) | `pool`, `factory`, `shared-vault`, `forest`, Circom circuits, native tests, and WASM builds |
 | Core (this repository) | Secret notes and wallets, local proving, verified vault selection, selective disclosure, transaction evidence, KYB signature checks, CLI, and integration demos |
+
+## Development status and operations
+
+The remaining work is tracked in [the development backlog](docs/ROADMAP.md). This iteration adds one-final-block FT readiness checks, ordered registration/storage prerequisite calls, destination-bound settlement status/recovery, bounded polling, CLI commands and a read-only API. Wallet/frontend signing, durable activity storage/indexing, and real KYB/tax integrations remain later milestones.
+
+```bash
+npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
+npm run cli -- settlement-status trusted-policy.json https://rpc.testnet.near.org public-reference.json
+npm run cli -- settlement-wait trusted-policy.json https://rpc.testnet.near.org public-reference.json
+
+export CORE_POLICY_FILE=/absolute/path/to/trusted-policy.json
+export CORE_RPC_URL=https://rpc.testnet.near.org
+export CORE_ALLOWED_ORIGINS=http://localhost:3000
+npm run serve
+```
+
+The API defaults to `127.0.0.1:3001` and uses an actual trusted deployment policy, with no simulated fallback. It exposes `/v1/vaults`, `/v1/ft/preflight` and `/v1/settlements/status`; wallets, private notes and signing keys stay outside the service. A transaction being accepted or an observation timing out does not establish payout completion or failure. See [operations usage and HTTP endpoints](docs/OPERATIONS.md) for inputs, readiness flags and recovery behavior.
 
 ## Getting started
 
