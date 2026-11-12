@@ -6,6 +6,7 @@ import { IndexStore } from "../sdk/indexer/store.js";
 import { NearRpcIndexSource } from "../sdk/indexer/source.js";
 import { SettlementIndexer } from "../sdk/indexer/worker.js";
 import { IndexError, IndexTxRef } from "../sdk/indexer/types.js";
+import { TransactionDiscovery } from "../sdk/indexer/discovery.js";
 const mode = process.argv[2] ?? "once";
 if (!["once", "watch", "status"].includes(mode) || process.argv.length > 3)
   throw new Error("Usage: npm run index -- once|watch|status");
@@ -46,12 +47,39 @@ try {
             );
           store.enqueue(z.array(IndexTxRef).max(1000).parse(JSON.parse(text)));
         }
-        const synced = await worker.sync({ signal: controller.signal }),
-          provenance = await worker.linkPending({ signal: controller.signal });
+        const synced = await worker.sync({ signal: controller.signal });
+        const discovery =
+          process.env.CORE_DISCOVERY_START_HEIGHT !== undefined
+            ? await new TransactionDiscovery(
+                worker.source as NearRpcIndexSource,
+                store,
+              ).scan({
+                startHeight: z.coerce
+                  .number()
+                  .int()
+                  .nonnegative()
+                  .safe()
+                  .parse(process.env.CORE_DISCOVERY_START_HEIGHT),
+                signal: controller.signal,
+              })
+            : null;
+        const provenance = await worker.linkPending({
+          signal: controller.signal,
+        });
         console.log(
-          JSON.stringify({ event: "index_sync", ...synced, provenance }),
+          JSON.stringify({
+            event: "index_sync",
+            ...store.status(),
+            added: synced.added,
+            discoveryScan: discovery,
+            provenance,
+          }),
         );
-        if (mode === "once" && (provenance.readErrors > 0 || provenance.invalid > 0)) process.exitCode = 1;
+        if (
+          mode === "once" &&
+          (provenance.readErrors > 0 || provenance.invalid > 0)
+        )
+          process.exitCode = 1;
       } catch (error) {
         if (controller.signal.aborted) break;
         console.error(

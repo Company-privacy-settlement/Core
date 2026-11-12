@@ -13,9 +13,11 @@ The current version supports native NEAR **shared anonymity v2** and **USDC/NEP-
 
 ## Development status and operations
 
-This iteration adds a browser-safe FT execution SDK, explicit wallet-call review, an encrypted operation journal, and exact finalized transaction verification. [Front’s `/live/` workspace](https://github.com/Company-privacy-settlement/Front) uses NEAR Connect on testnet with your independently trusted deployment policy. Uncertain signatures stay blocked across restart; acceptance is distinct from final payout. See [wallet integration and recovery](docs/WALLET.md). Private note creation/proving stays in the CLI. Automatic provenance discovery, public testnet deployment, and real KYB/tax integrations remain on [the development backlog](docs/ROADMAP.md).
+This iteration adds a browser-safe FT execution SDK, explicit wallet-call review, an encrypted operation journal, and exact finalized transaction verification. [Front’s `/live/` workspace](https://github.com/Company-privacy-settlement/Front) uses NEAR Connect on testnet with your independently trusted deployment policy. Uncertain signatures stay blocked across restart; acceptance is distinct from final payout. See [wallet integration and recovery](docs/WALLET.md). Private note creation/proving stays in the CLI. Discovery scaling, public testnet deployment, and real KYB/tax integrations remain on [the development backlog](docs/ROADMAP.md).
 
 The finalized registry-journal index now persists records and checkpoints in local SQLite, resumes without duplicates, verifies supplied transaction/receipt provenance, and provides stable filtered activity pages. Run `npm run index -- once` or `watch` with `CORE_INDEX_DB`; the API opens the same database read-only. Provenance is optional and explicitly unresolved until verified. This does not assert complete company history. See [indexer setup and scope](docs/INDEXER.md).
+
+Automatic discovery now enumerates all shard transactions from a configured start block, checks complete finalized receipt graphs, and persists its position even inside a block. Front’s `/live/` shows public indexed activity, checkpoint age, discovery progress, unresolved provenance and stable filtered pages. Set `CORE_DISCOVERY_START_HEIGHT` to opt in; supplied public TX references remain supported. Coverage before the start and current worker/provider freshness are not implied.
 
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json

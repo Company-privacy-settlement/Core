@@ -14,7 +14,7 @@ This backlog is based on the current code. Contract and circuit work stays in th
 - [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
 - [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
 
-Validation: `npm run check`, **91 tests** via `npm test`, and `npm run demo:ft` pass. The sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, receipt correlation and activity pagination.
+Validation: `npm run check`, **101 tests** via `npm test`, and `npm run demo:ft` pass. The sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
 
 Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
 
@@ -27,14 +27,17 @@ Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `
 - [x] Durable registry-journal index with SQLite transactions/checkpoints, finalized-block conflict checks, restart/resume and bounded record replay.
 - [x] Persistent public TX-reference queue, exact finalized receipt correlation, and read-only activity/status APIs with stable filtered pagination.
 
+- [x] Bounded automatic all-shard TX discovery with complete receipt-graph checks, atomic cursor/candidate persistence and canonical gap validation.
+- [x] Front public group activity with validated index responses, checkpoint age, unresolved provenance, discovery coverage and stable filters/pages.
+
 Integration: [WALLET.md](WALLET.md). Private note creation/proving remains in the CLI. A publicly deployed/funded testnet wallet smoke test is still outstanding.
 
-Index scope and deployment: [INDEXER.md](INDEXER.md). All configured registry records are copied; transaction provenance is enriched only from supplied public references. It does not claim complete business history or automatically discover every transaction across NEAR shards.
+Index scope and deployment: [INDEXER.md](INDEXER.md). All configured registry records are copied; transaction provenance is enriched from bounded all-shard scans or supplied public references. Discovery start/progress and unresolved links remain explicit, with no complete business-history claim.
 
 | Task | Deliverable / acceptance condition | Dependency |
 | --- | --- | --- |
 | Browser note/prover expansion | Generate encrypted notes and new Groth16 proofs locally in the browser, with mobile memory/performance measurements and the same committed vectors. Current bundle executes prepared CLI plans. | Prover packaging and browser measurements |
-| Automatic provenance discovery and activity UI | Discover transaction origins across shards/providers and display indexed activity in Front with checkpoint age and unresolved links. Current index accepts explicit public TX references and exposes backend APIs. | Archival/indexed data provider and Front integration |
+| Discovery scaling | Add indexed-provider adapters, throughput/cost controls and operational alerting for large public-network backfills. Current RPC scanner enumerates all shards/transactions with persistent offsets and explicit coverage. | Archival/indexed data provider |
 | API deployment hardening | Authentication for any future private business data, rate limits, per-route budgets, OpenAPI/client generation, redacted telemetry and deployment health checks. | Hosting/access model; current API defaults to loopback |
 | Testnet deployment workflow | Reproducible artifact/policy release, verified token registration, explicit key-removal phase and a real-wallet smoke test. | Funded deployer account and reviewed setup hashes |
 | Group capacity management | Discover and display full groups, route new deposits to separately approved groups, preserve withdrawal access to old groups. No implied private cross-group migration. | New group deployment/policy distribution |

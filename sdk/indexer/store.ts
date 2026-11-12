@@ -19,6 +19,7 @@ import {
   type Provenance,
 } from "./types.js";
 import type { ChainRecord } from "../evidence.js";
+import { DiscoveryState } from './discovery.js';
 export interface ActivityReader {
   readonly policy: SharedPolicy;
   status(): unknown;
@@ -90,7 +91,8 @@ export class IndexStore implements ActivityReader {
           CREATE INDEX IF NOT EXISTS record_nullifier ON records(nullifier,record_index);
           CREATE INDEX IF NOT EXISTS record_commitment ON records(commitment,record_index);
           CREATE INDEX IF NOT EXISTS record_recipient ON records(recipient,record_index);
-          CREATE TABLE IF NOT EXISTS candidates (hash TEXT NOT NULL,signer TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'pending',attempts INTEGER NOT NULL DEFAULT 0,error TEXT,last_attempt INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(hash,signer));`);
+          CREATE TABLE IF NOT EXISTS candidates (hash TEXT NOT NULL,signer TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'pending',attempts INTEGER NOT NULL DEFAULT 0,error TEXT,last_attempt INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(hash,signer));
+          CREATE TABLE IF NOT EXISTS discovery (id INTEGER PRIMARY KEY CHECK(id=1),body TEXT NOT NULL);`);
         this.db
           .prepare("INSERT OR IGNORE INTO metadata VALUES (1,1,?,?)")
           .run(canonical(this.policy), randomUUID());
@@ -251,6 +253,18 @@ export class IndexStore implements ActivityReader {
         throw new Error("Transaction candidate capacity reached");
     });
   }
+  discovery():DiscoveryState|null{
+    if(!this.db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name='discovery'").get())return null;
+    const row=this.db.prepare('SELECT body FROM discovery WHERE id=1').get();return row?DiscoveryState.parse(JSON.parse(String(row.body))):null;
+  }
+  advanceDiscovery(expected:DiscoveryState|null,next:DiscoveryState,refs:IndexTxRef[]=[]){
+    next=DiscoveryState.parse(next);const parsed=refs.map(r=>IndexTxRef.parse(r));
+    this.transaction(()=>{if(canonical(this.discovery())!==canonical(expected))throw new IndexError('INDEX_CONFLICT','Another worker advanced discovery');
+      const insert=this.db.prepare('INSERT OR IGNORE INTO candidates(hash,signer) VALUES(?,?)');for(const r of parsed)insert.run(r.hash,r.signer);
+      if(Number(this.db.prepare('SELECT COUNT(*) AS n FROM candidates').get()!.n)>10000)throw new Error('Transaction candidate capacity reached');
+      this.db.prepare('INSERT INTO discovery VALUES(1,?) ON CONFLICT(id) DO UPDATE SET body=excluded.body').run(canonical(next));
+    });
+  }
   pending(limit: number): IndexTxRef[] {
     z.number().int().min(1).max(100).parse(limit);
     return this.db
@@ -327,6 +341,7 @@ export class IndexStore implements ActivityReader {
       remainingRecords: checkpoint
         ? checkpoint.sourceRecordCount - checkpoint.nextIndex
         : null,
+      discovery:{enabled:this.discovery()!==null,state:this.discovery()},
       candidates: Object.fromEntries(
         candidates.map((r) => [r.state, Number(r.n)]),
       ),

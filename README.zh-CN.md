@@ -13,9 +13,11 @@
 
 ## 开发状态与运行集成
 
-本阶段新增浏览器 FT 执行 SDK、逐笔钱包调用审核、加密操作日志及最终确认交易核对。[Front 的 `/live/` 页面](https://github.com/Company-privacy-settlement/Front) 使用独立可信的部署策略，通过 NEAR Connect 连接测试网钱包。签名结果不确定时，重启后仍会阻止重复发送并核实原交易；代币被接受与最终付款完成分开判断。详见[钱包集成与恢复](docs/WALLET.md)。秘密票据生成与证明仍使用本地 CLI。自动来源发现、公开测试网部署和真实 KYB/税务集成仍列于[开发清单](docs/ROADMAP.md)。
+本阶段新增浏览器 FT 执行 SDK、逐笔钱包调用审核、加密操作日志及最终确认交易核对。[Front 的 `/live/` 页面](https://github.com/Company-privacy-settlement/Front) 使用独立可信的部署策略，通过 NEAR Connect 连接测试网钱包。签名结果不确定时，重启后仍会阻止重复发送并核实原交易；代币被接受与最终付款完成分开判断。详见[钱包集成与恢复](docs/WALLET.md)。秘密票据生成与证明仍使用本地 CLI。来源发现扩展、公开测试网部署和真实 KYB/税务集成仍列于[开发清单](docs/ROADMAP.md)。
 
 新增最终确认的 registry 日志索引，将记录与检查点一起持久化到 SQLite，重启后无重复地继续，验证所提供公开交易引用的收据来源，并支持过滤及固定游标分页。设置 `CORE_INDEX_DB` 后运行 `npm run index -- once` 或 `watch`，API 以只读方式访问同一数据库。未核实的来源明确保持未关联状态，不声明企业完整交易历史。参见[索引运行与范围说明](docs/INDEXER.md)。
+
+新增从配置起始区块枚举全部分片交易的自动发现，检查完整最终确认收据图，并保存区块内进度。Front `/live/` 展示公开索引记录、检查点时间、发现进度、未关联来源及固定过滤分页。通过 `CORE_DISCOVERY_START_HEIGHT` 启用，也继续支持公开交易引用输入。不声明覆盖起始区块之前或当前最新链状态。
 
 ```bash
 npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json

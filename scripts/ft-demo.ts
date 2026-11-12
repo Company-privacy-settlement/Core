@@ -8,6 +8,7 @@ import { fileJournalStorage } from '../sdk/client-node.js';
 import { IndexStore } from '../sdk/indexer/store.js';
 import { NearRpcIndexSource } from '../sdk/indexer/source.js';
 import { SettlementIndexer } from '../sdk/indexer/worker.js';
+import { TransactionDiscovery } from '../sdk/indexer/discovery.js';
 import { resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { Worker, type NearAccount, type TransactionResult } from 'near-workspaces';
@@ -100,6 +101,7 @@ try {
   assert.equal(readiness.canPrepare,true); assert.equal(readiness.prerequisitesSatisfied,false);
   assert.deepEqual(readiness.prerequisites.map((p:any)=>p.method),['prepay_storage']);
   const wrongAmount=await send(alice,a,USD,firstMessage); assert.equal(wrongAmount.parseResult(),'0'); assert.equal(await balance(token,alice),beforeAlice);
+  const discoveryStartHeight=(await operations.finalBlock()).height;
   for(const [i,vault,owner] of [[0,a,alice],[1,b,bob],[2,b,bob]] as const) {
     catalog=await discoverSharedVaults(source,policy); const plan=await buildFtDeposit(catalog,vault.accountId,notes[i],i===0?firstRoot:receipt());
     let tx:TransactionResult;
@@ -179,7 +181,13 @@ try {
   indexStore=new IndexStore(indexPath,policy);let indexer=new SettlementIndexer(indexSource,indexStore);
   const indexed=await indexer.sync();assert.equal(indexed.indexedRecords,verified.records.length);assert.equal(indexed.remainingRecords,0);
   indexStore.close();indexStore=new IndexStore(indexPath,policy);indexer=new SettlementIndexer(indexSource,indexStore);assert.equal((await indexer.sync()).added,0);
-  indexStore.enqueue(transactions.map(tx=>({hash:tx.transactionReceipt.hash,signer:tx.transactionReceipt.signer_id})));
+  const discovery=new TransactionDiscovery(indexSource,indexStore);
+  for(let cycle=0;cycle<100;cycle++){
+    const result=await discovery.scan({startHeight:discoveryStartHeight,maxBlocks:100,maxTransactions:1000});assert.equal(result.state.blocked,null,JSON.stringify(result));
+    if(result.state.lastComplete?.height===indexStore.checkpoint()!.block.height)break;
+    assert.ok(cycle<99,'Discovery did not reach the indexed final block');
+  }
+  assert.ok(indexStore.status().candidates.pending>=transactions.length,'Scanner must discover the settlement transactions without supplied references');
   const linked=await indexer.linkPending({limit:100});assert.equal(linked.invalid,0,JSON.stringify(linked));assert.equal(linked.readErrors,0,JSON.stringify(linked));assert.equal(linked.pending,0,JSON.stringify(linked));assert.equal(indexStore.status().linkedRecords,verified.records.length,JSON.stringify(indexStore.status()));
   indexReader=new IndexStore(indexPath,policy,true);indexedApi=createReadOnlyApi({source:indexSource,policy,index:indexReader});indexedApi.listen(0,'127.0.0.1');await once(indexedApi,'listening');const indexedAddress=indexedApi.address();assert.ok(indexedAddress&&typeof indexedAddress!=='string');
   let cursor:string|null=null;const activityIndices:number[]=[];
@@ -191,7 +199,7 @@ try {
     cursor=page.nextCursor;
   } while(cursor);
   assert.deepEqual(activityIndices,[...verified.records.map(r=>r.index)].sort((a,b)=>b-a));
-  console.log('Durable index reopened without duplicates; all 14 records linked to finalized transaction/receipt provenance and paged through the read-only API.');
+  console.log('All-shard discovery found transaction origins without a supplied reference list; durable index linked all 14 records and served stable activity pages.');
   const remaining:any=await forest.view('get_storage_credit',{account_id:alice.accountId});
   if(BigInt(remaining.available)>0n) { const tx=await alice.callRaw(forest,'withdraw_storage_credit',{},{attachedDeposit:1n,gas:GAS}); assert.equal(tx.parseResult(),true); assert.equal((await forest.view<any>('get_storage_credit',{account_id:alice.accountId})).available,'0'); }
   assert.deepEqual((await journal.list()).map(o=>o.outcome),['complete','complete']);

@@ -33,7 +33,25 @@ Historical checkpoint/receipt checks require access to older blocks. RPC `UNKNOW
 
 ## Transaction and receipt correlation
 
-The contract journal does not contain originating transaction hashes. This version indexes every registry record from zero, then **independently enriches records using operator-supplied public transaction references**. It does not scan every NEAR shard for transaction discovery or infer a hash from an address/timestamp.
+The contract journal does not contain originating transaction hashes. This version indexes every registry record from zero, then independently enriches records using automatic all-shard discovery or supplied public transaction references. Discovery never infers a hash from an address/timestamp; every candidate still passes the existing finalized transaction/receipt verifier.
+
+### Automatic discovery
+
+```sh
+# An actual existing block at or before the earliest originating transaction you need.
+export CORE_DISCOVERY_START_HEIGHT=123456789
+npm run index -- watch
+```
+
+Replace the example height with your deployment's reviewed start height. Discovery is opt-in; omitting the variable preserves manual enrichment. The chosen start is fixed for that database. Changing coverage requires a separately reviewed database, without discarding existing evidence.
+
+The scanner enumerates **all newly included shard chunks and all transactions**, including calls to unrelated wrapper contracts. It requests each transaction at `FINAL` and checks that its receipt-outcome graph is complete before deciding whether a registry journal event may be present. Only matching candidates are queued; unrelated transaction bodies are not persisted. The normal verifier then compares candidates against authoritative registry records. Finding a candidate alone never creates linked provenance or establishes payout completion.
+
+Default per-cycle budgets are ten completed blocks and 100 examined transactions. A durable in-block offset, transaction-list digest and canonical block hash let scans resume mid-block. Cursor movement and candidate insertion commit together. Unknown/non-final transactions, incomplete receipt graphs or read failures keep the cursor on that transaction and expose a waiting code. The scanner validates parent links; an `UNKNOWN_BLOCK` is not blindly skipped, since it may indicate pruned history. It probes up to 64 heights for a later block whose parent proves a legitimate skipped-height gap. Unavailable archival data pauses the scan. Changed finalized data halts it.
+
+`discovery.state.lastComplete` in status is the last **fully scanned** block. `current` shows partial work; `updatedAt` is the latest scan attempt, not a claim of complete coverage. Discovery is bounded by the registry index's verified block and does not cover transactions before the configured start. Receipt execution may occur after a transaction's inclusion; newly discovered candidates remain pending until the journal catches up. Scanning a busy public chain requires many RPC reads (including one per transaction); an archival/all-shard provider with appropriate throughput is required. Indexed-provider adapters remain a scaling task.
+
+### Supplied references
 
 Write a public JSON array containing only existing transaction hashes and signers:
 
@@ -61,7 +79,7 @@ For every link, the worker checks:
 
 It stores only the transaction reference, successful receipt IDs/block hashes, verification checkpoint, and whether the **outer transaction** succeeded or failed. A successful nested receipt can have committed a journal record even if a later outer result failed; the API keeps that distinction. It does not treat transaction failure as proof that a payout failed or is safe to resend. Failed-receipt logs and logs from other executors cannot establish provenance.
 
-Unenriched records remain available with `provenance: null`. Missing provenance never hides a real journal event or invents its source. Automatic chain-wide transaction/receipt discovery is a separate remaining task.
+Unenriched records remain available with `provenance: null`. Missing provenance never hides a real journal event or invents its source. Discovery and provenance coverage remain explicit: before-start, blocked or not-yet-linked origins stay unresolved. No complete business-history claim is made.
 
 ## Read-only HTTP integration
 
@@ -78,12 +96,14 @@ The worker opens a writer connection; the API opens a **read-only** connection a
 
 | Route | Result |
 | --- | --- |
-| `GET /v1/index/status` | Policy, durable checkpoint, indexed/linked counts, remaining count at the last observed head, and candidate-state counts |
+| `GET /v1/index/status` | Policy, durable checkpoint, indexed/linked counts, remaining count at the last observed head, candidate-state counts and automatic-discovery coverage/waiting state |
 | `GET /v1/activity` | Descending immutable journal records, observed block, optional verified provenance, snapshot and next cursor |
 
 Activity accepts `limit` (1–50, default 20), `cursor`, `kind`, `vault`, `recipient`, `nullifier` and `commitment`. Unknown/duplicate query fields and malformed/cross-filter cursors return 400. CORS, concurrency limits, no-store responses and redacted errors remain in effect. Index routes read local data and do not make chain RPCs; `chainFreshnessChecked: false` and the checkpoint make that limitation explicit. A previously healthy database can become stale if its worker/provider stops. Treat its height/time as observed history, not current chain readiness.
 
 Pages use descending record indices and a fixed `upperExclusive` high-water mark. Later appends cannot shift the remaining pages. Cursors are bound to the database generation and filter set; recreating a database invalidates its old cursors. Cursors are public pagination state, **not authentication**. Provenance can be enriched between pages while record membership/order stays fixed. API responses do not certify complete business history or tax filing acceptance.
+
+Front’s `/live/` workspace displays public group activity after the independent policy check, without requiring a wallet or unlocked private journal. It shows checkpoint age, discovery progress/waiting state, nullable provenance, outer transaction outcome, event/recipient filters and stable load-more pages. It validates the response policy/asset/amount/fees and rejects malformed pages. Disabled/unavailable indexing displays an explicit error; there is no sample-data fallback. Refresh reads local index state, not the latest chain head.
 
 A returned record index plus its verified transaction reference can be used in Core's existing **selected-transactions** evidence bundle. Continue verifying the bundle against the chain; a database response is not a new tax certificate. Disclosure openings and business documents remain outside the public index.
 
@@ -95,6 +115,6 @@ npm test
 npm run demo:ft
 ```
 
-Tests cover restart/resume, atomic rollback, malformed pages, stale writers, finality conflicts, policy mismatch, stable pagination, invalid cursors, pending provenance, forged receipt logs, native v2 and FT v3, read-only API behavior and cancellation. The sandbox integration indexes real WASM/Groth16 settlement records, reopens the file without duplicates, links finalized transaction/receipt provenance, and paginates it through a separate read-only API connection. The sandbox token is a test fixture, not Circle-issued USDC, and no public testnet deployment is implied.
+Tests cover restart/resume, atomic rollback, malformed pages, stale writers, finality conflicts, policy mismatch, stable pagination, invalid cursors, pending provenance, forged receipt logs, native v2 and FT v3, read-only API behavior and cancellation. The sandbox integration indexes real WASM/Groth16 settlement records, reopens the file without duplicates, discovers originating transactions without a supplied reference list, links finalized transaction/receipt provenance, and paginates it through a separate read-only API connection. The sandbox token is a test fixture, not Circle-issued USDC, and no public testnet deployment is implied.
 
 Primary references: [NEAR finalized transaction/receipt RPC](https://docs.near.org/api/rpc/transactions), [canonical block queries and archival errors](https://docs.near.org/api/rpc/block-chunk), [Node 22 SQLite](https://nodejs.org/docs/latest-v22.x/api/sqlite.html).
