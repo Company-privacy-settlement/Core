@@ -1,6 +1,6 @@
 # Settlement operations SDK and read-only API
 
-These operations work with a caller-supplied, independently trusted shared v2/v3 policy. They do not sign, broadcast, generate a proof, or custody notes. The frontend remains a separate repository; a real wallet connection is future work.
+These operations work with a caller-supplied, independently trusted shared v2/v3 policy. They do not sign, broadcast, generate a proof, or custody notes. Wallet execution is provided by Front’s configured testnet workspace through the browser SDK; private note creation and proof generation remain local CLI operations. See [wallet execution and recovery](WALLET.md).
 
 ## FT preflight
 
