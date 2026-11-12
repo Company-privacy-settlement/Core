@@ -19,7 +19,7 @@ export function quoteFees(amount: string | bigint) {
     depositProtocolFee: deposit.toString(), withdrawalProtocolFee: withdrawal.toString(), storageFee: STORAGE_FEE.toString(),
     depositAttached: (n + deposit + STORAGE_FEE).toString(), withdrawalAttached: (withdrawal + STORAGE_FEE).toString(), withdrawalReceived: n.toString() };
 }
-export type Pool = { network: 'testnet' | 'sandbox'; contract: string; denomination: string; version?: 1 | 2 };
+export type Pool = { network: 'testnet' | 'sandbox'; contract: string; denomination: string } & ({ version?: 1 | 2; tokenId?: never } | { version: 3; tokenId: string });
 export type Note = { version: 1; domain: string; secret: string; nullifier: string; commitment: string };
 export type Action = { kind: 'transfer' | 'withdraw'; target: string; disclosureRoot: string; vault?: string };
 export type Spend = { proof: string; public_inputs: string[] };
@@ -48,9 +48,14 @@ export function shaField(value: string): string {
   return BigInt(`0x${bytes.toString('hex')}`).toString();
 }
 export function domain(pool: Pool): string {
-  if (pool.version !== undefined && pool.version !== 1 && pool.version !== 2) throw new Error('Unknown pool version');
+  if (pool.version !== undefined && pool.version !== 1 && pool.version !== 2 && pool.version !== 3) throw new Error('Unknown pool version');
   if (!/^[a-z0-9_-]+(?:\.[a-z0-9_-]+)*$/.test(pool.contract) || pool.contract.length < 2 || pool.contract.length > 64) throw new Error('Invalid NEAR account');
   if (!/^[1-9][0-9]*$/.test(pool.denomination) || BigInt(pool.denomination) > (1n << 128n) - 1n) throw new Error('Invalid denomination');
+  if (pool.version === 3) {
+    if (!/^[a-z0-9_-]+(?:\.[a-z0-9_-]+)*$/.test(pool.tokenId) || pool.tokenId.length < 2 || pool.tokenId.length > 64) throw new Error('Invalid FT contract');
+    return shaField(`core:ft:v3|${pool.network}|${pool.contract}|${pool.tokenId}|${pool.denomination}`);
+  }
+  if (pool.tokenId !== undefined) throw new Error('Token asset requires FT shared version 3');
   return shaField(`core:v${pool.version ?? 1}|${pool.network}|${pool.contract}|${pool.denomination}`);
 }
 export function contextHash(pool: Pool, action: Action): string {
@@ -59,12 +64,12 @@ export function contextHash(pool: Pool, action: Action): string {
   if (action.kind === 'transfer') {
     if (field(action.target) === 0n) throw new Error('Empty commitment');
   } else if (!/^[a-z0-9_-]+(?:\.[a-z0-9_-]+)*$/.test(action.target) || action.target.length < 2 || action.target.length > 64) throw new Error('Invalid recipient');
-  if (pool.version === 2) {
+  if (pool.version === 2 || pool.version === 3) {
     if (action.kind === 'withdraw') {
       if (!action.vault) throw new Error('Choose a verified destination vault for a shared withdrawal');
       domain({ ...pool, contract: action.vault });
     } else if (action.vault !== undefined) throw new Error('Shared note transfers have no destination vault');
-    return shaField(`core:action:v2|${domain(pool)}|${action.kind}|${action.vault ?? ''}|${action.target}|${action.disclosureRoot}`);
+    return shaField(`${pool.version === 3 ? 'core:action:ft:v3' : 'core:action:v2'}|${domain(pool)}|${action.kind}|${action.vault ?? ''}|${action.target}|${action.disclosureRoot}`);
   }
   if (action.vault !== undefined) throw new Error('Destination vault is only valid for a shared pool');
   return shaField(`core:action:v1|${domain(pool)}|${action.kind}|${action.target}|${action.disclosureRoot}`);

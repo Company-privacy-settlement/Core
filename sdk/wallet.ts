@@ -20,7 +20,7 @@ export function chooseIndependentVault(pools: readonly Pool[]): Pool {
   if (pools.length === 0) throw new Error('No approved vaults');
   const first = pools[0];
   const domains = pools.map(p => {
-    if (p.network !== first.network || p.denomination !== first.denomination || (p.version ?? 1) !== (first.version ?? 1)) throw new Error('Incompatible vault denominations, versions or networks');
+    if (p.network !== first.network || p.denomination !== first.denomination || (p.version ?? 1) !== (first.version ?? 1) || p.tokenId !== first.tokenId) throw new Error('Incompatible vault assets, denominations, versions or networks');
     return domain(p);
   });
   if (new Set(domains).size !== pools.length) throw new Error('Duplicate vault');

@@ -7,7 +7,7 @@ const Amount = z.string().regex(/^(0|[1-9][0-9]*)$/);
 const Count = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
 const Hash = z.string().regex(/^[a-f0-9]{64}$/);
 const RegistryConfig = z.object({
-  protocol: z.literal('core-shared-registry-v2'), network: z.enum(['sandbox', 'testnet']), denomination: Amount,
+  protocol: z.enum(['core-shared-registry-v2', 'core-shared-ft-registry-v3']), network: z.enum(['sandbox', 'testnet']), denomination: Amount, asset_token_id: z.string().nullable().optional(), deposit_token_amount: Amount.nullable().optional(), withdrawal_token_fee: Amount.nullable().optional(), storage_credit_bond: Amount.optional(),
   fee_recipient: z.string(), deposit_fee_bps: z.literal(15), withdrawal_fee_bps: z.literal(15),
   deposit_attached: Amount, withdrawal_attached: Amount, withdrawal_received: Amount, storage_fee: Amount,
   vault_wasm_sha256: Hash, verifier_sha256: Hash, vault_count: Count, creation_deposit: Amount,
@@ -15,11 +15,11 @@ const RegistryConfig = z.object({
 });
 const VaultRecord = z.object({ index: Count, account_id: z.string(), state: z.enum(['Pending', 'Ready', 'Failed']), available_notes: Count, reserved_notes: Count });
 const VaultConfig = z.object({
-  protocol: z.literal('core-shared-vault-v2'), registry: z.string(), network: z.enum(['sandbox', 'testnet']), denomination: Amount,
+  protocol: z.enum(['core-shared-vault-v2', 'core-shared-ft-vault-v3']), registry: z.string(), network: z.enum(['sandbox', 'testnet']), denomination: Amount, asset_token_id: z.string().nullable().optional(), deposit_token_amount: Amount.nullable().optional(), withdrawal_token_fee: Amount.nullable().optional(), storage_credit_bond: Amount.optional(),
   fee_recipient: z.string(), deposit_fee_bps: z.literal(15), withdrawal_fee_bps: z.literal(15), storage_fee: Amount,
   deposit_attached: Amount, withdrawal_received: Amount, available_notes: Count, reserved_notes: Count, pending_deposits: Count, held_notes: Count,
 });
-export type SharedPolicy = { network: Pool['network']; registry: string; denomination: string; feeRecipient: string; registryWasmSha256: string; vaultWasmSha256: string; verifierSha256: string };
+export type SharedPolicy = { network: Pool['network']; registry: string; denomination: string; feeRecipient: string; registryWasmSha256: string; vaultWasmSha256: string; verifierSha256: string; tokenId?: string };
 export interface SharedChainSource extends FactoryChainSource { commitments(block: string): Promise<unknown>; }
 export class NearRpcSharedSource extends NearRpcFactorySource implements SharedChainSource {
   commitments(block: string): Promise<unknown> { return this.view(this.factory, 'get_commitments', { from_index: 0, limit: 256 }, block); }
@@ -36,13 +36,16 @@ export async function discoverSharedVaults(source: SharedChainSource, policy: Sh
   [policy.registryWasmSha256, policy.vaultWasmSha256, policy.verifierSha256].forEach(h => Hash.parse(h));
   domain({ network: policy.network, contract: policy.feeRecipient, denomination: '1' });
   const quote = quoteFees(policy.denomination);
+  if (policy.tokenId) domain({ network: policy.network, contract: policy.registry, denomination: policy.denomination, version: 3, tokenId: policy.tokenId });
   const blockHash = await source.finalizedBlock();
   const [code, keys, raw] = await Promise.all([source.codeSha256(policy.registry, blockHash), source.accessKeys(policy.registry, blockHash), source.config(blockHash)]);
   if (code !== policy.registryWasmSha256 || keys.length !== 0) throw new Error('Registry code mismatch or remaining keys');
   const config = RegistryConfig.parse(raw);
-  const pool: Pool = { version: 2, network: policy.network, contract: policy.registry, denomination: policy.denomination };
+  const pool: Pool = policy.tokenId ? { version: 3, tokenId: policy.tokenId, network: policy.network, contract: policy.registry, denomination: policy.denomination } : { version: 2, network: policy.network, contract: policy.registry, denomination: policy.denomination };
+  if (config.protocol !== (policy.tokenId ? 'core-shared-ft-registry-v3' : 'core-shared-registry-v2') || (config.asset_token_id ?? undefined) !== policy.tokenId) throw new Error('Registry asset mismatch');
   if (config.network !== policy.network || config.denomination !== policy.denomination || config.fee_recipient !== policy.feeRecipient || config.vault_wasm_sha256 !== policy.vaultWasmSha256 || config.verifier_sha256 !== policy.verifierSha256 || config.domain !== domain(pool)) throw new Error('Shared group configuration mismatch');
-  if (config.deposit_attached !== quote.depositAttached || config.withdrawal_attached !== quote.withdrawalAttached || config.withdrawal_received !== quote.withdrawalReceived || config.storage_fee !== STORAGE_FEE.toString()) throw new Error('Shared fee policy mismatch');
+  if (config.deposit_attached !== (policy.tokenId ? STORAGE_FEE.toString() : quote.depositAttached) || config.withdrawal_attached !== (policy.tokenId ? STORAGE_FEE.toString() : quote.withdrawalAttached) || config.withdrawal_received !== quote.withdrawalReceived || config.storage_fee !== STORAGE_FEE.toString()) throw new Error('Shared fee policy mismatch');
+  if (policy.tokenId && (config.deposit_token_amount !== (BigInt(policy.denomination) + BigInt(quote.depositProtocolFee)).toString() || config.withdrawal_token_fee !== quote.withdrawalProtocolFee || config.storage_credit_bond !== '5000000000000000000000')) throw new Error('FT fee policy mismatch');
   if (config.leaf_count > config.capacity || config.outstanding_notes > config.leaf_count || BigInt(config.creation_deposit) !== BigInt(config.vault_funding) + BigInt(config.registration_fee)) throw new Error('Invalid registry accounting');
   const from = Count.parse(options.fromIndex ?? 0), max = options.maxRecords ?? 100;
   if (!Number.isInteger(max) || max < 1 || max > 200) throw new Error('Scan 1–200 records');
@@ -58,7 +61,9 @@ export async function discoverSharedVaults(source: SharedChainSource, policy: Sh
       const [vaultCode, vaultKeys, local] = await Promise.all([source.codeSha256(record.account_id, blockHash), source.accessKeys(record.account_id, blockHash), source.vaultConfig(record.account_id, blockHash)]);
       if (vaultCode !== policy.vaultWasmSha256 || vaultKeys.length !== 0) throw new Error('Shared vault code mismatch or remaining keys');
       const vault = VaultConfig.parse(local);
-      if (vault.registry !== policy.registry || vault.network !== policy.network || vault.denomination !== policy.denomination || vault.fee_recipient !== policy.feeRecipient || vault.deposit_attached !== quote.depositAttached || vault.withdrawal_received !== policy.denomination || vault.storage_fee !== STORAGE_FEE.toString()) throw new Error('Vault belongs to a different group or fee policy');
+      if (vault.protocol !== (policy.tokenId ? 'core-shared-ft-vault-v3' : 'core-shared-vault-v2') || (vault.asset_token_id ?? undefined) !== policy.tokenId) throw new Error('Vault asset mismatch');
+      if (policy.tokenId && (vault.deposit_token_amount !== config.deposit_token_amount || vault.storage_credit_bond !== config.storage_credit_bond)) throw new Error('Vault token fee policy mismatch');
+      if (vault.registry !== policy.registry || vault.network !== policy.network || vault.denomination !== policy.denomination || vault.fee_recipient !== policy.feeRecipient || vault.deposit_attached !== (policy.tokenId ? STORAGE_FEE.toString() : quote.depositAttached) || vault.withdrawal_received !== policy.denomination || vault.storage_fee !== STORAGE_FEE.toString()) throw new Error('Vault belongs to a different group or fee policy');
       if (vault.held_notes > 256 || vault.available_notes + vault.reserved_notes + vault.pending_deposits > vault.held_notes) throw new Error('Invalid vault accounting');
       vaults.push({ accountId: record.account_id, availableNotes: record.available_notes, reservedNotes: record.reserved_notes,
         canDeposit: config.leaf_count < config.capacity && vault.held_notes < 256, canWithdraw: record.available_notes > 0 && vault.available_notes > 0 });

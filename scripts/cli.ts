@@ -7,6 +7,8 @@ import { randomBytes } from 'node:crypto';
 import { discoverVaults, predictVaultAccount, NearRpcFactorySource, type FactoryPolicy } from '../sdk/factory.js';
 import { discoverSharedVaults, loadSharedTree, chooseSharedVault, NearRpcSharedSource, type SharedPolicy } from '../sdk/shared.js';
 
+import { buildFtDeposit, buildFtWithdrawal, parseUsdc, quoteFtFees } from '../sdk/ft.js';
+
 const [command, ...args] = process.argv.slice(2);
 const json = async (path: string) => JSON.parse(await readFile(path, 'utf8'));
 const output = (value: unknown) => console.log(JSON.stringify(value, null, 2));
@@ -34,7 +36,7 @@ try {
       const catalog = await discoverSharedVaults(new NearRpcSharedSource(policy.network, policy.registry, args[1]), policy);
       const note = await createNote(catalog.pool);
       await save(args[2], encryptPrivate(note, password()));
-      output({ paymentRequest: { protocol: 'core-shared-v2', pool: catalog.pool, commitment: note.commitment }, encryptedBackup: args[2] });
+      output({ paymentRequest: { protocol: catalog.pool.version === 3 ? 'core-shared-ft-v3' : 'core-shared-v2', pool: catalog.pool, commitment: note.commitment }, encryptedBackup: args[2] });
       break;
     }
     case 'shared-deposit-args': {
@@ -43,6 +45,9 @@ try {
       const catalog = await discoverSharedVaults(new NearRpcSharedSource(policy.network, policy.registry, args[1]), policy);
       const note = await loadNote(args[2]); await validateNote(catalog.pool, note);
       if (!/^[a-f0-9]{64}$/.test(args[3])) throw new Error('Invalid disclosure root');
+      if (catalog.pool.version === 3) {
+        output({ ...await buildFtDeposit(catalog, chooseSharedVault(catalog, 'deposit'), note, args[3]), checkedAtBlock: catalog.blockHash, prerequisite: 'Prepay NEAR storage for the token sender and register the vault on the pinned FT contract first.' }); break;
+      }
       output({ contract: chooseSharedVault(catalog, 'deposit'), method: 'deposit', args: { commitment: note.commitment, disclosure_root: args[3] }, depositYocto: quoteFees(policy.denomination).depositAttached, gasTgas: 300, registry: policy.registry, checkedAtBlock: catalog.blockHash });
       break;
     }
@@ -57,11 +62,20 @@ try {
         if (!catalog.vaults.some(v => v.accountId === action.vault && v.canWithdraw)) throw new Error('Destination vault is not verified or lacks liquidity');
       }
       const proof = await proveSpend(catalog.pool, note, await loadSharedTree(source, catalog), action);
+      if (catalog.pool.version === 3 && action.kind === 'withdraw') {
+        const plan = buildFtWithdrawal(catalog, action.vault!, action.target, action.disclosureRoot, proof.args);
+        await save(args[4], JSON.stringify({ ...plan, checkedAtBlock: catalog.blockHash, prerequisite: 'Prepay registry NEAR storage for the token fee payer; register vault, registry, recipient and treasury on the pinned FT contract.' }, null, 2));
+        output({ prepared: args[4], registry: policy.registry, selectedVault: action.vault }); break;
+      }
       const actionArgs = action.kind === 'withdraw' ? { vault: action.vault, recipient: action.target } : { output_commitment: action.target };
       const feeQuote = quoteFees(policy.denomination);
-      await save(args[4], JSON.stringify({ contract: policy.registry, method: action.kind, args: { ...actionArgs, disclosure_root: action.disclosureRoot, ...proof.args }, depositYocto: action.kind === 'withdraw' ? feeQuote.withdrawalAttached : STORAGE_FEE.toString(), gasTgas: 300, feeQuote, checkedAtBlock: catalog.blockHash }, null, 2));
+      await save(args[4], JSON.stringify({ contract: policy.registry, method: action.kind, args: { ...actionArgs, disclosure_root: action.disclosureRoot, ...proof.args }, depositYocto: action.kind === 'withdraw' ? feeQuote.withdrawalAttached : STORAGE_FEE.toString(), gasTgas: 300, feeQuote: catalog.pool.version === 3 ? quoteFtFees(policy.denomination) : feeQuote, checkedAtBlock: catalog.blockHash }, null, 2));
       output({ prepared: args[4], registry: policy.registry, selectedVault: action.vault });
       break;
+    }
+    case 'quote-usdc': {
+      if (args.length !== 1) throw new Error('quote-usdc decimal-USDC-amount');
+      output(quoteFtFees(parseUsdc(args[0]))); break;
     }
     case 'quote-fees': {
       if (args.length !== 1) throw new Error('quote-fees amount-in-yoctonear');
@@ -101,16 +115,17 @@ try {
     case 'init-args': {
       if (args.length !== 1) throw new Error('init-args pool.json');
       const pool: Pool & { feeRecipient?: string } = await json(args[0]), vk = await json('artifacts/verification_key.json');
+      domain(pool);
       if (!pool.feeRecipient) throw new Error('Set feeRecipient before preparing immutable deployment');
       domain({ network: pool.network, contract: pool.feeRecipient, denomination: '1' });
       if (pool.feeRecipient === pool.contract) throw new Error('Fee recipient cannot be the vault itself');
-      output({ method: 'new', args: { network: pool.network, denomination: pool.denomination, verification_key: encodeVerificationKey(vk), fee_recipient: pool.feeRecipient }, depositYocto: (10n ** 24n).toString(), gasTgas: 300 });
+      output({ method: pool.version === 3 ? 'new_ft' : 'new', args: { ...(pool.version === 3 ? { token_id: pool.tokenId } : {}), network: pool.network, denomination: pool.denomination, verification_key: encodeVerificationKey(vk), fee_recipient: pool.feeRecipient }, depositYocto: (10n ** 24n).toString(), gasTgas: 300 });
       break;
     }
     case 'deposit-args': {
       if (args.length !== 3) throw new Error('deposit-args pool.json encrypted-note.json disclosure-root');
       const pool: Pool = await json(args[0]), note = await loadNote(args[1]);
-      if (pool.version === 2) throw new Error('Use shared-deposit-args to choose a verified physical vault');
+      if (pool.version === 2 || pool.version === 3) throw new Error('Use shared-deposit-args to choose a verified physical vault');
       await validateNote(pool, note);
       const feeQuote = quoteFees(pool.denomination);
       output({ method: 'deposit', args: { commitment: note.commitment, disclosure_root: args[2] }, depositYocto: feeQuote.depositAttached, feeQuote, gasTgas: 300 });
@@ -119,6 +134,7 @@ try {
     case 'spend-args': {
       if (args.length !== 5) throw new Error('spend-args pool.json encrypted-note.json commitments.json action.json output.json');
       const pool: Pool = await json(args[0]), note = await loadNote(args[1]), action: Action = await json(args[3]);
+      if (pool.version === 3) throw new Error('Use shared-spend-args for verified FT vault routing and token fee payment');
       const tree = await NoteTree.from(await json(args[2]));
       const proof = await proveSpend(pool, note, tree, action);
       const actionArgs = action.kind === 'transfer' ? { output_commitment: action.target } : { ...(pool.version === 2 ? { vault: action.vault } : {}), recipient: action.target };
@@ -146,7 +162,7 @@ try {
       break;
     }
     default:
-      console.log('Commands: wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
+      console.log('Commands: wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
       process.exitCode = command ? 1 : 0;
   }
 } catch (error) {

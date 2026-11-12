@@ -1,0 +1,10 @@
+{
+  "network": "testnet",
+  "registry": "replace-with-new-forest.testnet",
+  "denomination": "1000000",
+  "tokenId": "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af",
+  "feeRecipient": "replace-with-treasury.testnet",
+  "registryWasmSha256": "REPLACE_WITH_INDEPENDENTLY_VERIFIED_SHA256",
+  "vaultWasmSha256": "REPLACE_WITH_INDEPENDENTLY_VERIFIED_SHA256",
+  "verifierSha256": "REPLACE_WITH_INDEPENDENTLY_VERIFIED_SHA256"
+}

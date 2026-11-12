@@ -1,7 +1,9 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createNote, domain, encodeVerificationKey, NoteTree, proveSpend, shutdownProver, type Pool } from '../sdk/core.js';
-const pool: Pool = { version: 2, network: 'sandbox', contract: 'forest.test.near', denomination: '1000000000000000000000000' };
+const ft = process.argv.includes('--ft');
+const pool: Pool = ft ? { version: 3, network: 'sandbox', contract: 'forest.test.near', denomination: '1000000', tokenId: 'usdc.test.near' } : { version: 2, network: 'sandbox', contract: 'forest.test.near', denomination: '1000000000000000000000000' };
+const filename = ft ? 'shared-ft.json' : 'shared.json';
 try {
   const a = await createNote(pool), b = await createNote(pool), output = await createNote(pool);
   const initialTree = await NoteTree.from([a.commitment, b.commitment]);
@@ -22,8 +24,8 @@ try {
     vaultA, vaultB, recipient, a: a.commitment, b: b.commitment, output: output.commitment,
     root: initialTree.root, nextRoot: nextTree.root, disclosureRoot: root, transferRoot, verificationKey: encodeVerificationKey(vkey), proofs }, null, 2);
   await mkdir('test-vectors', { recursive: true });
-  await writeFile('test-vectors/shared.json', value);
+  await writeFile(`test-vectors/${filename}`, value);
   const contract = resolve(process.env.CORE_CONTRACT_REPO || '../Contract');
-  await writeFile(resolve(contract, 'test-vectors/shared.json'), value);
+  await writeFile(resolve(contract, 'test-vectors', filename), value);
   console.log('Shared-domain real Groth16 vectors written to both repositories.');
 } finally { await shutdownProver(); }
