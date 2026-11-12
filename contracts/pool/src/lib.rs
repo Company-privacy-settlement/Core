@@ -1,4 +1,5 @@
 mod crypto;
+mod fees;
 use crypto::{decimal, parse, poseidon, sha_field, Field};
 use near_sdk::collections::{LookupMap, LookupSet, Vector};
 use near_sdk::json_types::{Base64VecU8, U128};
@@ -39,6 +40,10 @@ pub struct Record {
     pub disclosure_root: String,
     pub block_height: u64,
     pub timestamp_ns: String,
+    pub amount: U128,
+    pub protocol_fee_charged: U128,
+    pub protocol_fee_earned: U128,
+    pub storage_fee_charged: U128,
 }
 
 #[near(serializers = [json])]
@@ -47,6 +52,17 @@ pub struct Config {
     pub network: String,
     pub denomination: U128,
     pub storage_fee: U128,
+    pub deposit_fee_bps: u16,
+    pub withdrawal_fee_bps: u16,
+    pub deposit_protocol_fee: U128,
+    pub withdrawal_protocol_fee: U128,
+    pub deposit_attached: U128,
+    pub withdrawal_attached: U128,
+    pub withdrawal_received: U128,
+    pub fee_recipient: AccountId,
+    pub accrued_protocol_fees: U128,
+    pub pending_withdrawal_fees: U128,
+    pub fee_payout_in_flight: U128,
     pub domain: String,
     pub root: String,
     pub leaf_count: u32,
@@ -59,6 +75,11 @@ pub struct Config {
 #[ext_contract(ext_self)]
 #[allow(dead_code)]
 trait Callbacks {
+    fn on_fee_payout(
+        &mut self,
+        amount: U128,
+        #[callback_result] result: Result<(), PromiseError>,
+    ) -> bool;
     fn on_payout(
         &mut self,
         nullifier: String,
@@ -83,18 +104,27 @@ pub struct Pool {
     payouts: LookupMap<Field, Payout>,
     records: Vector<Record>,
     outstanding: u32,
+    fee_recipient: AccountId,
+    accrued_protocol_fees: u128,
+    pending_withdrawal_fees: u128,
+    fee_payout_in_flight: u128,
 }
 
 #[near]
 impl Pool {
     #[init]
     #[payable]
-    pub fn new(network: String, denomination: U128, verification_key: Base64VecU8) -> Self {
+    pub fn new(
+        network: String,
+        denomination: U128,
+        verification_key: Base64VecU8,
+        fee_recipient: AccountId,
+    ) -> Self {
         require!(
             env::predecessor_account_id() == env::current_account_id(),
             "Initialize from contract account"
         );
-        Self::initialize(network, denomination, verification_key)
+        Self::initialize(network, denomination, verification_key, fee_recipient)
     }
 
     // Used in the factory's atomic create → fund → deploy → initialize batch.
@@ -105,6 +135,7 @@ impl Pool {
         network: String,
         denomination: U128,
         verification_key: Base64VecU8,
+        fee_recipient: AccountId,
     ) -> Self {
         let current = env::current_account_id();
         let predecessor = env::predecessor_account_id();
@@ -112,12 +143,21 @@ impl Pool {
             current.get_parent_account_id() == Some(predecessor.as_ref()),
             "Only the direct parent factory may initialize"
         );
-        Self::initialize(network, denomination, verification_key)
+        Self::initialize(network, denomination, verification_key, fee_recipient)
     }
 }
 
 impl Pool {
-    fn initialize(network: String, denomination: U128, verification_key: Base64VecU8) -> Self {
+    fn initialize(
+        network: String,
+        denomination: U128,
+        verification_key: Base64VecU8,
+        fee_recipient: AccountId,
+    ) -> Self {
+        require!(
+            fee_recipient != env::current_account_id(),
+            "Fee recipient cannot be the vault itself"
+        );
         require!(
             network == "testnet" || network == "sandbox",
             "Hackathon pool: testnet or sandbox only"
@@ -158,6 +198,10 @@ impl Pool {
             payouts: LookupMap::new(b"p"),
             records: Vector::new(b"e"),
             outstanding: 0,
+            fee_recipient,
+            accrued_protocol_fees: 0,
+            pending_withdrawal_fees: 0,
+            fee_payout_in_flight: 0,
         }
     }
 }
@@ -170,6 +214,17 @@ impl Pool {
             network: self.network.clone(),
             denomination: U128(self.denomination),
             storage_fee: U128(FEE),
+            deposit_fee_bps: fees::DEPOSIT_FEE_BPS,
+            withdrawal_fee_bps: fees::WITHDRAWAL_FEE_BPS,
+            deposit_protocol_fee: U128(fees::deposit_fee(self.denomination)),
+            withdrawal_protocol_fee: U128(fees::withdrawal_fee(self.denomination)),
+            deposit_attached: U128(self.denomination + fees::deposit_fee(self.denomination) + FEE),
+            withdrawal_attached: U128(fees::withdrawal_fee(self.denomination) + FEE),
+            withdrawal_received: U128(self.denomination),
+            fee_recipient: self.fee_recipient.clone(),
+            accrued_protocol_fees: U128(self.accrued_protocol_fees),
+            pending_withdrawal_fees: U128(self.pending_withdrawal_fees),
+            fee_payout_in_flight: U128(self.fee_payout_in_flight),
             domain: decimal(&self.domain),
             root: decimal(&self.nodes[0]),
             leaf_count: self.leaves.len() as u32,
@@ -205,13 +260,15 @@ impl Pool {
     #[payable]
     pub fn deposit(&mut self, commitment: String, disclosure_root: String) -> u64 {
         require!(
-            env::attached_deposit().as_yoctonear() == self.denomination + FEE,
-            "Attach denomination plus storage fee"
+            env::attached_deposit().as_yoctonear()
+                == self.denomination + fees::deposit_fee(self.denomination) + FEE,
+            "Attach denomination plus protocol fee and storage fee"
         );
         Self::validate_disclosure(&disclosure_root);
         let start = env::storage_usage();
         let leaf = self.append(parse(&commitment));
         self.outstanding += 1;
+        self.accrued_protocol_fees += fees::deposit_fee(self.denomination);
         self.record("deposit", Some(commitment), None, None, disclosure_root);
         self.storage_covered(start);
         leaf
@@ -262,7 +319,10 @@ impl Pool {
         proof: Base64VecU8,
         public_inputs: Vec<String>,
     ) -> Promise {
-        Self::charge_fee();
+        require!(
+            env::attached_deposit().as_yoctonear() == FEE + fees::withdrawal_fee(self.denomination),
+            "Attach withdrawal protocol fee plus storage fee"
+        );
         Self::validate_disclosure(&disclosure_root);
         require!(
             recipient != env::current_account_id(),
@@ -277,6 +337,7 @@ impl Pool {
         );
         let start = env::storage_usage();
         self.spent.insert(&nf);
+        self.pending_withdrawal_fees += fees::withdrawal_fee(self.denomination);
         self.payouts.insert(
             &nf,
             &Payout {
@@ -307,7 +368,16 @@ impl Pool {
             "Payout is not retryable"
         );
         payout.state = PayoutState::Pending;
+        let start = env::storage_usage();
         self.payouts.insert(&nf, &payout);
+        self.record(
+            "withdrawal_retried",
+            None,
+            Some(nullifier),
+            Some(payout.recipient.clone()),
+            payout.disclosure_root.clone(),
+        );
+        self.storage_covered(start);
         self.send(nf, payout.recipient)
     }
 
@@ -328,6 +398,9 @@ impl Pool {
         };
         if ok {
             self.outstanding -= 1;
+            let fee = fees::withdrawal_fee(self.denomination);
+            self.pending_withdrawal_fees -= fee;
+            self.accrued_protocol_fees += fee;
         }
         self.payouts.insert(&nf, &payout);
         self.record(
@@ -341,6 +414,56 @@ impl Pool {
             Some(payout.recipient),
             payout.disclosure_root,
         );
+        ok
+    }
+
+    // Anyone may trigger collection; the recipient is immutable and only earned fees move.
+    #[payable]
+    pub fn collect_protocol_fees(&mut self) -> Promise {
+        require!(
+            env::attached_deposit().as_yoctonear() == 1,
+            "Attach 1 yoctoNEAR"
+        );
+        require!(
+            self.fee_payout_in_flight == 0,
+            "Fee collection already in flight"
+        );
+        require!(self.accrued_protocol_fees > 0, "No earned protocol fees");
+        self.ensure_solvent();
+        let amount = self.accrued_protocol_fees;
+        self.accrued_protocol_fees = 0;
+        self.fee_payout_in_flight = amount;
+        Promise::new(self.fee_recipient.clone())
+            .transfer(NearToken::from_yoctonear(amount))
+            .then(
+                ext_self::ext(env::current_account_id())
+                    .with_static_gas(Gas::from_tgas(20))
+                    .on_fee_payout(U128(amount)),
+            )
+    }
+
+    #[private]
+    pub fn on_fee_payout(
+        &mut self,
+        amount: U128,
+        #[callback_result] result: Result<(), PromiseError>,
+    ) -> bool {
+        require!(
+            amount.0 > 0 && self.fee_payout_in_flight == amount.0,
+            "Fee collection is not in flight"
+        );
+        self.fee_payout_in_flight = 0;
+        let ok = result.is_ok();
+        if !ok {
+            self.accrued_protocol_fees += amount.0;
+        }
+        env::log_str(&format!(
+            "EVENT_JSON:{}",
+            near_sdk::serde_json::json!({
+                "standard": "core_privacy", "version": "1.0.0", "event": if ok { "protocol_fees_collected" } else { "protocol_fee_collection_failed" },
+                "data": [{ "recipient": self.fee_recipient, "amount": amount }]
+            })
+        ));
         ok
     }
 }
@@ -415,14 +538,7 @@ impl Pool {
         fields[0]
     }
     fn send(&self, nf: Field, recipient: AccountId) -> Promise {
-        // Keep principal and the storage stake separately solvent.
-        let stake =
-            (env::storage_usage() as u128 + 32_768) * env::storage_byte_cost().as_yoctonear();
-        require!(
-            env::account_balance().as_yoctonear()
-                >= self.outstanding as u128 * self.denomination + stake,
-            "Insufficient reserve"
-        );
+        self.ensure_solvent();
         Promise::new(recipient)
             .transfer(NearToken::from_yoctonear(self.denomination))
             .then(
@@ -430,6 +546,20 @@ impl Pool {
                     .with_static_gas(Gas::from_tgas(20))
                     .on_payout(decimal(&nf)),
             )
+    }
+    fn ensure_solvent(&self) {
+        // Keep principal and the storage stake separately solvent.
+        let stake =
+            (env::storage_usage() as u128 + 32_768) * env::storage_byte_cost().as_yoctonear();
+        require!(
+            env::account_balance().as_yoctonear()
+                >= self.outstanding as u128 * self.denomination
+                    + self.pending_withdrawal_fees
+                    + self.accrued_protocol_fees
+                    + self.fee_payout_in_flight
+                    + stake,
+            "Insufficient reserve"
+        );
     }
     fn record(
         &mut self,
@@ -439,6 +569,16 @@ impl Pool {
         recipient: Option<AccountId>,
         disclosure_root: String,
     ) {
+        let (charged, earned, storage) = match kind {
+            "deposit" => {
+                let f = fees::deposit_fee(self.denomination);
+                (f, f, FEE)
+            }
+            "withdrawal_requested" => (fees::withdrawal_fee(self.denomination), 0, FEE),
+            "withdrawal_succeeded" => (0, fees::withdrawal_fee(self.denomination), 0),
+            "transfer" | "withdrawal_retried" => (0, 0, FEE),
+            _ => (0, 0, 0),
+        };
         let record = Record {
             index: self.records.len(),
             kind: kind.into(),
@@ -448,6 +588,10 @@ impl Pool {
             disclosure_root,
             block_height: env::block_height(),
             timestamp_ns: env::block_timestamp().to_string(),
+            amount: U128(self.denomination),
+            protocol_fee_charged: U128(charged),
+            protocol_fee_earned: U128(earned),
+            storage_fee_charged: U128(storage),
         };
         env::log_str(&format!(
             "EVENT_JSON:{}",

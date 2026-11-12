@@ -7,6 +7,18 @@ export const FIELD = 21888242871839275222246405745257275088548364400416034343698
 export const DEPTH = 8;
 export const CAPACITY = 1 << DEPTH;
 export const STORAGE_FEE = 2n * 10n ** 22n; // 0.02 NEAR, including payout callback storage.
+export const DEPOSIT_FEE_BPS = 15;
+export const WITHDRAWAL_FEE_BPS = 15;
+export function quoteFees(amount: string | bigint) {
+  if (typeof amount === 'string' && !/^[1-9][0-9]*$/.test(amount)) throw new Error('Invalid amount');
+  const n = BigInt(amount);
+  if (n <= 0n || n > ((1n << 128n) - 1n) / 256n) throw new Error('Amount outside pool denomination range');
+  const deposit = n * BigInt(DEPOSIT_FEE_BPS) / 10_000n;
+  const withdrawal = n * BigInt(WITHDRAWAL_FEE_BPS) / 10_000n;
+  return { amount: n.toString(), depositFeeBps: DEPOSIT_FEE_BPS, withdrawalFeeBps: WITHDRAWAL_FEE_BPS,
+    depositProtocolFee: deposit.toString(), withdrawalProtocolFee: withdrawal.toString(), storageFee: STORAGE_FEE.toString(),
+    depositAttached: (n + deposit + STORAGE_FEE).toString(), withdrawalAttached: (withdrawal + STORAGE_FEE).toString(), withdrawalReceived: n.toString() };
+}
 export type Pool = { network: 'testnet' | 'sandbox'; contract: string; denomination: string };
 export type Note = { version: 1; domain: string; secret: string; nullifier: string; commitment: string };
 export type Action = { kind: 'transfer' | 'withdraw'; target: string; disclosureRoot: string };

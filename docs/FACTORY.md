@@ -1,8 +1,8 @@
 # Permissionless keyless vault factory
 
-`contracts/factory` embeds the optimized vault WASM. Its constructor pins the network label, denomination and verification key. There are no setters, arbitrary calls into children, key-installation methods or admin withdrawals.
+`contracts/factory` embeds the optimized vault WASM. Its constructor pins the network label, denomination, verification key and fee recipient. Each child inherits the same fixed recipient and the 0.15% deposit/withdrawal add-on fee policy. There are no setters, arbitrary calls into children, key-installation methods or admin withdrawals.
 
-Deploy `artifacts/core_factory.wasm` to an account ID of at most 30 characters, fund its code storage, then initialize `new(network, denomination, verification_key)` from that account with at least 1 NEAR. `init-args` generates the same constructor arguments as for the pool. A factory deployer can replace its code while keys remain; the SDK requires empty key lists for both factory and vault. Key removal on public networks is not automated.
+Deploy `artifacts/core_factory.wasm` to an account ID of at most 30 characters, fund its code storage, then initialize `new(network, denomination, verification_key, fee_recipient)` from that account with at least 1 NEAR. `init-args` generates the same constructor arguments as for the pool. A factory deployer can replace its code while keys remain; the SDK requires empty key lists for both factory and vault. Key removal on public networks is not automated.
 
 ## API
 
@@ -30,7 +30,7 @@ The sandbox demo deliberately occupies a predicted child, observes the actual cr
 
 ## Verified discovery
 
-Fill `examples/factory-policy.json` using independently trusted artifacts: factory WASM SHA-256, vault WASM SHA-256, verifier SHA-256, network and denomination. `artifacts/build-manifest.json` contains both code hashes. The verifier hash is SHA-256 of the decoded base64 verification key, not its JSON file. Copying a hash from an untrusted factory does not establish trust.
+Fill `examples/factory-policy.json` using independently trusted artifacts: factory WASM SHA-256, vault WASM SHA-256, verifier SHA-256, network, denomination and `feeRecipient`. `artifacts/build-manifest.json` contains both code hashes. The verifier hash is SHA-256 of the decoded base64 verification key, not its JSON file. Copying a hash from an untrusted factory does not establish trust. Discovery also verifies fee rates, add-on deposit/withdrawal amounts, full recipient payout, and the fixed fee recipient. Protocol fees are collected from vaults directly; the factory's creation/refund budgets are separate.
 
 `discoverVaults` pins one finalized block for all reads. It verifies factory bytecode, configuration and empty access key list; complete registry pages; `Ready` status and direct-child addresses; and each child's bytecode, empty keys, denomination, verifier, note domain and storage fee. It scans at most 200 records per invocation and returns `nextIndex`. Full trees remain visible with `canDeposit: false`.
 

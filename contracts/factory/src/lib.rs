@@ -1,4 +1,6 @@
 use near_sdk::collections::{LookupMap, Vector};
+#[path = "../../pool/src/fees.rs"]
+mod fees;
 use near_sdk::json_types::{Base64VecU8, U128};
 use near_sdk::{
     env, ext_contract, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise,
@@ -42,6 +44,11 @@ pub struct FactoryConfig {
     pub protocol: String,
     pub network: String,
     pub denomination: U128,
+    pub fee_recipient: AccountId,
+    pub deposit_fee_bps: u16,
+    pub withdrawal_fee_bps: u16,
+    pub deposit_protocol_fee: U128,
+    pub withdrawal_protocol_fee: U128,
     pub vault_wasm_sha256: String,
     pub verifier_sha256: String,
     pub vault_funding: U128,
@@ -73,6 +80,7 @@ trait Callbacks {
 pub struct Factory {
     network: String,
     denomination: u128,
+    fee_recipient: AccountId,
     verification_key: Vec<u8>,
     funding: u128,
     vaults: Vector<VaultRecord>,
@@ -86,7 +94,16 @@ pub struct Factory {
 impl Factory {
     #[init]
     #[payable]
-    pub fn new(network: String, denomination: U128, verification_key: Base64VecU8) -> Self {
+    pub fn new(
+        network: String,
+        denomination: U128,
+        verification_key: Base64VecU8,
+        fee_recipient: AccountId,
+    ) -> Self {
+        require!(
+            fee_recipient != env::current_account_id(),
+            "Fee recipient cannot be the factory itself"
+        );
         require!(
             env::predecessor_account_id() == env::current_account_id(),
             "Initialize from factory account"
@@ -117,6 +134,7 @@ impl Factory {
         Self {
             network,
             denomination: denomination.0,
+            fee_recipient,
             verification_key: verification_key.0,
             funding,
             vaults: Vector::new(b"v"),
@@ -132,6 +150,11 @@ impl Factory {
             protocol: "core-factory-v1".into(),
             network: self.network.clone(),
             denomination: U128(self.denomination),
+            fee_recipient: self.fee_recipient.clone(),
+            deposit_fee_bps: fees::DEPOSIT_FEE_BPS,
+            withdrawal_fee_bps: fees::WITHDRAWAL_FEE_BPS,
+            deposit_protocol_fee: U128(fees::deposit_fee(self.denomination)),
+            withdrawal_protocol_fee: U128(fees::withdrawal_fee(self.denomination)),
             vault_wasm_sha256: hex::encode(env::sha256(VAULT_WASM)),
             verifier_sha256: hex::encode(env::sha256(&self.verification_key)),
             vault_funding: U128(self.funding),
@@ -214,7 +237,7 @@ impl Factory {
         );
         self.emit("vault_requested", index);
         let args = near_sdk::serde_json::to_vec(&near_sdk::serde_json::json!({
-            "network": self.network, "denomination": U128(self.denomination), "verification_key": Base64VecU8(self.verification_key.clone())
+            "network": self.network, "denomination": U128(self.denomination), "verification_key": Base64VecU8(self.verification_key.clone()), "fee_recipient": self.fee_recipient
         })).expect("Initialization arguments");
         // Never add any full-access or function-call key to the child.
         Promise::new(account_id)

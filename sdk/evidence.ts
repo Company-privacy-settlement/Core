@@ -5,12 +5,15 @@ import { verifyDisclosure, type Receipt } from './disclosure.js';
 export type ChainRecord = {
   index: number; kind: string; commitment: string | null; nullifier: string | null;
   recipient: string | null; disclosure_root: string; block_height: number; timestamp_ns: string;
+  amount?: string; protocol_fee_charged?: string; protocol_fee_earned?: string; storage_fee_charged?: string;
 };
+const Money = z.string().regex(/^(0|[1-9][0-9]*)$/);
 const RecordSchema = z.object({
   index: z.number().int().nonnegative(), kind: z.string(), commitment: z.string().nullable(),
   nullifier: z.string().nullable(), recipient: z.string().nullable(), disclosure_root: z.string().regex(/^[a-f0-9]{64}$/),
   block_height: z.number().int().nonnegative(), timestamp_ns: z.string().regex(/^[0-9]+$/),
-});
+  amount: Money.optional(), protocol_fee_charged: Money.optional(), protocol_fee_earned: Money.optional(), storage_fee_charged: Money.optional(),
+}).refine(r => [r.amount, r.protocol_fee_charged, r.protocol_fee_earned, r.storage_fee_charged].filter(x => x !== undefined).length % 4 === 0, 'Include all fee fields or none for legacy records');
 export type TxRef = { hash: string; signer: string; recordIndex: number };
 export type SettlementBundle = {
   version: 1; network: 'testnet' | 'sandbox'; contract: string;
@@ -23,7 +26,8 @@ export interface EvidenceSource {
   getTransaction(ref: TxRef): Promise<unknown>;
 }
 function recordFingerprint(record: ChainRecord): string {
-  return sha256(JSON.stringify([record.index, record.kind, record.commitment, record.nullifier, record.recipient, record.disclosure_root, record.block_height, record.timestamp_ns]));
+  return sha256(JSON.stringify([record.index, record.kind, record.commitment, record.nullifier, record.recipient, record.disclosure_root, record.block_height, record.timestamp_ns,
+    record.amount ?? null, record.protocol_fee_charged ?? null, record.protocol_fee_earned ?? null, record.storage_fee_charged ?? null]));
 }
 function isAnchored(tx: any, ref: TxRef, record: ChainRecord, contract: string): boolean {
   if (tx?.final_execution_status !== 'FINAL' || !tx?.status || !Object.hasOwn(tx.status, 'SuccessValue')) return false;
@@ -60,6 +64,12 @@ export async function verifyBundle(bundle: SettlementBundle, source: EvidenceSou
   }
   return {
     valid: true, scope: 'selected_transactions' as const, records: verified,
+    feeSummary: verified.every(r => r.amount !== undefined) ? {
+      asset: 'NEAR',
+      protocolFeesCharged: verified.reduce((sum, r) => sum + BigInt(r.protocol_fee_charged!), 0n).toString(),
+      protocolFeesEarned: verified.reduce((sum, r) => sum + BigInt(r.protocol_fee_earned!), 0n).toString(),
+      storageFeesCharged: verified.reduce((sum, r) => sum + BigInt(r.storage_fee_charged!), 0n).toString(),
+    } : null,
     claims: { submittedTransactionsIncluded: true, receiptIntegrity: true, completeHistory: false, legalIdentityVerified: false, taxFilingAccepted: false },
   };
 }

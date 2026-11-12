@@ -21,6 +21,7 @@ fn factory() -> Factory {
         "sandbox".into(),
         U128(INIT_RESERVE),
         near_sdk::serde_json::from_value(v["verificationKey"].clone()).unwrap(),
+        "treasury.test.near".parse().unwrap(),
     )
 }
 fn request(f: &mut Factory, caller: &str, salt: &str) {

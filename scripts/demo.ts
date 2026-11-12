@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { Worker, type TransactionResult } from 'near-workspaces';
-import { createNote, domain, encodeVerificationKey, NoteTree, proveSpend, shutdownProver, STORAGE_FEE, type Pool } from '../sdk/core.js';
+import { createNote, domain, encodeVerificationKey, NoteTree, proveSpend, shutdownProver, quoteFees, STORAGE_FEE, type Pool } from '../sdk/core.js';
 import { createReceipt, disclose } from '../sdk/disclosure.js';
 import { NearRpcEvidenceSource, verifyBundle, type SettlementBundle } from '../sdk/evidence.js';
 import { ensureSandbox } from './sandbox.js';
@@ -19,12 +19,17 @@ try {
   const sender = await root.createSubAccount('sender', { initialBalance: 10n * NEAR });
   const relay = await root.createSubAccount('relay', { initialBalance: 5n * NEAR });
   const freshReceiver = createFreshRecipient('local-sandbox-ephemeral-backup');
+  const treasury = await root.createSubAccount('treasury', { initialBalance: NEAR });
+  const fees = quoteFees(NEAR);
   const receiver = root.getAccount(freshReceiver.accountId); // Not created on-chain yet.
   await poolAccount.deploy(wasm);
-  await poolAccount.call(poolAccount, 'new', { network: 'sandbox', denomination: NEAR.toString(), verification_key: encodeVerificationKey(vk) }, { attachedDeposit: NEAR, gas: GAS });
+  await poolAccount.call(poolAccount, 'new', { network: 'sandbox', denomination: NEAR.toString(), verification_key: encodeVerificationKey(vk), fee_recipient: treasury.accountId }, { attachedDeposit: NEAR, gas: GAS });
   const pool: Pool = { network: 'sandbox', contract: poolAccount.accountId, denomination: NEAR.toString() };
   const config: any = await poolAccount.view('get_config');
   assert.equal(config.domain, domain(pool));
+  assert.equal(config.deposit_attached, fees.depositAttached);
+  assert.equal(config.withdrawal_attached, fees.withdrawalAttached);
+  assert.equal(config.withdrawal_received, NEAR.toString());
   console.log('Sandbox contract initialized:', pool.contract);
 
   // Receiver creates this request privately. Only commitment crosses to sender.
@@ -32,8 +37,14 @@ try {
   const receiptValues = { sender: 'Example US enterprise', recipient: 'Example Abu Dhabi enterprise', asset: 'NEAR', amount: NEAR.toString(), purpose: 'B2B settlement', reference: 'DEMO-001', occurredAt: new Date().toISOString(), credentialHash: '' };
   // Independently salted roots: reusing a root would publicly link these actions.
   const depositReceipt = createReceipt(receiptValues), transferReceipt = createReceipt(receiptValues), withdrawalReceipt = createReceipt(receiptValues);
-  const deposit = await sender.callRaw(poolAccount, 'deposit', { commitment: senderNote.commitment, disclosure_root: depositReceipt.root }, { attachedDeposit: NEAR + STORAGE_FEE, gas: GAS });
+  const deposit = await sender.callRaw(poolAccount, 'deposit', { commitment: senderNote.commitment, disclosure_root: depositReceipt.root }, { attachedDeposit: BigInt(fees.depositAttached), gas: GAS });
   assert.ok(deposit.succeeded, deposit.summary());
+  // The earned deposit fee can be collected while the note principal stays reserved.
+  const treasuryBefore = BigInt((await treasury.balance()).total.toString());
+  const collection = await relay.callRaw(poolAccount, 'collect_protocol_fees', {}, { attachedDeposit: 1n, gas: GAS });
+  assert.equal(collection.parseResult(), true, collection.summary());
+  assert.equal(BigInt((await treasury.balance()).total.toString()) - treasuryBefore, BigInt(fees.depositProtocolFee));
+  assert.equal((await poolAccount.view<any>('get_config')).outstanding_notes, 1);
   let tree = await NoteTree.from(await poolAccount.view<string[]>('get_commitments', { from_index: 0, limit: 256 }));
   assert.equal((await poolAccount.view<any>('get_config')).root, tree.root);
   console.log('Deposit confirmed; generating real transfer proof…');
@@ -47,12 +58,13 @@ try {
   assert.equal((await poolAccount.view<any>('get_config')).root, tree.root);
   const withdrawProof = await proveSpend(pool, receiverNote, tree, { kind: 'withdraw', target: receiver.accountId, disclosureRoot: withdrawalReceipt.root });
   assert.equal(await receiver.exists(), false);
-  const withdrawal = await relay.callRaw(poolAccount, 'withdraw', { recipient: receiver.accountId, disclosure_root: withdrawalReceipt.root, ...withdrawProof.args }, { attachedDeposit: STORAGE_FEE, gas: GAS });
+  const withdrawal = await relay.callRaw(poolAccount, 'withdraw', { recipient: receiver.accountId, disclosure_root: withdrawalReceipt.root, ...withdrawProof.args }, { attachedDeposit: BigInt(fees.withdrawalAttached), gas: GAS });
   assert.ok(withdrawal.succeeded, withdrawal.summary());
   assert.equal(await receiver.exists(), true);
   assert.equal(BigInt((await receiver.balance()).total.toString()), NEAR);
   assert.equal((await poolAccount.view<any>('get_payout', { nullifier: withdrawProof.publicSignals[0] })).state, 'Complete');
-  await assert.rejects(relay.call(poolAccount, 'withdraw', { recipient: receiver.accountId, disclosure_root: withdrawalReceipt.root, ...withdrawProof.args }, { attachedDeposit: STORAGE_FEE, gas: GAS }));
+  assert.equal((await poolAccount.view<any>('get_config')).accrued_protocol_fees, fees.withdrawalProtocolFee);
+  await assert.rejects(relay.call(poolAccount, 'withdraw', { recipient: receiver.accountId, disclosure_root: withdrawalReceipt.root, ...withdrawProof.args }, { attachedDeposit: BigInt(fees.withdrawalAttached), gas: GAS }));
   console.log('Withdrawal created a fresh implicit recipient and paid exactly 1 NEAR; replay rejected.');
 
   function ref(result: TransactionResult, recordIndex: number) {
@@ -65,6 +77,8 @@ try {
   ] };
   const rpcUrl = (worker.provider as any).connection.url;
   const verified = await verifyBundle(bundle, new NearRpcEvidenceSource('sandbox', pool.contract, rpcUrl));
+  assert.equal(verified.feeSummary!.protocolFeesCharged, (2n * BigInt(fees.depositProtocolFee)).toString());
+  assert.equal(verified.feeSummary!.protocolFeesEarned, (2n * BigInt(fees.depositProtocolFee)).toString());
   await mkdir('demo-output', { recursive: true });
   await writeFile('demo-output/bundle.json', JSON.stringify(bundle, null, 2));
   await writeFile('demo-output/verification.json', JSON.stringify(verified, null, 2));

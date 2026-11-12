@@ -2,6 +2,7 @@
   "network": "testnet",
   "factory": "replace-with-factory.testnet",
   "denomination": "1000000000000000000000000",
+  "feeRecipient": "replace-with-treasury.testnet",
   "factoryWasmSha256": "replace-with-trusted-build-manifest-factory-hash",
   "vaultWasmSha256": "replace-with-trusted-build-manifest-pool-hash",
   "verifierSha256": "replace-with-sha256-of-the-base64-decoded-verification-key"

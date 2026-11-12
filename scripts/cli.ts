@@ -1,5 +1,5 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { createNote, validateNote, encodeVerificationKey, NoteTree, proveSpend, shutdownProver, STORAGE_FEE, type Note, type Pool, type Action } from '../sdk/core.js';
+import { createNote, validateNote, domain, quoteFees, encodeVerificationKey, NoteTree, proveSpend, shutdownProver, STORAGE_FEE, type Note, type Pool, type Action } from '../sdk/core.js';
 import { createReceipt, disclose, decryptPrivate, encryptPrivate, type Receipt, type ReceiptField } from '../sdk/disclosure.js';
 import { NearRpcEvidenceSource, verifyBundle, type SettlementBundle } from '../sdk/evidence.js';
 import { createFreshRecipient } from '../sdk/wallet.js';
@@ -20,6 +20,11 @@ async function loadNote(path: string): Promise<Note> {
 }
 try {
   switch (command) {
+    case 'quote-fees': {
+      if (args.length !== 1) throw new Error('quote-fees amount-in-yoctonear');
+      output(quoteFees(args[0]));
+      break;
+    }
     case 'discover-vaults': {
       if (args.length !== 2 && args.length !== 4) throw new Error('discover-vaults trusted-policy.json trusted-rpc-url [from-index max-records]');
       const policy: FactoryPolicy = await json(args[0]);
@@ -52,15 +57,19 @@ try {
     }
     case 'init-args': {
       if (args.length !== 1) throw new Error('init-args pool.json');
-      const pool: Pool = await json(args[0]), vk = await json('artifacts/verification_key.json');
-      output({ method: 'new', args: { network: pool.network, denomination: pool.denomination, verification_key: encodeVerificationKey(vk) }, depositYocto: (10n ** 24n).toString(), gasTgas: 300 });
+      const pool: Pool & { feeRecipient?: string } = await json(args[0]), vk = await json('artifacts/verification_key.json');
+      if (!pool.feeRecipient) throw new Error('Set feeRecipient before preparing immutable deployment');
+      domain({ network: pool.network, contract: pool.feeRecipient, denomination: '1' });
+      if (pool.feeRecipient === pool.contract) throw new Error('Fee recipient cannot be the vault itself');
+      output({ method: 'new', args: { network: pool.network, denomination: pool.denomination, verification_key: encodeVerificationKey(vk), fee_recipient: pool.feeRecipient }, depositYocto: (10n ** 24n).toString(), gasTgas: 300 });
       break;
     }
     case 'deposit-args': {
       if (args.length !== 3) throw new Error('deposit-args pool.json encrypted-note.json disclosure-root');
       const pool: Pool = await json(args[0]), note = await loadNote(args[1]);
       await validateNote(pool, note);
-      output({ method: 'deposit', args: { commitment: note.commitment, disclosure_root: args[2] }, depositYocto: (BigInt(pool.denomination) + STORAGE_FEE).toString(), gasTgas: 300 });
+      const feeQuote = quoteFees(pool.denomination);
+      output({ method: 'deposit', args: { commitment: note.commitment, disclosure_root: args[2] }, depositYocto: feeQuote.depositAttached, feeQuote, gasTgas: 300 });
       break;
     }
     case 'spend-args': {
@@ -69,7 +78,8 @@ try {
       const tree = await NoteTree.from(await json(args[2]));
       const proof = await proveSpend(pool, note, tree, action);
       const actionArgs = action.kind === 'transfer' ? { output_commitment: action.target } : { recipient: action.target };
-      await save(args[4], JSON.stringify({ method: action.kind, args: { ...actionArgs, disclosure_root: action.disclosureRoot, ...proof.args }, depositYocto: STORAGE_FEE.toString(), gasTgas: 300 }, null, 2));
+      const feeQuote = quoteFees(pool.denomination);
+      await save(args[4], JSON.stringify({ method: action.kind, args: { ...actionArgs, disclosure_root: action.disclosureRoot, ...proof.args }, depositYocto: action.kind === 'withdraw' ? feeQuote.withdrawalAttached : STORAGE_FEE.toString(), feeQuote, gasTgas: 300 }, null, 2));
       output({ prepared: args[4], warning: 'Anyone with this bound proof can submit it; destination cannot be changed.' });
       break;
     }
@@ -92,7 +102,7 @@ try {
       break;
     }
     default:
-      console.log('Commands: wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args. See README.md.');
+      console.log('Commands: wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees. See README.md.');
       process.exitCode = command ? 1 : 0;
   }
 } catch (error) {

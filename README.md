@@ -15,6 +15,7 @@ NEAR 위에서 기업·개인의 자금을 비공개 노트로 이전하고, 필
 | 구성 | 현재 구현 |
 | --- | --- |
 | 자산 | Native NEAR, 풀마다 고정 denomination |
+| 입출금 수수료 | 입금·출금 각각 원금의 0.15% 추가 납부, 수신자는 원금 전액 수령 |
 | 비공개 이전 | Circom + Poseidon + Groth16 BN254, 실제 증명 생성·온체인 검증 |
 | 소유권 | 수신자가 생성한 비밀 노트, 송금자에게 commitment만 전달 |
 | 이중 사용 방지 | 도메인별 nullifier, 소비 즉시 기록 |
@@ -73,6 +74,9 @@ npm run cli -- receipt examples/receipt-values.json private-receipt.json
 npm run cli -- deposit-args examples/pool.json receiver-note.encrypted.json RECEIPT_ROOT
 npm run cli -- init-args examples/pool.json
 
+# 1 NEAR의 입금·출금 수수료 및 실제 attached deposit 견적
+npm run cli -- quote-fees 1000000000000000000000000
+
 # 온체인 get_commitments 결과를 commitments.json에 저장한 뒤 증명 생성
 npm run cli -- spend-args examples/pool.json receiver-note.encrypted.json commitments.json examples/withdraw-action.json withdrawal-args.json
 
@@ -93,19 +97,28 @@ npm run cli -- create-vault-args examples/factory-policy.json creator.testnet ht
 
 ## 계약 API
 
-모든 금액은 yoctoNEAR 십진 문자열입니다. storage fee는 호출마다 0.02 NEAR, 초기 reserve는 1 NEAR입니다. 별도로 WASM 배포 storage 비용도 충당할 잔액이 필요합니다. storage fee는 반환하지 않고 계약 storage reserve로 남습니다.
+모든 금액은 yoctoNEAR 십진 문자열입니다. 입금·출금 수수료는 각각 원금의 **0.15% (15 bps)**이며 **원금에 추가**해 납부합니다. 금액은 정수 yoctoNEAR 단위로 내림합니다. 보관 비용 0.02 NEAR와 네트워크 가스는 별도입니다.
+
+1 NEAR 노트 기준 입금 시 `1 + 0.0015 + 0.02 = 1.0215 NEAR`, 출금 시 별도로 `0.0015 + 0.02 = 0.0215 NEAR`를 내고 수신자는 **1 NEAR 전액**을 받습니다. 노트 이전에는 비율 수수료가 없고 보관 비용만 납부합니다. 실패한 출금 재시도에는 보관 비용만 다시 내며 0.15%는 중복 부과하지 않습니다.
+
+초기 reserve는 1 NEAR이며 WASM 배포 storage 잔액도 별도로 필요합니다. 보관 비용은 반환하지 않고 storage reserve로 남습니다. 수수료 수취 주소 `fee_recipient`는 배포 시 필수 지정하고 변경할 수 없습니다. `examples/pool.json`의 `feeRecipient`를 실제 주소로 교체한 뒤 초기화 인자를 생성합니다.
 
 | 메서드 | 핵심 인자 | attached deposit |
 | --- | --- | --- |
-| `new` | 직접 배포용: `network`, `denomination`, `verification_key` (base64) | 1 NEAR 이상 |
+| `new` | 직접 배포용: `network`, `denomination`, `verification_key` (base64), `fee_recipient` | 1 NEAR 이상 |
 | `new_from_factory` | 위와 동일, 직접 부모 팩토리만 호출 가능 | 1 NEAR 이상 |
-| `deposit` | `commitment`, `disclosure_root` | denomination + 0.02 NEAR |
+| `deposit` | `commitment`, `disclosure_root` | denomination + 0.15% + 0.02 NEAR |
 | `transfer` | `output_commitment`, `disclosure_root`, `proof`, `public_inputs` | 0.02 NEAR |
-| `withdraw` | `recipient`, `disclosure_root`, `proof`, `public_inputs` | 0.02 NEAR |
+| `withdraw` | `recipient`, `disclosure_root`, `proof`, `public_inputs` | denomination의 0.15% + 0.02 NEAR |
 | `retry_withdrawal` | `nullifier` | 0.02 NEAR |
+| `collect_protocol_fees` | 없음; 배포 시 고정한 수취 주소로만 전송 | 1 yoctoNEAR |
 | views | `get_config`, `get_commitments`, `get_records`, `get_payout`, `is_spent` | 없음 |
 
 `get_commitments` / `get_records`: `from_index`, `limit`. 가스는 변경 메서드에 300 Tgas를 권장합니다. `withdraw` 반환 성공 여부와 `get_payout`의 `Complete`를 확인해야 출금 완료입니다. 요청 이벤트만으로 지급 완료를 판단하지 않습니다.
+
+입금 수수료는 즉시 적립하고, 출금 수수료는 지급 성공 callback에서 수익으로 확정합니다. 실패한 출금의 수수료는 별도 보류하며 재시도에서 재사용합니다. 누구나 `collect_protocol_fees`를 호출할 수 있지만 확정 수수료만 고정 수취 주소로 보냅니다. 원금·보류 수수료·보관 잔액은 보호합니다. 수수료 전송이 실패하면 적립 장부를 복원합니다.
+
+수수료가 기록된 TX 증빙은 청구액·확정 수익·보관 비용을 분리해 검증합니다. 출금 요청과 성공 기록을 함께 제출해도 수수료를 두 번 합산하지 않습니다. 예전 기록에 수수료 필드가 없으면 `feeSummary`는 `null`입니다. 새 초기화 인자와 상태 형식은 새 배포부터 적용하며 기존 keyless 계약을 변경하지 않습니다.
 
 ## 프라이버시와 증명 범위
 
@@ -117,7 +130,7 @@ npm run cli -- create-vault-args examples/factory-policy.json creator.testnet ht
 
 ## 중앙화 경계
 
-계약에는 owner, 강제출금, verifier 교체, pause, sweep 메서드가 없습니다. 네트워크·계약 주소·denomination이 증명 도메인에 포함되어 다른 풀로 replay할 수 없습니다. relayer에 관리자 권한이 없으며, 동일 증명을 먼저 제출해도 목적지를 바꿀 수 없습니다.
+계약에는 owner, 강제출금, verifier 교체, pause 또는 관리자 원금 회수 메서드가 없습니다. `collect_protocol_fees`는 확정 수수료만 고정 주소로 보냅니다. 네트워크·계약 주소·denomination이 증명 도메인에 포함되어 다른 풀로 replay할 수 없습니다. relayer에 관리자 권한이 없으며, 동일 증명을 먼저 제출해도 목적지를 바꿀 수 없습니다.
 
 직접 배포한 계정에 full-access key가 남으면 그 키로 계약을 교체할 수 있습니다. 팩토리가 만든 vault는 키를 한 번도 추가하지 않습니다. 팩토리 자체는 초기화·검증 후 별도로 키를 제거해야 하며, SDK는 팩토리와 vault 모두 access key가 0개일 때만 승인합니다. 공개 네트워크의 키 제거는 자동화하지 않습니다. verifier hash와 WASM hash는 별도로 고정해 검증합니다. 탐색 조회는 하나의 최종 확정 블록에서 수행하며, RPC 운영자에 대한 신뢰는 여전히 필요합니다.
 

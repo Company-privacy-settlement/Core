@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { generateKeyPairSync, sign } from 'node:crypto';
 import { groth16 } from 'snarkjs';
-import { createNote, domain, field, FIELD, NoteTree, validateNote, contextHash, shutdownProver, type Pool } from '../sdk/core.js';
+import { createNote, domain, field, FIELD, NoteTree, validateNote, contextHash, quoteFees, STORAGE_FEE, shutdownProver, type Pool } from '../sdk/core.js';
 import { createReceipt, disclose, verifyDisclosure, encryptPrivate, decryptPrivate } from '../sdk/disclosure.js';
 import { credentialMessage, credentialHash, verifyKyb, type KybCredential, type KybClaims } from '../sdk/kyb.js';
 import { verifyBundle, type ChainRecord, type EvidenceSource, type SettlementBundle } from '../sdk/evidence.js';
@@ -13,6 +13,20 @@ import bs58 from 'bs58';
 const pool: Pool = { network: 'sandbox', contract: 'pool.test.near', denomination: '1000000000000000000000000' };
 after(shutdownProver);
 const values = { sender: 'Business A', recipient: 'Business B', asset: 'NEAR', amount: pool.denomination, purpose: 'invoice', reference: 'INV-001', occurredAt: '2026-11-12T00:00:00Z', credentialHash: '' };
+
+test('0.15% deposit and withdrawal charges are added on top of the full principal', () => {
+  const q = quoteFees(10n ** 24n);
+  assert.equal(q.depositProtocolFee, '1500000000000000000000');
+  assert.equal(q.withdrawalProtocolFee, '1500000000000000000000');
+  assert.equal(q.depositAttached, '1021500000000000000000000');
+  assert.equal(q.withdrawalAttached, '21500000000000000000000');
+  assert.equal(q.withdrawalReceived, '1000000000000000000000000');
+  assert.equal(quoteFees('9999').depositProtocolFee, '14');
+  assert.equal(quoteFees('10000').depositProtocolFee, '15');
+  assert.equal(quoteFees('1').withdrawalProtocolFee, '0');
+  assert.doesNotThrow(() => quoteFees(((1n << 128n) - 1n) / 256n));
+  for (const invalid of ['0', '-1', '01', '1.5', ((1n << 128n) - 1n).toString()]) assert.throws(() => quoteFees(invalid));
+});
 
 test('notes belong to exactly one domain and recipient keeps independent secrets', async () => {
   const note = await createNote(pool), receiverNote = await createNote(pool);
@@ -83,9 +97,10 @@ test('KYB checks issuer, subject, signature, expiry and revocations', () => {
   assert.equal(verifyKyb(credential, { ...options, revokedHashes: new Set([credentialHash(credential)]) }), false);
   assert.equal(verifyKyb({ ...credential, claims: { ...claims, jurisdiction: 'US' } }, options), false);
 });
-function evidenceFixture() {
+function evidenceFixture(withFees = false) {
   const receipt = createReceipt(values);
-  const record: ChainRecord = { index: 0, kind: 'deposit', commitment: '42', nullifier: null, recipient: null, disclosure_root: receipt.root, block_height: 42, timestamp_ns: '1794441600000000000' };
+  const record: ChainRecord = { index: 0, kind: 'deposit', commitment: '42', nullifier: null, recipient: null, disclosure_root: receipt.root, block_height: 42, timestamp_ns: '1794441600000000000',
+    ...(withFees ? { amount: pool.denomination, protocol_fee_charged: quoteFees(pool.denomination).depositProtocolFee, protocol_fee_earned: quoteFees(pool.denomination).depositProtocolFee, storage_fee_charged: STORAGE_FEE.toString() } : {}) };
   const tx: any = { final_execution_status: 'FINAL', status: { SuccessValue: '' }, transaction: { hash: 'example-tx', signer_id: 'sender.test.near' }, receipts_outcome: [{ outcome: { executor_id: pool.contract, status: { SuccessValue: '' }, logs: ['EVENT_JSON:' + JSON.stringify({ standard: 'core_privacy', version: '1.0.0', event: 'deposit', data: [record] })] } }] };
   const source: EvidenceSource = { network: 'sandbox', contract: pool.contract, getRecord: async () => record, getTransaction: async () => tx };
   const bundle: SettlementBundle = { version: 1, network: 'sandbox', contract: pool.contract, scope: 'selected_transactions', transactions: [{ tx: { hash: 'example-tx', signer: 'sender.test.near', recordIndex: 0 }, disclosure: disclose(receipt, ['amount']) }] };
@@ -95,6 +110,22 @@ test('bundle proves submitted TX inclusion without claiming complete history or 
   const { bundle, source } = evidenceFixture();
   const result = await verifyBundle(bundle, source);
   assert.ok(result.valid); assert.equal(result.claims.completeHistory, false); assert.equal(result.claims.legalIdentityVerified, false);
+});
+test('evidence verifies fee amounts and counts withdrawal fees once across request/success', async () => {
+  const f = evidenceFixture(true), fee = quoteFees(pool.denomination).withdrawalProtocolFee;
+  const records: ChainRecord[] = [f.record,
+    { ...f.record, index: 1, kind: 'withdrawal_requested', protocol_fee_charged: fee, protocol_fee_earned: '0' },
+    { ...f.record, index: 2, kind: 'withdrawal_succeeded', protocol_fee_charged: '0', protocol_fee_earned: fee, storage_fee_charged: '0' },
+  ];
+  f.source.getRecord = async i => records[i];
+  f.tx.receipts_outcome[0].outcome.logs = records.map(r => 'EVENT_JSON:' + JSON.stringify({ standard: 'core_privacy', version: '1.0.0', event: r.kind, data: [r] }));
+  f.bundle.transactions = records.map(r => ({ tx: { hash: 'example-tx', signer: 'sender.test.near', recordIndex: r.index } }));
+  const result = await verifyBundle(f.bundle, f.source);
+  assert.equal(result.feeSummary!.protocolFeesCharged, (2n * BigInt(fee)).toString());
+  assert.equal(result.feeSummary!.protocolFeesEarned, (2n * BigInt(fee)).toString());
+  assert.equal(result.feeSummary!.storageFeesCharged, (2n * STORAGE_FEE).toString());
+  f.source.getRecord = async i => ({ ...records[i], protocol_fee_charged: '999' });
+  await assert.rejects(verifyBundle(f.bundle, f.source), /does not anchor/);
 });
 test('bundle rejects failed, unfinalized or foreign-executor transaction logs', async () => {
   for (const mutate of [

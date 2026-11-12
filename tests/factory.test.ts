@@ -1,15 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { domain, STORAGE_FEE } from '../sdk/core.js';
+import { domain, quoteFees, STORAGE_FEE } from '../sdk/core.js';
 import { discoverVaults, predictVaultAccount, type FactoryPolicy, type FactoryChainSource } from '../sdk/factory.js';
 
 function fixture() {
-  const policy: FactoryPolicy = { network: 'sandbox', factory: 'factory.test.near', denomination: '1000000000000000000000000', factoryWasmSha256: 'aa'.repeat(32), vaultWasmSha256: 'bb'.repeat(32), verifierSha256: 'cc'.repeat(32) };
+  const policy: FactoryPolicy = { network: 'sandbox', factory: 'factory.test.near', denomination: '1000000000000000000000000', feeRecipient: 'treasury.test.near', factoryWasmSha256: 'aa'.repeat(32), vaultWasmSha256: 'bb'.repeat(32), verifierSha256: 'cc'.repeat(32) };
+  const q = quoteFees(policy.denomination);
+  const feeConfig = { fee_recipient: policy.feeRecipient, deposit_fee_bps: 15, withdrawal_fee_bps: 15, deposit_protocol_fee: q.depositProtocolFee, withdrawal_protocol_fee: q.withdrawalProtocolFee };
   const account = `v${'ab'.repeat(16)}.${policy.factory}`;
   const pool = { network: policy.network, contract: account, denomination: policy.denomination };
-  const factoryConfig = { protocol: 'core-factory-v1', network: policy.network, denomination: policy.denomination, vault_wasm_sha256: policy.vaultWasmSha256, verifier_sha256: policy.verifierSha256, vault_funding: '400', registration_fee: '50', creation_deposit: '450', vault_count: 1 };
+  const factoryConfig = { protocol: 'core-factory-v1', network: policy.network, denomination: policy.denomination, vault_wasm_sha256: policy.vaultWasmSha256, verifier_sha256: policy.verifierSha256, vault_funding: '400', registration_fee: '50', creation_deposit: '450', vault_count: 1, ...feeConfig };
   const record = { index: 0, account_id: account, creator: 'alice.test.near', state: 'Ready', funding: '400' };
-  const vaultConfig = { protocol: 'core-v1', network: policy.network, denomination: policy.denomination, domain: domain(pool), verifier_sha256: policy.verifierSha256, storage_fee: STORAGE_FEE.toString(), leaf_count: 0, capacity: 256 };
+  const vaultConfig = { protocol: 'core-v1', network: policy.network, denomination: policy.denomination, domain: domain(pool), verifier_sha256: policy.verifierSha256, storage_fee: STORAGE_FEE.toString(), leaf_count: 0, capacity: 256,
+    ...feeConfig, deposit_attached: q.depositAttached, withdrawal_attached: q.withdrawalAttached, withdrawal_received: q.withdrawalReceived };
   const blocks: string[] = [];
   const seen = (block: string) => { blocks.push(block); };
   const source: FactoryChainSource = {
@@ -80,4 +83,13 @@ test('discovery rejects forged child records and truncated pagination', async ()
 test('full vaults remain discoverable but cannot accept deposits', async () => {
   const f = fixture(); f.vaultConfig.leaf_count = 256;
   assert.equal((await discoverVaults(f.source, f.policy)).vaults[0].canDeposit, false);
+});
+test('discovery refuses changed fee recipient, rates and principal-reducing withdrawal quotes', async () => {
+  for (const mutate of [
+    (f: ReturnType<typeof fixture>) => { f.factoryConfig.fee_recipient = 'attacker.test.near'; },
+    (f: ReturnType<typeof fixture>) => { f.vaultConfig.fee_recipient = 'attacker.test.near'; },
+    (f: ReturnType<typeof fixture>) => { f.vaultConfig.deposit_fee_bps = 150; },
+    (f: ReturnType<typeof fixture>) => { f.vaultConfig.withdrawal_attached = STORAGE_FEE.toString(); },
+    (f: ReturnType<typeof fixture>) => { f.vaultConfig.withdrawal_received = (BigInt(f.policy.denomination) - 1n).toString(); },
+  ]) { const f = fixture(); mutate(f); await assert.rejects(discoverVaults(f.source, f.policy)); }
 });

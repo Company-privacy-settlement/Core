@@ -1,11 +1,13 @@
 import { z } from 'zod';
-import { domain, sha256, STORAGE_FEE, type Pool } from './core.js';
+import { domain, sha256, quoteFees, DEPOSIT_FEE_BPS, WITHDRAWAL_FEE_BPS, STORAGE_FEE, type Pool } from './core.js';
 
 const Decimal = z.string().regex(/^(0|[1-9][0-9]*)$/);
 const Hash = z.string().regex(/^[a-f0-9]{64}$/);
 const Count = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
 const FactoryConfig = z.object({
   protocol: z.literal('core-factory-v1'), network: z.enum(['sandbox', 'testnet']), denomination: Decimal,
+  fee_recipient: z.string(), deposit_fee_bps: z.literal(DEPOSIT_FEE_BPS), withdrawal_fee_bps: z.literal(WITHDRAWAL_FEE_BPS),
+  deposit_protocol_fee: Decimal, withdrawal_protocol_fee: Decimal,
   vault_wasm_sha256: Hash, verifier_sha256: Hash, vault_funding: Decimal,
   registration_fee: Decimal, creation_deposit: Decimal, vault_count: Count,
 });
@@ -13,11 +15,13 @@ const Record = z.object({ index: Count, account_id: z.string(), creator: z.strin
 const VaultConfig = z.object({
   protocol: z.literal('core-v1'), network: z.enum(['sandbox', 'testnet']), denomination: Decimal,
   domain: Decimal, verifier_sha256: Hash, storage_fee: Decimal,
+  fee_recipient: z.string(), deposit_fee_bps: z.literal(DEPOSIT_FEE_BPS), withdrawal_fee_bps: z.literal(WITHDRAWAL_FEE_BPS),
+  deposit_protocol_fee: Decimal, withdrawal_protocol_fee: Decimal, deposit_attached: Decimal, withdrawal_attached: Decimal, withdrawal_received: Decimal,
   leaf_count: Count, capacity: z.literal(256),
 });
 
 export type FactoryPolicy = {
-  network: Pool['network']; factory: string; denomination: string;
+  network: Pool['network']; factory: string; denomination: string; feeRecipient: string;
   factoryWasmSha256: string; vaultWasmSha256: string; verifierSha256: string;
 };
 export interface FactoryChainSource {
@@ -41,6 +45,8 @@ export function predictVaultAccount(factory: string, creator: string, salt: stri
 // Every read in one discovery uses the same finalized block hash.
 export async function discoverVaults(source: FactoryChainSource, policy: FactoryPolicy, options: { fromIndex?: number; maxRecords?: number } = {}) {
   if (source.network !== policy.network || source.factory !== policy.factory) throw new Error('Wrong factory domain');
+  domain({ network: policy.network, contract: policy.feeRecipient, denomination: '1' });
+  const fees = quoteFees(policy.denomination);
   [policy.factoryWasmSha256, policy.vaultWasmSha256, policy.verifierSha256].forEach(h => Hash.parse(h));
   const fromIndex = Count.parse(options.fromIndex ?? 0), maxRecords = options.maxRecords ?? 100;
   if (!Number.isInteger(maxRecords) || maxRecords < 1 || maxRecords > 200) throw new Error('Scan 1–200 records per request');
@@ -50,7 +56,7 @@ export async function discoverVaults(source: FactoryChainSource, policy: Factory
   ]);
   if (factoryCode !== policy.factoryWasmSha256 || factoryKeys.length !== 0) throw new Error('Factory code mismatch or factory still has access keys');
   const config = FactoryConfig.parse(rawConfig);
-  if (config.network !== policy.network || config.denomination !== policy.denomination || config.vault_wasm_sha256 !== policy.vaultWasmSha256 || config.verifier_sha256 !== policy.verifierSha256) throw new Error('Factory configuration does not match policy');
+  if (config.network !== policy.network || config.denomination !== policy.denomination || config.vault_wasm_sha256 !== policy.vaultWasmSha256 || config.verifier_sha256 !== policy.verifierSha256 || config.fee_recipient !== policy.feeRecipient || config.deposit_protocol_fee !== fees.depositProtocolFee || config.withdrawal_protocol_fee !== fees.withdrawalProtocolFee) throw new Error('Factory configuration does not match policy');
   if (BigInt(config.vault_funding) <= 0n || BigInt(config.creation_deposit) !== BigInt(config.vault_funding) + BigInt(config.registration_fee)) throw new Error('Invalid creation quote');
   const end = Math.min(config.vault_count, fromIndex + maxRecords);
   const vaults: { pool: Pool; leafCount: number; capacity: number; canDeposit: boolean }[] = [];
@@ -71,6 +77,7 @@ export async function discoverVaults(source: FactoryChainSource, policy: Factory
       const vault = VaultConfig.parse(rawVault);
       const pool: Pool = { network: vault.network, contract: record.account_id, denomination: vault.denomination };
       if (vault.network !== policy.network || vault.denomination !== policy.denomination || vault.verifier_sha256 !== policy.verifierSha256 || vault.domain !== domain(pool) || BigInt(vault.storage_fee) !== STORAGE_FEE || vault.leaf_count > vault.capacity) throw new Error('Vault configuration mismatch');
+      if (vault.fee_recipient !== policy.feeRecipient || vault.deposit_protocol_fee !== fees.depositProtocolFee || vault.withdrawal_protocol_fee !== fees.withdrawalProtocolFee || vault.deposit_attached !== fees.depositAttached || vault.withdrawal_attached !== fees.withdrawalAttached || vault.withdrawal_received !== fees.withdrawalReceived) throw new Error('Vault fee policy mismatch');
       vaults.push({ pool, leafCount: vault.leaf_count, capacity: vault.capacity, canDeposit: vault.leaf_count < vault.capacity });
     }
     offset += records.length;
