@@ -25,6 +25,7 @@
     "serve:organizations": "tsx scripts/organization-server.ts",
     "serve:organizations:compiled": "node dist/service/scripts/organization-server.js",
     "build:client": "node scripts/build-client.mjs",
+    "prover:export": "tsx scripts/prover-assets.ts",
     "build:sdk": "node scripts/build-sdk.mjs",
     "release:prepare": "tsx scripts/release.ts prepare",
     "release:verify": "tsx scripts/release.ts verify",
@@ -41,7 +42,8 @@
     "service:health": "node scripts/service-health.mjs",
     "test:service-runtime": "npm run build:service && tsx tests/manual/service-runtime.ts && tsx tests/manual/organization-runtime.ts",
     "index": "tsx scripts/indexer.ts",
-    "test:groups-proof": "tsx tests/manual/groups-proof.ts"
+    "test:groups-proof": "tsx tests/manual/groups-proof.ts",
+    "test:browser-prover": "tsx tests/manual/browser-prover.ts"
   },
   "dependencies": {
     "bs58": "^6.0.0",

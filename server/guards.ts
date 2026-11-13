@@ -66,6 +66,7 @@ export const routeBudgets: Readonly<Record<string, { points: number; reads: numb
   'POST /v1/ft/preflight': { points: 3, reads: 40 },
   'POST /v1/recipients/readiness': { points: 3, reads: 16 },
   'POST /v1/deposits/prepare': { points: 5, reads: 80 },
+  'POST /v1/proofs/context': { points: 5, reads: 16 },
   'POST /v1/settlements/status': { points: 2, reads: 30 },
   'POST /v1/transactions/verify': { points: 2, reads: 1 },
   'POST /v1/invoices/verify': { points: 2, reads: 4 },

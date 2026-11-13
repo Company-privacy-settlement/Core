@@ -76,7 +76,7 @@ The current privacy protocol uses fixed denominations. Invoice principal is `uni
 
 For a 1 USDC group (six decimals), a two-unit invoice requests **2,000,000 atomic units = 2 USDC**. Two withdrawals charge **3,000 atomic units = 0.003 USDC** in protocol fees, on top of principal; the merchant receives the full 2 USDC. Fee rounding happens per note. NEAR storage/first-use credit bonds/token registration and network gas are separate. A payer who must first create private notes also pays the existing deposit-side 0.15% fee. The merchant's off-chain invoice signature itself charges no protocol fee or gas.
 
-Payers can create FT notes and verify encrypted backups locally in [Front Private notes](BROWSER_NOTES.md), or use the Core CLI. New Groth16 spend proofs still require the CLI. Browser checkout executes prepared public FT withdrawal plans; it does not create new Groth16 proofs or accept private note files. It supports repeated per-note payments for multi-unit invoices. No easy wallet-only/fiat checkout is implied.
+Payers can create FT notes and verify encrypted backups locally in [Front Private notes](BROWSER_NOTES.md), or use the Core CLI. FT withdrawal proofs can be generated in [Local proofs](BROWSER_PROVER.md) or the CLI. Copy the exact signed recipient and unit reference; connected note-to-invoice selection remains U02. Browser checkout executes prepared public FT withdrawal plans; it does not create new Groth16 proofs or accept private note files. It supports repeated per-note payments for multi-unit invoices. No easy wallet-only/fiat checkout is implied.
 
 ## Run a private invoice payment
 
@@ -142,7 +142,7 @@ SQLite adds a disclosure-root column/index through an additive writer migration.
 
 For a production merchant gateway, add an authenticated invoice API with encrypted business terms, durable merchant-owned invoice IDs, immutable terms and audit history. Keep it separate from keyless settlement authority. A webhook worker should consume independently verified final events, write an idempotent outbox, and send signed notifications with bounded retries to reviewed destinations. Merchant systems must re-check status and deduplicate fulfillment. An HTTP return/success URL must never authorize paid status.
 
-Also outstanding: indexed-provider scaling, browser proof generation, account-activation funding/creation UX beyond the implemented [recipient readiness checks](RECIPIENTS.md), independent security review, explicit cancellation/reservation semantics, merchant-controlled refunds, real KYB providers, jurisdiction-specific invoice/tax preparation, fiat conversion and public-network operations. These are not advertised as implemented by this MVP.
+Also outstanding: indexed-provider scaling, connected note-to-invoice browser proving, account-activation funding/creation UX beyond the implemented [recipient readiness checks](RECIPIENTS.md), independent security review, explicit cancellation/reservation semantics, merchant-controlled refunds, real KYB providers, jurisdiction-specific invoice/tax preparation, fiat conversion and public-network operations. These are not advertised as implemented by this MVP.
 
 ## Validation
 

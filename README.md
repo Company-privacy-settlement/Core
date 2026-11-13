@@ -4,7 +4,7 @@
 
 Core is a development protocol for business-to-business payments and business-to-worker transfers. Independent vaults hold principal; shared zero-knowledge notes authorize a direct payout from one funded vault. Recipients can issue signed invoices, payers review each wallet call, and receipt holders disclose selected evidence.
 
-This repository contains the SDK, local proving CLI, read-only API, finalized index and evidence tools. The current browser execution flow supports independently configured testnet FT groups. Native NEAR v2 remains available through the contracts and CLI. English is the default service/documentation language.
+This repository contains the SDK, local browser prover and proving CLI, read-only API, finalized index and evidence tools. The current browser execution flow supports independently configured testnet FT groups. Native NEAR v2 remains available through the contracts and CLI. English is the default service/documentation language.
 
 [Service overview](docs/SERVICE.md) · [Web Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [Roadmap](docs/ROADMAP.md)
 
@@ -12,9 +12,12 @@ This repository contains the SDK, local proving CLI, read-only API, finalized in
 
 | Repository | Responsibility |
 | --- | --- |
-| [Core](https://github.com/Company-privacy-settlement/Core) | Browser/Node SDK, CLI proving, API, SQLite index and evidence verification |
+| [Core](https://github.com/Company-privacy-settlement/Core) | Browser/Node SDK, browser/CLI proving, API, SQLite index and evidence verification |
 | [Contract](https://github.com/Company-privacy-settlement/Contract) | Rust contracts, Circom circuit, test vectors, WASM and proving artifacts |
 | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js landing, English Docs, invoices, notes, settlement, evidence and sample KYB |
+
+
+Local browser proving now supports FT withdrawal proofs, cancellation, independently pinned WASM/zkey/verifier files and proof-file verification. Export reviewed artifacts with `npm run prover:export`; see [Browser prover](docs/BROWSER_PROVER.md). Connected note-to-invoice proving remains separate.
 
 ## What is available
 
@@ -35,7 +38,7 @@ This repository contains the SDK, local proving CLI, read-only API, finalized in
 1. Obtain a deployment policy independently. Verify its network, registry, token, denomination, treasury and code/verifier hashes against the configured Core API.
 2. Create an FT note in Front **Private notes**; download and reopen its encrypted backup before preparing a deposit. The API receives public commitment/root data only.
 3. Import the public deposit plan in **Settlements**, connect a testnet wallet and approve each prerequisite/payment separately. A deposit is funded only when its bound record is `Active`.
-4. Generate a withdrawal proof locally with the CLI using the encrypted note and original policy. For checkout, bind the exact signed invoice recipient and selected per-unit reference.
+4. Generate a withdrawal proof in Front **Local proofs** or the CLI using the encrypted note and original policy. For checkout, bind the exact signed invoice recipient and selected per-unit reference.
 5. Review/sign the public withdrawal plan in the app. Payout completes when its bound record is `Complete`; a wallet response or timeout is not a finality decision.
 6. Keep the appropriate backups and disclose only selected receipt fields. Receipt integrity, transaction anchoring, business identity and tax acceptance are separate claims.
 
@@ -108,7 +111,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` overrides the default `../Contract`. Core verifies artifact manifest hashes before importing WASM/proving files. The setup is a single-machine development ceremony; replacing it requires matching verifier/artifacts and new deployments. Generated artifacts stay out of Git.
 
-Recorded validation on **2026-11-13**: Core **256 tests**, Front **120 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
+Recorded validation on **2026-11-13**: Core **275 tests**, Front **132 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
 
 ## Privacy, custody and recovery
 
@@ -122,4 +125,4 @@ The US / Abu Dhabi scope is a planned preparation layer, with US state and ADGM/
 
 [Wallet/recovery](docs/WALLET.md) · [Browser notes](docs/BROWSER_NOTES.md) · [Recipients](docs/RECIPIENTS.md) · [Invoices](docs/INVOICES.md) · [Invoice library](docs/INVOICE_LIBRARY.md) · [Browser receipts](docs/BROWSER_RECEIPTS.md) · [Groups](docs/GROUPS.md) · [Privacy](docs/PRIVACY.md) · [Indexer](docs/INDEXER.md) · [Roadmap](docs/ROADMAP.md)
 
-The hosted development workspace is owner-private; external customer checkout requires suitable access configuration and an independently deployed/funded group. No funded public deployment is bundled. Browser Groth16 proving, variable amounts, private group migration, real compliance integrations, independent security review and a reviewed multi-party setup remain outstanding.
+The hosted development workspace is owner-private; external customer checkout requires suitable access configuration and an independently deployed/funded group. No funded public deployment is bundled. Connected note-to-invoice browser payments, variable amounts, private group migration, real compliance integrations, independent security review and a reviewed multi-party setup remain outstanding.

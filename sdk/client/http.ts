@@ -4,6 +4,7 @@ import { parseGroupCapacity } from './groups.js';
 import { parseRecipientReadiness } from './recipients.js';
 import { account } from './payment.js';
 import { parseDepositRequest, parseDepositPlan, type DepositRequest } from './deposits.js';
+import { parseProvingContext } from './prover.js';
 import {
   verifySignedInvoice,
   invoiceProof,
@@ -111,6 +112,14 @@ export class HttpGateway implements Gateway {
     if (!trusted.tokenId) throw new Error('Choose a trusted FT group');
     await this.trusted(trusted, options.signal);
     return parseDepositPlan(await this.request('/v1/deposits/prepare', input, options.signal), trusted, input);
+  }
+  async provingContext(policy: Policy, vault: string, options: { signal?: AbortSignal } = {}) {
+    const trusted = parsePolicy(policy), selected = account(vault);
+    if (!trusted.tokenId || !selected.endsWith('.' + trusted.registry)) throw new Error('Choose a payout vault in the original FT group');
+    await this.trusted(trusted, options.signal);
+    const result = parseProvingContext(await this.request('/v1/proofs/context', { vault: selected }, options.signal), trusted);
+    if (result.vault !== selected) throw new Error('API substituted the selected payout vault');
+    return result;
   }
   async verifyInvoice(input: SignedInvoice) {
     const signed = await verifySignedInvoice(input);

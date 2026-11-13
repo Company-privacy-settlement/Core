@@ -117,3 +117,7 @@ Retain old releases for old notes. Packaging current artifacts does not upgrade 
 ## Validation
 
 The release change passed Core type checking and **203 tests**, including 11 release regressions for independent trust anchors, tampering/inventory, policy/serialized-verifier binding, stale SDKs, source provenance hidden by Git index flags, symlinks and CLI scope. Node/browser SDK builds are checked separately; the Core CI now includes `build:sdk`. Existing invoice HTTP tests use a fixed clock aligned with their dated fixtures. Actual funded-wallet deployment remains a separate release gate.
+
+## Browser proving files
+
+The browser SDK inventory now includes the self-contained `prover-worker.js` with its source/dependency notices. Use `npm run prover:export` with an independently pinned **artifact manifest** digest and trusted FT policy to prepare the three runtime assets and manifest for local browser import. The digest is distinct from the release manifest digest. [Browser proving and file trust](BROWSER_PROVER.md).

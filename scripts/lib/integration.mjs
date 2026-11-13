@@ -78,7 +78,7 @@ export function verifyPublicVectors(core, contract) {
     return [name, sha256(a)];
   }));
 }
-export const stageIds = ['checkout-core', 'node', 'refs', 'checkout-contract', 'checkout-front', 'sources', 'rust', 'cache', 'install', 'core', 'sdk', 'client', 'service', 'front', 'chromium', 'browser', 'contracts', 'setup', 'native', 'ft', 'release'];
+export const stageIds = ['checkout-core', 'node', 'refs', 'checkout-contract', 'checkout-front', 'sources', 'rust', 'cache', 'install', 'core', 'sdk', 'client', 'service', 'front', 'chromium', 'contracts', 'setup', 'browser', 'prover', 'native', 'ft', 'release'];
 export function stageResults(steps) {
   return Object.fromEntries(stageIds.map(id => [id, steps[id]?.outcome ?? 'not_run']));
 }

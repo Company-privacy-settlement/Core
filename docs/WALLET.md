@@ -89,3 +89,7 @@ Before preparing a payout, use the [recipient readiness check](RECIPIENTS.md) in
 ## Locking during pending work
 
 Locking revokes in-progress journal accesses and prevents late reads, restores, reviews and wallet dispatch from continuing. The settlement workspace also locks on page-hide and persisted history-cache return, invalidating pending UI work. Encrypted history is preserved. A storage write or wallet request that already started cannot be undone: a durable unresolved signing intent remains blocked after reopening until the original transaction or bound finalized state is reconciled. Locking does not establish transaction failure or authorize resending. See [review details and regressions](REVIEW-2026-11-13-JOURNAL.md).
+
+## Local proving before wallet review
+
+[Local proofs](BROWSER_PROVER.md) generates and verifies an FT withdrawal proof in a disposable browser worker. Its exported public plan enters the same existing import/review/sign/reconcile flow. No wallet key is needed for proving; no signing or submission occurs in the prover. Keep the note backup through final reconciliation. Connected invoice-note selection is separate work.

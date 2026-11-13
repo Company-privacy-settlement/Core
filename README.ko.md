@@ -4,7 +4,7 @@
 
 Core는 기업 간 결제와 기업→근로자 송금을 위한 개발용 프로토콜입니다. 독립 볼트가 원금을 보관하고, 공유 ZK 노트로 자금이 있는 한 볼트에서 수취인에게 직접 지급합니다. 수취인은 서명된 인보이스를 발행하고, 지급자는 지갑 호출을 각각 검토하며, 증빙 보유자는 필요한 필드만 공개할 수 있습니다.
 
-이 저장소는 SDK·로컬 증명 CLI·읽기 전용 API·확정 기록 인덱스·증빙 도구를 제공합니다. 브라우저 실행은 독립적으로 구성한 테스트넷 FT 그룹을 지원합니다. Native NEAR v2는 계약과 CLI에서 사용할 수 있습니다. 서비스와 Docs의 기본 언어는 영어입니다.
+이 저장소는 SDK·로컬 브라우저 증명·증명 CLI·읽기 전용 API·확정 기록 인덱스·증빙 도구를 제공합니다. 브라우저 실행은 독립적으로 구성한 테스트넷 FT 그룹을 지원합니다. Native NEAR v2는 계약과 CLI에서 사용할 수 있습니다. 서비스와 Docs의 기본 언어는 영어입니다.
 
 [서비스 개요](docs/SERVICE.md) · [웹 Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [개발 현황](docs/ROADMAP.md)
 
@@ -12,9 +12,12 @@ Core는 기업 간 결제와 기업→근로자 송금을 위한 개발용 프�
 
 | 저장소 | 역할 |
 | --- | --- |
-| [Core](https://github.com/Company-privacy-settlement/Core) | 브라우저/Node SDK, CLI 증명, API, SQLite 인덱스, 증빙 검증 |
+| [Core](https://github.com/Company-privacy-settlement/Core) | 브라우저/Node SDK, 브라우저/CLI 증명, API, SQLite 인덱스, 증빙 검증 |
 | [Contract](https://github.com/Company-privacy-settlement/Contract) | Rust 계약, Circom 회로, 벡터, WASM·증명 아티팩트 |
 | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js 랜딩·영문 Docs·인보이스·노트·정산·증빙·샘플 KYB |
+
+
+로컬 브라우저에서 FT 출금 증명 생성·취소, 독립 해시로 고정한 WASM/zkey/검증기 파일 확인과 증명 파일 재검증을 지원합니다. 검토한 파일은 `npm run prover:export`로 내보냅니다. [브라우저 증명 가이드](docs/BROWSER_PROVER.md). 노트와 인보이스 자동 연결은 별도 작업입니다.
 
 ## 현재 기능
 
@@ -35,7 +38,7 @@ Core는 기업 간 결제와 기업→근로자 송금을 위한 개발용 프�
 1. 운영자로부터 독립적으로 배포 정책을 확보하고 네트워크·registry·토큰·액면·수수료 수취인·코드/검증기 해시를 Core API와 확인합니다.
 2. Front **Private notes**에서 FT 노트를 생성하고 암호화 백업을 내려받아 다시 엽니다. API에는 공개 커밋먼트·루트만 보냅니다.
 3. **Settlements**에 공개 입금 계획을 가져와 테스트넷 지갑을 연결하고 등록·스토리지·결제를 각각 승인합니다. 입금 기록이 `Active`여야 예치 완료입니다.
-4. 원래 정책과 암호화 노트로 CLI에서 출금 증명을 생성합니다. 인보이스 결제는 서명된 수취 계정과 해당 단위의 참조에 고정합니다.
+4. 원래 정책과 암호화 노트로 Front **Local proofs** 또는 CLI에서 출금 증명을 생성합니다. 인보이스 결제는 서명된 수취 계정과 해당 단위의 참조에 고정합니다.
 5. 앱에서 공개 출금 계획을 검토·승인합니다. 지급 기록의 `Complete`가 완료 기준이며, 지갑 응답이나 타임아웃만으로 성공·실패를 판단하지 않습니다.
 6. 용도별 백업을 보관하고 필요한 영수증 필드만 공개합니다. 무결성·TX 포함·사업자 신원·세무 신고 수리는 서로 다른 검증입니다.
 
@@ -108,7 +111,7 @@ npm run demo:ft
 
 다른 경로는 `CORE_CONTRACT_REPO`로 지정합니다. Core는 WASM·증명 파일의 매니페스트 해시를 확인해 가져옵니다. 개발용 단일 머신 setup을 바꾸면 검증기·아티팩트·새 배포도 일치해야 합니다. 생성 파일은 Git에서 제외합니다.
 
-**2026-11-13 기록된 검증:** Core **256개 테스트**, Front **120개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
+**2026-11-13 기록된 검증:** Core **275개 테스트**, Front **132개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
 
 ## 프라이버시·보관·복구
 
@@ -122,4 +125,4 @@ npm run demo:ft
 
 [지갑·복구](docs/WALLET.md) · [브라우저 노트](docs/BROWSER_NOTES.md) · [수취 준비](docs/RECIPIENTS.md) · [인보이스](docs/INVOICES.md) · [보관함](docs/INVOICE_LIBRARY.md) · [영수증](docs/BROWSER_RECEIPTS.md) · [그룹](docs/GROUPS.md) · [프라이버시](docs/PRIVACY.md) · [인덱스](docs/INDEXER.md) · [로드맵](docs/ROADMAP.md)
 
-현재 호스팅은 소유자 비공개입니다. 외부 고객 결제에는 알맞은 접근 권한과 별도 배포·자금 공급된 그룹이 필요합니다. 공개 자금 배포는 포함하지 않습니다. 브라우저 Groth16 증명·가변 금액·프라이빗 그룹 이전·실제 컴플라이언스 연동·독립 보안 감사·검토된 다자 setup은 후속 작업입니다.
+현재 호스팅은 소유자 비공개입니다. 외부 고객 결제에는 알맞은 접근 권한과 별도 배포·자금 공급된 그룹이 필요합니다. 공개 자금 배포는 포함하지 않습니다. 노트와 인보이스를 연결한 브라우저 결제·가변 금액·프라이빗 그룹 이전·실제 컴플라이언스 연동·독립 보안 감사·검토된 다자 setup은 후속 작업입니다.

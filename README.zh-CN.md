@@ -4,7 +4,7 @@
 
 Core 是面向企业间付款和企业→员工转账的开发协议。独立 vault 保管本金，共享零知识票据授权一个有流动性的 vault 直接付款。收款人可签发发票，付款人逐项审核钱包调用，证据持有人只披露所选字段。
 
-本仓库提供 SDK、本地证明 CLI、只读 API、最终记录索引和证据工具。浏览器执行支持独立配置的测试网 FT 组；原生 NEAR v2 可通过合约和 CLI 使用。服务与 Docs 默认使用英语。
+本仓库提供 SDK、本地浏览器证明及证明 CLI、只读 API、最终记录索引和证据工具。浏览器执行支持独立配置的测试网 FT 组；原生 NEAR v2 可通过合约和 CLI 使用。服务与 Docs 默认使用英语。
 
 [服务概览](docs/SERVICE.md) · [网页 Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [开发路线](docs/ROADMAP.md)
 
@@ -12,9 +12,12 @@ Core 是面向企业间付款和企业→员工转账的开发协议。独立 va
 
 | 仓库 | 职责 |
 | --- | --- |
-| [Core](https://github.com/Company-privacy-settlement/Core) | 浏览器/Node SDK、CLI 证明、API、SQLite 索引和证据验证 |
+| [Core](https://github.com/Company-privacy-settlement/Core) | 浏览器/Node SDK、浏览器/CLI 证明、API、SQLite 索引和证据验证 |
 | [Contract](https://github.com/Company-privacy-settlement/Contract) | Rust 合约、Circom 电路、向量、WASM 与证明产物 |
 | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js 首页、英文 Docs、发票、票据、结算、证据与示例 KYB |
+
+
+本地浏览器支持 FT 提现证明生成与取消、独立哈希固定的 WASM/zkey/验证密钥校验及证明文件重新验证。使用 `npm run prover:export` 导出已审核文件，详见[浏览器证明指南](docs/BROWSER_PROVER.md)。票据与发票自动关联仍为独立工作。
 
 ## 当前功能
 
@@ -35,7 +38,7 @@ Core 是面向企业间付款和企业→员工转账的开发协议。独立 va
 1. 独立取得部署策略，核对网络、registry、代币、面额、费用收款人和代码/验证器哈希与 Core API 一致。
 2. 在 Front **Private notes** 创建 FT 票据，下载并重新打开加密备份。API 仅接收公开承诺和根。
 3. 在 **Settlements** 导入公开存款计划，连接测试网钱包，分别审批注册、存储和付款。绑定记录达到 `Active` 才表示存款完成。
-4. 使用原策略和加密票据在 CLI 本地生成提现证明。结账必须绑定已签发票的收款账户及所选单位引用。
+4. 使用原策略和加密票据在 Front **Local proofs** 或 CLI 本地生成提现证明。结账必须绑定已签发票的收款账户及所选单位引用。
 5. 在应用审核并签署公开提现计划。绑定记录为 `Complete` 才完成付款；钱包响应或超时本身不确定成功/失败。
 6. 分别保管所需备份，只披露所选字段。收据完整性、交易包含、企业身份及税务受理是独立结论。
 
@@ -108,7 +111,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` 可覆盖默认路径。Core 导入前验证 WASM/证明产物清单哈希。当前 setup 为单机开发仪式；替换时需匹配验证器、产物和新部署。生成文件不提交到 Git。
 
-**2026-11-13 记录的验证：**Core **256 个测试**、Front **120 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
+**2026-11-13 记录的验证：**Core **275 个测试**、Front **132 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
 
 ## 隐私、保管与恢复
 
@@ -122,4 +125,4 @@ npm run demo:ft
 
 [钱包/恢复](docs/WALLET.md) · [浏览器票据](docs/BROWSER_NOTES.md) · [收款准备](docs/RECIPIENTS.md) · [发票](docs/INVOICES.md) · [发票库](docs/INVOICE_LIBRARY.md) · [收据](docs/BROWSER_RECEIPTS.md) · [组](docs/GROUPS.md) · [隐私](docs/PRIVACY.md) · [索引](docs/INDEXER.md) · [路线](docs/ROADMAP.md)
 
-当前托管仅限所有者；外部客户结账需要相应访问设置和独立部署/注资的组。不包含已注资公开部署。浏览器 Groth16 证明、可变金额、私密跨组迁移、真实合规集成、独立安全审查及已审核多方 setup 仍待完成。
+当前托管仅限所有者；外部客户结账需要相应访问设置和独立部署/注资的组。不包含已注资公开部署。票据与发票关联的浏览器支付、可变金额、私密跨组迁移、真实合规集成、独立安全审查及已审核多方 setup 仍待完成。

@@ -127,10 +127,6 @@ jobs:
         id: chromium
         working-directory: Front
         run: npx playwright install --with-deps chromium
-      - name: Desktop and mobile browser regressions
-        id: browser
-        working-directory: Front
-        run: npm run test:e2e -- --reporter=line,html
       - name: Build actual WASM, test FT fixture and all contract unit suites
         id: contracts
         run: |
@@ -140,6 +136,15 @@ jobs:
       - name: Create disposable development-only proving artifacts
         id: setup
         run: npm run zk:setup
+      - name: Desktop and mobile browser regressions with actual proving artifacts
+        id: browser
+        working-directory: Front
+        env:
+          CORE_PROVER_ARTIFACTS_DIR: ${{ github.workspace }}/Core/artifacts
+        run: npm run test:e2e -- --reporter=line,html
+      - name: Browser WASM and Groth16 versus independent Node verification
+        id: prover
+        run: npm run test:browser-prover
       - name: Native NEAR real WASM and Groth16 integration
         id: native
         timeout-minutes: 10
@@ -174,6 +179,7 @@ jobs:
             Contract/artifacts/build-manifest.json
             Contract/artifacts/core_*.wasm
             Core/dist/client/
+            Core/demo-output/browser-prover-validation.json
       - name: Retain failed browser fixture diagnostics
         if: failure() && steps.browser.outcome == 'failure'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

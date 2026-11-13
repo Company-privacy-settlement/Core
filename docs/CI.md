@@ -37,9 +37,9 @@ GitHub references: [reusing workflows and access](https://docs.github.com/en/act
 2. Check Core types and all unit tests; rebuild Node/browser SDKs.
 3. Compare Front's committed browser SDK with the newly built Core files **and current source inventory**. Front's self-check alone cannot establish freshness. CI never runs `sync:core` to conceal drift.
 4. Compile API/indexer and test readiness, single writer, restart, online backup, protected restore and cancellation against local mock RPC. The same command also checks compiled Organization API startup requirements, liveness, unauthenticated rejection, database restart and shutdown without a public chain call.
-5. Check Front types and units; build its static export. Run the complete Chromium desktop/mobile suite with a fresh loopback server. Install Chromium/system dependencies on the runner; do not reuse an unrelated process on port 3000.
+5. Check Front types and units; build its static export. After disposable proving setup, run the complete Chromium desktop/mobile suite with a fresh loopback server. Install Chromium/system dependencies on the runner; do not reuse an unrelated process on port 3000.
 6. Build the four real contract WASMs and the local TESTUSD fixture with Rust 1.99.1; run all four contract unit suites. Build order preserves embedded child bytes.
-7. Generate fresh **development-only** proving artifacts on the disposable runner. Run native NEAR and FT demos using actual local NEAR sandbox WASM and Groth16. The FT flow covers API, finalized index, wallet journal, invoices, recipient readiness and evidence. Existing committed public vectors remain unchanged. No proving setup or chain state is cached between runs.
+7. Generate fresh **development-only** proving artifacts on the disposable runner. Run real browser WASM/Groth16 proofs with independent Node verification, then native NEAR and FT demos using actual local NEAR sandbox WASM and Groth16. The FT flow covers API, finalized index, wallet journal, invoices, recipient readiness and evidence. Existing committed public vectors remain unchanged. No proving setup or chain state is cached between runs.
 8. Use the successful FT sandbox report to create a sandbox policy, then prepare and verify an exact-source `0.0.0-ci.1` development release. Verify its archive digest and require its three manifest commits to equal the tested source snapshot. The new release must not modify source checkouts.
 
 To update a stale vendored SDK, run `npm run build:client` in Core and `npm run sync:core` in Front, review and commit Front's generated files, then select the matching revisions. Re-running CI cannot repair an incompatible tuple.
@@ -48,9 +48,9 @@ To update a stale vendored SDK, run `npm run build:client` in Core and `npm run 
 
 Actions names each gate. A final summary records each stage's **outcome**, not a success conclusion that might conceal a failed step. Missing, skipped, cancelled or failed gates cannot produce a passed report. Source/client/release evidence is included only when its corresponding stage succeeded, so a reused local directory cannot promote old metadata from a failed stage. Earlier failures stop dependent work. Where Core checkout/ref resolution succeeded, an always-run report captures the completed/failed/not-run stages; failures before that point remain visible in Actions checkout/ref logs.
 
-The seven-day integration artifact allowlist contains the result/source/client/release metadata, verified development release archive, contract WASMs/build manifest and rebuilt browser SDK. Failed browser fixtures retain their Playwright report and traces separately. These diagnostics use sample identities and local test inputs. No `demo-output/` directory, wallet key, note backup, receipt backup, database, journal, environment file or Powers of Tau transcript is uploaded. Avoid broadening uploads to an entire workspace or artifacts directory.
+The seven-day integration artifact allowlist contains the result/source/client/release metadata, verified development release archive, contract WASMs/build manifest, rebuilt browser SDK and the explicit public `browser-prover-validation.json` report. Failed browser fixtures retain their Playwright report and traces separately. These diagnostics use sample identities and local test inputs. No entire `demo-output/` directory, wallet key, note backup, receipt backup, database, journal, environment file or Powers of Tau transcript is uploaded. Avoid broadening uploads to an entire workspace or artifacts directory.
 
-The CI release is an integrity/compatibility regression fixture. Its checksum is generated in the same run; it is **not** an independent trust channel for a distributed release. It is not published and must not replace an existing deployed group's verifier. Local TESTUSD is not Circle-issued USDC. Browser fixtures inject a test wallet and mock API; sandbox demos separately run actual contracts. Neither establishes a funded public-testnet wallet journey or production safety.
+The CI release is an integrity/compatibility regression fixture. Its checksum is generated in the same run; it is **not** an independent trust channel for a distributed release. It is not published and must not replace an existing deployed group's verifier. Local TESTUSD is not Circle-issued USDC. Wallet fixtures inject a test wallet and mock API. Prover cases use actual WASM/zkeys, and a separate browser harness compares CLI inputs and Node verification; sandbox demos separately run actual contracts. Neither establishes a funded public-testnet wallet journey or production safety.
 
 ## Local reproduction
 
@@ -72,11 +72,12 @@ node scripts/integration.mjs client
 npm run test:service-runtime
 (cd ../Front && npm run check && npm test && npm run build)
 (cd ../Front && npx playwright install --with-deps chromium)
-(cd ../Front && CI=true npm run test:e2e)
 npm run contract:build
 npm run build:test-ft --prefix ../Contract
 npm test --prefix ../Contract
 npm run zk:setup
+(cd ../Front && CORE_PROVER_ARTIFACTS_DIR="$PWD/../Core/artifacts" CI=true npm run test:e2e)
+npm run test:browser-prover
 npm run demo:shared
 npm run demo:ft
 node scripts/integration.mjs release-input
@@ -88,3 +89,5 @@ Local setup reuses an existing matching development setup; CI starts without one
 If another local service occupies port 3000, set `CORE_E2E_PORT` for the Front browser command. CI deliberately refuses to reuse a pre-existing server.
 
 Local validation recorded on 2026-11-13 passed Core's 232 tests (including nine integration regressions), all 57 contract tests, Front's three units and 98 browser cases, SDK/static/service builds, and actual native/FT sandbox runs with 12/14 finalized records. The compiled service restart/backup/restore harness also passed. Actionlint 1.7.12 validated all four workflow files. These results do not claim an observed GitHub Actions run or a local Docker execution.
+
+The browser stage runs after disposable proving setup. It sets `CORE_PROVER_ARTIFACTS_DIR` so real-prover cases cannot skip. The required `prover` stage records actual Chromium proofs, independent Node verification, CLI input parity and scoped memory/timing observations. Standalone Front tests can omit the variable and skip only the four actual-artifact cases.

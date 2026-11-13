@@ -21,6 +21,11 @@ await build({
   )
     throw new Error("Browser build imported a non-client module");
 });
+// Keep snarkjs and its WASM engine off the main browser bundle. The vendored
+// worker is self-contained and covered by the same SHA-256 inventory.
+await build({ entryPoints: ['sdk/prover-worker.ts'], outfile: 'dist/client/prover-worker.js',
+  bundle: true, format: 'esm', platform: 'browser', target: 'es2022', legalComments: 'inline',
+  banner: { js: '/*! Includes snarkjs 0.7.6, GPL-3.0-or-later. Source: https://github.com/iden3/snarkjs/tree/v0.7.6 ; license: https://www.gnu.org/licenses/gpl-3.0.html . Core worker source and build instructions accompany the source release. */' } });
 execFileSync(
   process.execPath,
   ["node_modules/typescript/bin/tsc", "-p", "tsconfig.client.json"],

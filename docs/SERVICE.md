@@ -17,6 +17,7 @@ This document describes implemented behavior as of **2026-11-13**. It is not a c
 | --- | --- |
 | `/docs/` | Setup, architecture, payments, invoices, groups, privacy, KYB, SDK/API and recovery |
 | `/live/` | Settlements: trusted-policy/group selection, capacity, reviewed testnet FT calls, journal recovery and indexed public activity |
+| `/prove/` | Local FT withdrawal Groth16 proving, file integrity checks, cancellation and proof-file verification |
 | `/notes/` | Local FT note generation, encrypted backup/reopen and public deposit-plan preparation |
 | `/invoices/` | Merchant-signed requests and optional encrypted local invoice library |
 | `/pay/#invoice=…` | Signed checkout, recipient readiness and indexed payment status |
@@ -32,7 +33,7 @@ The [hosted development workspace](https://core-private-settlement-0574c4.jiheon
 sequenceDiagram
     participant M as Recipient / merchant
     participant P as Payer browser + wallet
-    participant C as Local Core CLI
+    participant C as Local browser prover / CLI
     participant A as Read-only API + finalized index
     participant V as NEAR forest + independent vaults
     M->>M: Sign invoice terms and per-unit references
@@ -53,7 +54,7 @@ sequenceDiagram
 1. **Establish trust.** Obtain a deployment policy independently of the API. Pin network, registry, token, denomination, fee recipient, verifier and code hashes. Import a policy or caller-approved group directory; review capacity at a finalized block. API policy matching alone does not replace on-chain preflight.
 2. **Prepare the recipient.** Read account existence and token registration separately. A missing account requires activation outside this service; token registration alone does not activate it. The app shows the token’s observed storage minimum and an inspectable registration call without signing/funding it. It never guesses activation funding or creates fresh accounts server-side.
 3. **Create and fund a note.** `/notes/` creates an FT note locally and requires its downloaded encrypted backup to reopen before deposit preparation. The API receives only public commitment, disclosure root and optional vault. The default search checks at most 20 vault records; an explicit member can be checked beyond that window. A partial scan is not a complete catalog and a plan does not reserve liquidity/capacity. Execute the public plan in Settlements and verify the bound deposit becomes `Active`.
-4. **Create a spend proof.** Core CLI opens the saved note using the original policy/group and creates a new Groth16 proof. Notes can be created in-browser, but browser proving is not implemented. An invoice payment must use its exact signed recipient and selected signed-derived per-unit reference.
+4. **Create a spend proof.** Local proofs or the Core CLI opens the saved note using the original policy/group and creates a new Groth16 FT withdrawal proof. The browser worker checks pinned assets, rebuilds the tree and supports cancellation. An invoice payment must use its exact signed recipient and selected signed-derived per-unit reference.
 5. **Approve and observe.** Connect a compatible testnet wallet, unlock an encrypted journal and review each registration, storage, fee and proof call separately. A wallet response, redirect or timeout does not prove settlement. Confirm the bound withdrawal reaches `Complete`; reconcile unresolved signing intents before sending again.
 6. **Keep and disclose evidence.** Keep note, journal, invoice and receipt backups separately. Share only selected receipt openings with an appropriate recipient. Check their root against an independently sourced settlement record; integrity alone is not business truth or tax acceptance.
 
@@ -137,8 +138,10 @@ The [separate Organization API](ORGANIZATIONS.md) adds NEP-413 testnet wallet au
 
 ## Recorded validation and next work
 
-The latest recorded implementation validation on **2026-11-13** passed **256 Core tests**, **120 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
+The latest recorded implementation validation on **2026-11-13** passed **275 Core tests**, **132 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
 
 Reproduction commands and prioritized remaining work are in the [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract) and [roadmap](ROADMAP.md). Detailed review findings remain dated historical records rather than a claim that every suite was rerun for each documentation edit.
 
 Organization access review and fixes: [2026-11-13 findings and validation](REVIEW-2026-11-13-ORGANIZATIONS.md).
+
+Standalone browser FT withdrawal proving, artifact integrity checks, cancellation and proof-file verification are implemented in [Local proofs](BROWSER_PROVER.md). Witnesses remain local; the API exposes only a verified public group snapshot. Connected invoice-note selection remains separate.

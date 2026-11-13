@@ -8,6 +8,7 @@ import type { ActivityReader } from '../sdk/indexer/store.js';
 import { canonical } from '../sdk/client/crypto.js';
 import {InvoiceProofInput,InvoiceStatusInput,verifyInvoiceMerchant,indexedInvoiceStatus} from '../sdk/invoices.js';
 import { ApiLimits, HttpError, PeerRateLimiter, RpcBudget, routeBudgets, type ApiLimitOptions } from './guards.js';
+import { provingContext, ProvingContextInput } from '../sdk/operations.js';
 import { readiness, ReadinessOptions, type ReadinessSettings } from './readiness.js';
 
 function readIndex<T>(read:()=>T):T{try{return read();}catch(error){if(error instanceof IndexError)throw error;throw new HttpError(503,'INDEX_READ_FAILED');}}
@@ -99,6 +100,9 @@ export function createReadOnlyApi(options: { source: OperationsSource; sourceFac
           if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');respond(await verifyInvoiceMerchant(source,policy,input(InvoiceProofInput,await body(req,controller.signal))));
         }else if(url.pathname==='/v1/invoices/status'&&req.method==='POST'){
           if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');if(!index)throw new HttpError(503,'INDEX_DISABLED');const request=input(InvoiceStatusInput,await body(req,controller.signal));respond(await readIndexAsync(()=>indexedInvoiceStatus(index,policy,request)));
+        }else if (url.pathname === '/v1/proofs/context' && req.method === 'POST') {
+          if (url.search) throw new HttpError(400,'QUERY_NOT_ALLOWED');
+          respond(await provingContext(source,policy,input(ProvingContextInput,await body(req,controller.signal))));
         }else if (url.pathname === '/v1/deposits/prepare' && req.method === 'POST') {
           if (url.search) throw new HttpError(400,'QUERY_NOT_ALLOWED');
           respond(await prepareFtDeposit(source,policy,input(PrepareDepositInput,await body(req,controller.signal))));

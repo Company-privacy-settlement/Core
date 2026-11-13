@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { NearRpcError } from './factory.js';
-import { NearRpcSharedSource, discoverSharedVaults, SharedPolicySchema, type SharedCatalog, type SharedChainSource, type SharedPolicy } from './shared.js';
+import { NearRpcSharedSource, discoverSharedVaults, loadSharedTree, SharedPolicySchema, type SharedCatalog, type SharedChainSource, type SharedPolicy } from './shared.js';
 import { field, STORAGE_FEE } from './core.js';
 import { buildFtDepositCommitment, buildFtRegistration, buildStoragePrepayment, quoteFtFees, USDC, type ContractCall } from './ft.js';
 import { AccountId, Atomic, Count, Sha256 } from './validation.js';
@@ -54,6 +54,16 @@ export const PrepareDepositInput = z.object({
   commitment: z.string().max(77).regex(/^[1-9][0-9]*$/).refine(value => { try { return field(value) > 0n; } catch { return false; } }),
   disclosureRoot: Sha256, vault: AccountId.optional(),
 }).strict();
+export const ProvingContextInput = z.object({ vault: AccountId }).strict();
+/** Public ordered leaves only. Note secrets, paths and witnesses never enter this API. */
+export async function provingContext(source: OperationsSource, input: SharedPolicy, request: z.infer<typeof ProvingContextInput>) {
+  const policy = SharedPolicySchema.parse(input), { vault } = ProvingContextInput.parse(request);
+  if (!policy.tokenId) throw new OperationsError('WRONG_ASSET', 'Browser proving requires an FT group');
+  const snapshot = await verified(source, policy, vault);
+  if (!snapshot.catalog.vaults.some(v => v.accountId === vault && v.canWithdraw)) throw new OperationsError('VAULT_NOT_READY', 'Choose a verified payout vault with available principal');
+  const tree = await loadSharedTree(source, snapshot.catalog);
+  return { version: 1 as const, policy, checkedAtBlock: snapshot.block, root: tree.root, commitments: tree.leaves, vault };
+}
 export async function prepareFtDeposit(source: OperationsSource, input: SharedPolicy, request: z.infer<typeof PrepareDepositInput>) {
   const policy = SharedPolicySchema.parse(input), parsed = PrepareDepositInput.parse(request);
   if (!policy.tokenId) throw new OperationsError('WRONG_ASSET', 'Deposit planning requires a token-bound v3 group');
