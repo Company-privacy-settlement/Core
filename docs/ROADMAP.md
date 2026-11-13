@@ -14,7 +14,7 @@ This backlog is based on the current code. Contract and circuit work stays in th
 - [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
 - [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
 
-Validation: `npm run check` and **151 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
+Validation: `npm run check` and **156 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
 
 Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
 
@@ -36,6 +36,7 @@ Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `
 - [x] Complete paginated CLI vault selection at one final block, direct selected-member verification and invoice fragment/history lifecycle fixes. [Review findings and resolution](REVIEW-2026-11-13.md).
 - [x] Process-local bounded peer rate limits, weighted route admission, RPC read budgets, request deadlines and transport cancellation; retained slots for non-cancellable work and separate deployment/index readiness checks. [Settings and operational limits](OPERATIONS.md#request-limits-and-readiness).
 - [x] Approved group directories, same-block capacity discovery, ordered new-note selection, encrypted backups and original-group deposit/spend preparation, including full/retired-group withdrawals. [Group capacity SDK/CLI](GROUPS.md).
+- [x] Browser-safe approval/capacity validation, bounded `/v1/group/capacity`, and Front group selection with fresh API checks, retired-group recovery, stale-response invalidation and matching journal namespaces. [Front group selection](GROUPS.md#front-group-selection).
 
 Invoice scope and next service layer: [INVOICES.md](INVOICES.md). Business terms stay client-held; merchant API persistence, signed webhooks, fiat conversion and contract-enforced invoice caps/deadlines remain future work.
 
@@ -49,7 +50,7 @@ Index scope and deployment: [INDEXER.md](INDEXER.md). All configured registry re
 | Discovery scaling | Add indexed-provider adapters, throughput/cost controls and operational alerting for large public-network backfills. Current RPC scanner enumerates all shards/transactions with persistent offsets and explicit coverage. | Archival/indexed data provider |
 | Remaining API deployment hardening | Authentication for any future private business data, distributed/edge limits, OpenAPI/client generation and redacted operational telemetry. Process-local budgets, deadlines/cancellation and readiness probes are implemented. | Hosting/access model; current API defaults to loopback |
 | Testnet deployment workflow | Reproducible artifact/policy release, verified token registration, explicit key-removal phase and a real-wallet smoke test. | Funded deployer account and reviewed setup hashes |
-| Group capacity UI and release | SDK/CLI approved-directory discovery, new-note selection and original-group spending are implemented. Add Front capacity selection and distribute independently reviewed deployments/policies; signed invoices stay group-bound. | New group deployment/policy distribution |
+| Group deployment and policy release | SDK/CLI routing and Front capacity/recovery selection are implemented. Publish independently reviewed group deployments and distribute pinned policies/API origins; signed invoices stay group-bound. | Funded deployer, reviewed artifacts and policy distribution |
 
 ## P2 — enterprise and compliance integrations
 

@@ -2,7 +2,7 @@
 
 These operations work with a caller-supplied, independently trusted shared v2/v3 policy. They do not sign, broadcast, generate a proof, or custody notes. Wallet execution is provided by Front’s configured testnet workspace through the browser SDK; private note creation and proof generation remain local CLI operations. See [wallet execution and recovery](WALLET.md).
 
-For new-note selection across independently approved deployments, use the [group capacity SDK/CLI](GROUPS.md). This HTTP service continues to use one pinned policy; the directory does not change an existing note or signed invoice's group.
+For new-note selection across independently approved deployments, use the [group capacity SDK/CLI and Front selector](GROUPS.md). This HTTP service uses one pinned policy; the directory does not change an existing note or signed invoice's group. Each Front row needs the API for that specific policy.
 
 ## FT preflight
 
@@ -93,6 +93,7 @@ Default bind: `127.0.0.1:3001`. `CORE_API_HOST` and `PORT` can override it. Ther
 | GET | `/healthz` | Process configuration, read-only flag; no readiness claim |
 | GET | `/readyz` | Verified registry/first catalog member at one final block, plus attached index freshness and current journal count; returns non-200 when not ready |
 | GET | `/v1/config` | Public trust policy; no RPC URL or secrets |
+| GET | `/v1/group/capacity` | Pinned group policy, 256-output tree counts and first-member deposit observation at one final block |
 | GET | `/v1/vaults?fromIndex=0&maxRecords=20` | Verified catalog at one final block; max 50 records per API request and explicit pagination |
 | POST | `/v1/ft/preflight` | Strict public preflight request; prerequisite calls and blockers |
 | POST | `/v1/settlements/status` | Strict settlement reference; finalized state and bound recovery calls |
@@ -114,7 +115,7 @@ The API accepts one configured policy/RPC, not a request-selected RPC or arbitra
 
 ## Request limits and readiness
 
-Each direct socket peer receives **120 points per 60-second fixed window** by default. `/v1/vaults` and `/readyz` cost 5 points, FT preflight costs 3, settlement/TX/merchant verification costs 2, and other requests (including allowed CORS preflights) cost 1. `/healthz` is exempt and makes no chain reads. Successful admissions include `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset` (seconds until reset). Rate/concurrency rejections include `Retry-After`; clients should wait and refresh state rather than automatically retrying wallet signatures.
+Each direct socket peer receives **120 points per 60-second fixed window** by default. `/v1/vaults`, `/v1/group/capacity` and `/readyz` cost 5 points, FT preflight costs 3, settlement/TX/merchant verification costs 2, and other requests (including allowed CORS preflights) cost 1. `/healthz` is exempt and makes no chain reads. Successful admissions include `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset` (seconds until reset). Rate/concurrency rejections include `Retry-After`; clients should wait and refresh state rather than automatically retrying wallet signatures.
 
 Rate state is bounded to 1,024 peers. A full, unexpired peer table returns `503 RATE_LIMIT_CAPACITY` for new peers rather than evicting active counters. Forwarded/X-Forwarded-For headers are ignored. Behind a reverse proxy, all clients sharing its socket address share a budget; configure edge limits for individual clients. Counters and concurrency limits are process-local and reset on restart; distributed enforcement and authentication are separate concerns.
 
@@ -127,7 +128,7 @@ RPC budgets cap the number of source read calls **before** they start:
 | `/v1/vaults` | 160, including up to 50 member verifications |
 | `/v1/ft/preflight` | 40 |
 | `/v1/settlements/status` | 30 |
-| `/readyz` | 10 |
+| `/readyz`, `/v1/group/capacity` | 10 |
 | `/v1/invoices/verify` | 4 |
 | `/v1/transactions/verify` | 1 |
 | Config and indexed activity/invoice/status routes | 0 |

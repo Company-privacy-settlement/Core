@@ -1,5 +1,6 @@
 import { parsePolicy } from "./payment.js";
 import { canonical } from "./crypto.js";
+import { parseGroupCapacity } from './groups.js';
 import {
   verifySignedInvoice,
   invoiceProof,
@@ -45,7 +46,7 @@ export class HttpGateway implements Gateway {
       throw new Error("Use an HTTPS API origin (HTTP is allowed on localhost)");
     this.url = u.origin;
   }
-  private async request(path: string, body?: unknown) {
+  private async request(path: string, body?: unknown, signal?: AbortSignal) {
     const r = await fetch(this.url + path, {
       method: body === undefined ? "GET" : "POST",
       headers: body === undefined ? {} : { "content-type": "application/json" },
@@ -53,7 +54,7 @@ export class HttpGateway implements Gateway {
       credentials: "omit",
       redirect: "error",
       cache: "no-store",
-      signal: AbortSignal.timeout(25_000),
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(25_000)]) : AbortSignal.timeout(25_000),
     });
     if (!r.ok) {
       let code: string | undefined;
@@ -65,11 +66,14 @@ export class HttpGateway implements Gateway {
             "INDEX_NOT_READY",
             "INDEX_READ_FAILED",
             "INVALID_CURSOR",
+            "RATE_LIMITED", "TOO_MANY_REQUESTS", "RPC_BUDGET_EXCEEDED", "RATE_LIMIT_CAPACITY", "REQUEST_TIMEOUT",
           ].includes(e.error)
         )
           code = e.error;
       } catch {}
-      throw new CoreApiError(r.status, code);
+      const retry = r.headers.get('retry-after');
+      const retryAfterSeconds = retry && /^[0-9]+$/.test(retry) && Number(retry) >= 1 && Number(retry) <= 3600 ? Number(retry) : undefined;
+      throw new CoreApiError(r.status, code, retryAfterSeconds);
     }
     return r.json();
   }
@@ -85,9 +89,13 @@ export class HttpGateway implements Gateway {
   verify(transaction: TxRef, call: Call): Promise<Verification> {
     return this.request("/v1/transactions/verify", { transaction, call });
   }
-  private async trusted(policy: Policy) {
-    if (canonical(await this.policy()) !== canonical(policy))
+  private async trusted(policy: Policy, signal?: AbortSignal) {
+    if (canonical(parsePolicy((await this.request('/v1/config', undefined, signal)).policy)) !== canonical(policy))
       throw new Error("API policy differs from the trusted group");
+  }
+  async groupCapacity(policy: Policy, options: { signal?: AbortSignal } = {}) {
+    await this.trusted(policy, options.signal);
+    return parseGroupCapacity(await this.request('/v1/group/capacity', undefined, options.signal), policy);
   }
   async verifyInvoice(input: SignedInvoice) {
     const signed = await verifySignedInvoice(input);
@@ -158,7 +166,8 @@ export class CoreApiError extends Error {
   constructor(
     readonly status: number,
     readonly code?: string,
+    readonly retryAfterSeconds?: number,
   ) {
-    super(`Core API request failed (${status}${code ? `: ${code}` : ""})`);
+    super(`Core API request failed (${status}${code ? `: ${code}` : ""})${retryAfterSeconds ? `; try again in ${retryAfterSeconds} seconds` : ''}`);
   }
 }

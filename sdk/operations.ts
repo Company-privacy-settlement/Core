@@ -38,6 +38,15 @@ export async function operationCatalog(source: OperationsSource, policy: SharedP
   const catalog = await discoverSharedVaults(pinned(source, block), policy, options);
   return { checkedAtBlock: block, catalog };
 }
+/** Tree capacity is a snapshot, not a reservation or a complete liquidity scan. */
+export async function groupCapacity(source: OperationsSource, policy: SharedPolicy) {
+  const result = await operationCatalog(source, policy, { maxRecords: 1 }), c = result.catalog;
+  return { policy: SharedPolicySchema.parse(policy), checkedAtBlock: result.checkedAtBlock,
+    capacity: 256 as const, usedOutputs: c.leafCount, remainingOutputs: 256 - c.leafCount,
+    outstandingNotes: c.outstandingNotes, depositCapacityAvailable: c.leafCount < 256,
+    depositVaultObserved: c.vaults.some(v => v.canDeposit), checkedVaults: c.vaults.length,
+    vaultScanComplete: c.nextIndex === null, chainFreshnessChecked: false as const };
+}
 const Credit = z.object({ available: Atomic, in_flight: Atomic }).nullable();
 const Registration = z.object({ total: Atomic, available: Atomic }).nullable();
 export const PreflightInput = z.discriminatedUnion('operation', [

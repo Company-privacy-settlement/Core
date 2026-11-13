@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { z } from 'zod';
 import { SharedPolicySchema, type SharedPolicy } from '../sdk/shared.js';
-import { operationCatalog, preflightFt, observeSettlement, PreflightInput, SettlementReference, OperationsError, type OperationsSource } from '../sdk/operations.js';
+import { operationCatalog, groupCapacity, preflightFt, observeSettlement, PreflightInput, SettlementReference, OperationsError, type OperationsSource } from '../sdk/operations.js';
 import { VerifyTransactionInput, verifyTransaction } from '../sdk/transactions.js';
 import { ActivityQuery, IndexError } from '../sdk/indexer/types.js';
 import type { ActivityReader } from '../sdk/indexer/store.js';
@@ -99,6 +99,9 @@ export function createReadOnlyApi(options: { source: OperationsSource; sourceFac
           if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');respond(await verifyInvoiceMerchant(source,policy,input(InvoiceProofInput,await body(req,controller.signal))));
         }else if(url.pathname==='/v1/invoices/status'&&req.method==='POST'){
           if(url.search)throw new HttpError(400,'QUERY_NOT_ALLOWED');if(!index)throw new HttpError(503,'INDEX_DISABLED');const request=input(InvoiceStatusInput,await body(req,controller.signal));respond(await readIndexAsync(()=>indexedInvoiceStatus(index,policy,request)));
+        }else if (url.pathname === '/v1/group/capacity' && req.method === 'GET') {
+          if (url.search) throw new HttpError(400,'QUERY_NOT_ALLOWED');
+          respond(await groupCapacity(source,policy));
         }else if ((url.pathname === '/v1/activity'||url.pathname === '/v1/index/status') && req.method === 'GET') {
           if(!index)throw new HttpError(503,'INDEX_DISABLED');
           if(new Set(url.searchParams.keys()).size!==[...url.searchParams.keys()].length)throw new HttpError(400,'DUPLICATE_QUERY');

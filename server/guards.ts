@@ -61,6 +61,7 @@ export class RpcBudget {
 
 export const routeBudgets: Readonly<Record<string, { points: number; reads: number }>> = {
   'GET /readyz': { points: 5, reads: 10 },
+  'GET /v1/group/capacity': { points: 5, reads: 10 },
   'GET /v1/vaults': { points: 5, reads: 160 },
   'POST /v1/ft/preflight': { points: 3, reads: 40 },
   'POST /v1/settlements/status': { points: 2, reads: 30 },

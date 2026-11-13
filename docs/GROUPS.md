@@ -77,7 +77,17 @@ const original = await approvedGroupForNote(directory, decryptedLocalNote);
 // Use original.group.policy for the existing discovery/proof/withdrawal flow.
 ```
 
-The Core HTTP service, Front journal and signed invoices still use one independently trusted group at a time. A signed invoice cannot be changed to another group by this directory; payer notes and invoice policy must match. Front capacity-selection UI, public-network group deployment and policy distribution remain separate work. This feature changes SDK/CLI routing only; contract bytecode, circuit domains, trusted setup and cross-group privacy guarantees do not change.
+The Core HTTP service, Front journal and signed invoices use one independently trusted group at a time. A signed invoice cannot be changed to another group by this directory; payer notes and invoice policy must match. Public-network group deployment and policy distribution remain separate work. Contract bytecode, circuit domains, trusted setup and cross-group privacy guarantees do not change.
+
+## Front group selection
+
+Front Settlements exposes **Choose from approved groups** for testnet FT directories. The directory is parsed locally and kept in memory. It accepts the same ordered policy entries as the CLI and rejects included API origins or private-note fields. Enter each group's Core API origin separately; importing a directory starts no network reads.
+
+Each check first compares `/v1/config` with the independent policy, then reads `/v1/group/capacity`. That endpoint verifies the registry and at most the first catalog member at one finalized block and reports `capacity`, `usedOutputs`, `remainingOutputs`, `outstandingNotes`, `depositCapacityAvailable`, `depositVaultObserved`, `checkedVaults` and `vaultScanComplete`, together with the policy/block. It does not scan every vault, reserve capacity or assert wall-clock freshness of the RPC head. Missing eligibility in a partial first-member scan requires complete CLI discovery, not a claim that all members are unavailable.
+
+**Use for deposits** requires an enabled directory entry, free outputs and an observed eligible member. **Use for recovery** also accepts full or deposit-disabled groups and blocks new deposit-plan imports. Both actions recheck the API before applying the policy and use that group's separate journal namespace. Lock the journal before changing the policy/API. Failed refreshes, edited row origins and invalid replacement directories clear prior verification; cancelled/obsolete responses cannot apply a selection.
+
+Private notes and proofs stay in the CLI. The workspace imports public plans and validates them against the selected policy before a wallet call. Existing note and invoice bindings remain authoritative; group selection does not redirect an old note. Checkout keeps its signed policy and has no group switcher.
 
 ## Validation
 
