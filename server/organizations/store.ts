@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { ORGANIZATION_ROLE_PERMISSIONS, organizationLoginMessage, type Organization, type OrganizationAudit, type OrganizationChallenge, type OrganizationInvitation, type OrganizationMember, type OrganizationPermission, type OrganizationRole } from '../../sdk/client/organizations.js';
 import { canGrant, OrganizationError, requirePermission, versionMatches } from './model.js';
+import { assertOrganizationReady, recoverySchema } from './recovery-state.js';
 
 type OrgRow = { id: string; name: string; owner: string; version: number; created: number };
 type MemberRow = { org: string; account: string; role: OrganizationRole; status: 'active' | 'revoked'; version: number; joined: number };
@@ -27,6 +28,7 @@ export class OrganizationStore {
       if (tables.length) {
         if (!tables.some(t => t.name === 'organization_meta')) throw new Error('Unrelated organization database');
         const meta = this.get<{ version: number; audience: string; network: string }>('SELECT * FROM organization_meta WHERE id=1');
+        assertOrganizationReady(this.db);
         if (!meta || meta.version !== 1 || meta.audience !== audience || meta.network !== 'testnet') throw new Error('Organization database schema or audience mismatch');
       }
       this.db.exec(`PRAGMA busy_timeout=3000; PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
@@ -44,6 +46,8 @@ export class OrganizationStore {
         CREATE TABLE IF NOT EXISTS organization_sessions(hash TEXT PRIMARY KEY,account TEXT NOT NULL,public_key TEXT NOT NULL,origin TEXT NOT NULL,expires INTEGER NOT NULL);
         CREATE INDEX IF NOT EXISTS organization_sessions_account ON organization_sessions(account,expires);`);
       this.run('INSERT OR IGNORE INTO organization_meta VALUES(1,1,?,?)', audience, 'testnet');
+      this.db.exec(recoverySchema);
+      this.run("INSERT OR IGNORE INTO organization_recovery VALUES(1,1,'ready',NULL,?,NULL)", this.now());
     } catch (e) { this.db.close(); throw e; }
   }
   close() { this.db.close(); }

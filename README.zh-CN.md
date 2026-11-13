@@ -16,7 +16,6 @@ Core 是面向企业间付款和企业→员工转账的开发协议。独立 va
 | [Contract](https://github.com/Company-privacy-settlement/Contract) | Rust 合约、Circom 电路、向量、WASM 与证明产物 |
 | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js 首页、英文 Docs、发票、票据、结算、证据与示例 KYB |
 
-
 本地浏览器支持 FT 提现证明生成与取消、独立哈希固定的 WASM/zkey/验证密钥校验及证明文件重新验证。使用 `npm run prover:export` 导出已审核文件，详见[浏览器证明指南](docs/BROWSER_PROVER.md)。[发票结账](docs/INVOICE_PAYMENTS.md)支持原分组加密票据选择 → 本地证明 → 金额与费用确认 → 逐项钱包授权 → 最终付款确认，并提供所选单位绑定、取消、签名前商户密钥/状态复查与保守恢复。
 
 ## 当前功能
@@ -93,6 +92,8 @@ npm run serve
 
 独立 Organization API 提供 NEP-413 测试网登录、组织/成员持久化、定向邀请、Owner/Admin/Operator/Viewer/Auditor 角色、访问撤销、带版本检查的所有权转移和审计历史。Front `/organization/` 管理这些权限，令牌仅保存在内存中。组织权限不授予链上签名能力或验证企业身份。使用独立 origin/数据库/RPC 配置执行 `npm run serve:organizations`。[API、角色和托管](docs/ORGANIZATIONS.md)。
 
+[组织数据备份与恢复](docs/ORGANIZATION_BACKUPS.md)提供一致在线快照、会话/挑战废弃及隔离恢复。必须使用单独审核的当前权限文件才能激活到新的运行数据库；历史所有者、角色和待处理邀请不会自动恢复为权限。
+
 ## 集成 CI
 
 三个仓库调用固定提交的同一流水线，验证 Core 类型/单元及 API/索引恢复、重建 SDK 与 Front 副本、Front 类型/单元/静态构建/桌面和移动浏览器、合约 WASM/单元、原生/FT Groth16 沙箱及开发发布包。私有仓库需要 `INTEGRATION_READ_TOKEN` 和复用工作流访问设置。[版本、步骤和 GitHub 配置](docs/CI.md)。本地验证不等于托管 Actions 成功。
@@ -111,7 +112,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` 可覆盖默认路径。Core 导入前验证 WASM/证明产物清单哈希。当前 setup 为单机开发仪式；替换时需匹配验证器、产物和新部署。生成文件不提交到 Git。
 
-**2026-11-13 记录的验证：**Core **289 个测试**、Front **148 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
+**2026-11-13 记录的验证：**Core **302 个测试**、Front **148 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
 
 ## 隐私、保管与恢复
 

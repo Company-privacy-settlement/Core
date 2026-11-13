@@ -22,7 +22,7 @@ COPY package.json package-lock.json ./
 COPY THIRD_PARTY_NOTICES.md ./
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=build /app/dist/service ./dist/service
-COPY scripts/start-service.mjs scripts/index-maintenance.mjs scripts/service-health.mjs ./scripts/
+COPY scripts/start-service.mjs scripts/index-maintenance.mjs scripts/organization-maintenance.mjs scripts/service-health.mjs ./scripts/
 RUN mkdir -p /data && chown node:node /data
 USER node
 ENV NODE_ENV=production CORE_DATA_DIR=/data CORE_API_HOST=0.0.0.0 CORE_SERVICE_NETWORK=testnet PORT=3001 CORE_API_REQUIRE_INDEX=true

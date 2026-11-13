@@ -16,7 +16,6 @@ Core는 기업 간 결제와 기업→근로자 송금을 위한 개발용 프�
 | [Contract](https://github.com/Company-privacy-settlement/Contract) | Rust 계약, Circom 회로, 벡터, WASM·증명 아티팩트 |
 | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js 랜딩·영문 Docs·인보이스·노트·정산·증빙·샘플 KYB |
 
-
 로컬 브라우저에서 FT 출금 증명 생성·취소, 독립 해시로 고정한 WASM/zkey/검증기 파일 확인과 증명 파일 재검증을 지원합니다. 검토한 파일은 `npm run prover:export`로 내보냅니다. [브라우저 증명 가이드](docs/BROWSER_PROVER.md). [인보이스 결제](docs/INVOICE_PAYMENTS.md)에서 원래 그룹의 암호화 노트 선택 → 로컬 증명 → 금액·수수료 확인 → 개별 지갑 승인 → 최종화 결제 확인을 지원합니다. 선택 단위 고정, 취소, 서명 직전 기업 키·상태 재검사와 보수적 복구를 적용합니다.
 
 ## 현재 기능
@@ -93,6 +92,8 @@ npm run serve
 
 별도 Organization API가 NEP-413 테스트넷 로그인, 조직·멤버 저장, 계정 지정 초대, Owner/Admin/Operator/Viewer/Auditor 역할, 접근 철회, 버전 검증 소유권 이전과 감사 기록을 제공합니다. Front `/organization/`에서 관리하며 세션은 메모리에만 둡니다. 조직 권한은 온체인 서명 권한이나 기업 신원 검증이 아닙니다. 독립 origin·DB·RPC 설정으로 `npm run serve:organizations`를 실행합니다. [API·역할·서버 운영](docs/ORGANIZATIONS.md).
 
+[조직 데이터 백업·복구](docs/ORGANIZATION_BACKUPS.md)는 일관된 온라인 스냅샷, 세션·챌린지 폐기와 격리 복구를 제공합니다. 현재 권한을 별도 승인한 파일을 적용해야 새 운영 DB로 활성화되며, 과거 소유자·역할·대기 초대는 자동으로 권한에 복원하지 않습니다.
+
 ## 통합 CI
 
 세 저장소에서 같은 커밋 고정 파이프라인을 호출합니다. Core 타입·단위·API/인덱서 복구, 재빌드한 SDK와 Front 복사본, Front 타입·단위·정적 빌드·데스크톱/모바일 브라우저, 컨트랙트 WASM·단위, 네이티브/FT Groth16 샌드박스와 개발 릴리스를 검증합니다. 비공개 저장소에는 `INTEGRATION_READ_TOKEN`과 재사용 워크플로 접근 설정이 필요합니다. [버전·검증 단계·GitHub 설정](docs/CI.md). 로컬 통과와 실제 Actions 실행은 구분합니다.
@@ -111,7 +112,7 @@ npm run demo:ft
 
 다른 경로는 `CORE_CONTRACT_REPO`로 지정합니다. Core는 WASM·증명 파일의 매니페스트 해시를 확인해 가져옵니다. 개발용 단일 머신 setup을 바꾸면 검증기·아티팩트·새 배포도 일치해야 합니다. 생성 파일은 Git에서 제외합니다.
 
-**2026-11-13 기록된 검증:** Core **289개 테스트**, Front **148개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
+**2026-11-13 기록된 검증:** Core **302개 테스트**, Front **148개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
 
 ## 프라이버시·보관·복구
 

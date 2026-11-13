@@ -1,0 +1,8 @@
+# Restore/activate in a new volume. The original organization-data is retained.
+services:
+  organization-api:
+    volumes:
+      - organization-restored:/data
+volumes:
+  organization-restored:
+    name: ${CORE_ORGANIZATION_RESTORE_VOLUME:?Choose a new empty organization restore volume}
