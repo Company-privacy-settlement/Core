@@ -46,7 +46,7 @@ To update a stale vendored SDK, run `npm run build:client` in Core and `npm run 
 
 ## Evidence and failure handling
 
-Actions names each gate. A final summary records each stage's **outcome**, not a success conclusion that might conceal a failed step. Missing, skipped, cancelled or failed gates cannot produce a passed report. Earlier failures stop dependent work. Where Core checkout/ref resolution succeeded, an always-run report captures the completed/failed/not-run stages; failures before that point remain visible in Actions checkout/ref logs.
+Actions names each gate. A final summary records each stage's **outcome**, not a success conclusion that might conceal a failed step. Missing, skipped, cancelled or failed gates cannot produce a passed report. Source/client/release evidence is included only when its corresponding stage succeeded, so a reused local directory cannot promote old metadata from a failed stage. Earlier failures stop dependent work. Where Core checkout/ref resolution succeeded, an always-run report captures the completed/failed/not-run stages; failures before that point remain visible in Actions checkout/ref logs.
 
 The seven-day integration artifact allowlist contains the result/source/client/release metadata, verified development release archive, contract WASMs/build manifest and rebuilt browser SDK. Failed browser fixtures retain their Playwright report and traces separately. These diagnostics use sample identities and local test inputs. No `demo-output/` directory, wallet key, note backup, receipt backup, database, journal, environment file or Powers of Tau transcript is uploaded. Avoid broadening uploads to an entire workspace or artifacts directory.
 

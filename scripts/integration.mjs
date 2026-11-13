@@ -40,10 +40,11 @@ if (action === 'refs') {
   write('release-result.json', result);
 } else if (action === 'report') {
   const stages = stageResults(JSON.parse(process.env.CORE_CI_STAGES || '{}'));
+  const evidence = (stage, name) => stages[stage] === 'success' && existsSync(resolve(output, name)) ? read(resolve(output, name)) : null;
   const report = { format: 'core-integration-result-v1', status: succeeded(stages) ? 'passed' : 'failed', stages,
-    sources: existsSync(resolve(output, 'sources.json')) ? read(resolve(output, 'sources.json')) : null,
-    client: existsSync(resolve(output, 'client.json')) ? read(resolve(output, 'client.json')) : null,
-    release: existsSync(resolve(output, 'release-result.json')) ? read(resolve(output, 'release-result.json')) : null,
+    sources: evidence('sources', 'sources.json'),
+    client: evidence('client', 'client.json'),
+    release: evidence('release', 'release-result.json'),
     tools: { node: process.version, rustc: (() => { try { return execFileSync('rustc', ['--version'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return 'unavailable'; } })() },
     safety: 'UNSAFE_LOCAL_DEVELOPMENT_ONLY', publicNetworkDeployed: false };
   write('report.json', report);
