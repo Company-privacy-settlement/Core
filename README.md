@@ -174,3 +174,5 @@ An optional [encrypted invoice library](docs/INVOICE_LIBRARY.md) keeps signed re
 A read-only [recipient preparation check](docs/RECIPIENTS.md) separates account activation, token registration and payment review. The SDK, CLI, API and browser share the same pinned destination and token checks; activation costs are not guessed and checking never sends a transaction.
 
 The [browser notes workflow](docs/BROWSER_NOTES.md) creates FT notes locally, encrypts and re-verifies downloaded backups, and prepares public deposit plans for wallet review. Browser backups work directly with shared/group CLI spending commands. Only public deposit data reaches the API; Groth16 spend proving remains in the CLI.
+
+Review fixes lock private notes and the invoice library on browser history-cache lifecycle events, snapshot the expected backup policy before asynchronous decryption, and keep targeted vault scans explicitly partial. [Findings and regression coverage](docs/REVIEW-2026-11-13-NOTES.md).

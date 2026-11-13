@@ -174,3 +174,5 @@ npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
 SDK、CLI、API 和网页提供只读的[收款账户准备检查](docs/RECIPIENTS.md)，区分账户激活、代币注册与付款审核，并核对最终区块的注册费用和调用参数。检查不会估算激活金额或发送交易。
 
 [浏览器私密票据流程](docs/BROWSER_NOTES.md)支持本地生成 FT 票据、下载并重新验证加密备份，以及准备供钱包审核的公开存款计划。备份可直接用于现有 shared/group CLI；API 只接收公开承诺，Groth16 支出证明仍在本地 CLI 生成。
+
+代码审查修复了浏览器历史缓存时的私密视图锁定、异步解密前的可信策略快照，以及指定最后一个 vault 时被误报为完整扫描的问题。[审查与回归验证](docs/REVIEW-2026-11-13-NOTES.md)。

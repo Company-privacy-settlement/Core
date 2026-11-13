@@ -65,7 +65,7 @@ export async function prepareFtDeposit(source: OperationsSource, input: SharedPo
   if (!candidate) throw new OperationsError('VAULT_NOT_READY', 'No eligible deposit vault in this bounded scan; specify a verified vault or refresh');
   const prepared = buildFtDepositCommitment(result.catalog, candidate.accountId, parsed.commitment, parsed.disclosureRoot);
   return { policy, checkedAtBlock: result.checkedAtBlock, plan: { tokenCall: prepared.tokenCall, checkedAtBlock: result.checkedAtBlock.hash },
-    remainingOutputs: 256 - result.catalog.leafCount, checkedVaults: result.catalog.vaults.length, vaultScanComplete: result.catalog.nextIndex === null };
+    remainingOutputs: 256 - result.catalog.leafCount, checkedVaults: result.catalog.vaults.length, vaultScanComplete: result.catalog.checkedRecords === result.catalog.vaultCount };
 }
 /** Receiving prerequisites only; this prepares no account activation or payment. */
 export async function recipientReadiness(source: OperationsSource, input: SharedPolicy, request: z.infer<typeof RecipientReadinessInput>) {

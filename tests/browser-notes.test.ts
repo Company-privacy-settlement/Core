@@ -51,12 +51,25 @@ test('public deposit planning uses one final block and exposes only the commitme
   assert.deepEqual(new Set(f.reads.map(r => r.block)), new Set(['block-20']));
   assert.ok(!JSON.stringify(result).includes(note.secret)); assert.ok(!JSON.stringify(result).includes(note.nullifier));
 });
+test('note backup verification snapshots the caller trusted policy before asynchronous decryption', async () => {
+  const f = fixture(), note = await createPrivateNote(f.policy), envelope = await encryptNoteBackup(f.policy, note, password);
+  const originallyForeign = { ...f.policy, feeRecipient: f.payer };
+  const rejected = openNoteBackup(envelope, password, originallyForeign);
+  originallyForeign.feeRecipient = f.policy.feeRecipient;
+  await assert.rejects(rejected, /trusted policy/);
+  const originallyTrusted = { ...f.policy };
+  const accepted = openNoteBackup(envelope, password, originallyTrusted);
+  originallyTrusted.feeRecipient = f.payer;
+  assert.deepEqual((await accepted).policy, f.policy);
+});
 test('full groups cannot reroute notes and explicit vault preparation reaches members beyond the bounded scan', async () => {
   const f = fixture(), request = { commitment: '42', disclosureRoot: root };
   f.config.leaf_count = 256; await assert.rejects(prepareFtDeposit(f.source, f.policy, request), /full/);
   f.config.leaf_count = 2; f.record.index = 201; f.config.vault_count = 202;
   f.source.records = async (from, limit) => from === 201 && limit === 1 ? [f.record] : [];
-  assert.equal((await prepareFtDeposit(f.source, f.policy, { ...request, vault: f.vault })).plan.tokenCall.args.receiver_id, f.vault);
+  const explicit = await prepareFtDeposit(f.source, f.policy, { ...request, vault: f.vault });
+  assert.equal(explicit.plan.tokenCall.args.receiver_id, f.vault);
+  assert.equal(explicit.vaultScanComplete, false, 'verifying the last member does not verify earlier registry records');
   await assert.rejects(prepareFtDeposit(f.source, f.policy, { ...request, vault: 'unknown.test.near' }), /registered/);
   f.local.held_notes = 256; // A full physical vault remains ineligible even when the group's tree has room.
   await assert.rejects(prepareFtDeposit(f.source, f.policy, { ...request, vault: f.vault }), /eligible/);

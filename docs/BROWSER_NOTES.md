@@ -12,7 +12,7 @@ Front `/notes/` creates a private FT note locally, encrypts a single-note backup
 6. Prepare and inspect the public deposit call, download the plan and import it in Settlements with the same trusted policy. Approve registration, storage and payment individually. Confirm the bound deposit record is `Active`.
 7. Retain the encrypted note for spending. Keep the operation-journal backup and receipt openings separately; neither replaces the note backup.
 
-Locking or leaving the page removes its active note and passphrases from application state; a downloaded backup is required to reopen it. No note collection or plaintext is persisted in browser storage. JavaScript cannot guarantee physical erasure of memory. Failed refreshes clear old plans; lock/unmount invalidates pending file reads, encryption results and network responses. Failed backup checks disable preparation, preserving the current note until explicitly locked.
+Locking, page-hide events and persisted browser-cache returns clear the active note and passphrases from application state and the rendered view; a downloaded backup is required to reopen it. No note collection or plaintext is persisted in browser storage. JavaScript cannot guarantee physical erasure of memory. Failed refreshes clear old plans; lock/unmount invalidates pending file reads, encryption results and network responses. Failed backup checks disable preparation, preserving the current note until explicitly locked.
 
 ## Browser SDK
 
@@ -58,7 +58,7 @@ The backup's full policy must match the supplied trusted policy or an approved d
 
 `42` is a schema example, not a usable note backup. Optional `vault` selects a particular registry member. Zero, noncanonical or out-of-field commitments, unknown fields, secrets, nullifiers, notes, request-controlled RPCs and query parameters are rejected. The server uses its configured trusted policy. It never accepts a private note to validate a public deposit request.
 
-All group and vault verification occurs at one finalized block. The result contains the policy, block, public `plan`, `remainingOutputs`, `checkedVaults` and `vaultScanComplete`. The route costs 5 rate points and allows at most 80 source reads, subject to deployment limits and cancellation. Full groups reject new deposits; the server does not select a different group. Capacity is an observation, not a reservation.
+All group and vault verification occurs at one finalized block. The result contains the policy, block, public `plan`, `remainingOutputs`, `checkedVaults` and `vaultScanComplete`. Full scan coverage requires all registry records to have been checked; selecting its last member alone remains a partial scan. The route costs 5 rate points and allows at most 80 source reads, subject to deployment limits and cancellation. Full groups reject new deposits; the server does not select a different group. Capacity is an observation, not a reservation.
 
 The client first compares `/v1/config` against the independently imported policy. It checks the returned token call, original commitment, disclosure reference, optional selected vault, exact principal plus 0.15% fee, 1 yoctoNEAR attachment and 300 Tgas. Registration, NEAR action storage, ledger bonds and gas costs remain separate. Plan review does not establish readiness or a completed deposit.
 

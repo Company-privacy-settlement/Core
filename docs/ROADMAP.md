@@ -14,7 +14,7 @@ This backlog is based on the current code. Contract and circuit work stays in th
 - [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
 - [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
 
-Validation: `npm run check` and **179 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks browser note backup and public deposit planning, recipient activation/registration transitions, preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
+Validation: `npm run check` and **180 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks browser note backup and public deposit planning, recipient activation/registration transitions, preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
 
 Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
 
@@ -42,6 +42,8 @@ Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `
 - [x] Read-only recipient preparation across SDK, CLI, API, invoice creation/checkout and prepared withdrawals: distinct account activation and token registration, pinned storage minimum, exact public call validation and stale-response cancellation. [Recipient guide](RECIPIENTS.md).
 
 - [x] Local browser FT note creation with pinned Poseidon parameters, encrypted single-note backups with file re-verification, direct CLI interoperability, bounded public deposit planning and explicit wallet-plan handoff. [Browser notes](BROWSER_NOTES.md).
+
+- [x] Review fixes: browser history-cache locks for private notes and invoice library, immutable backup trust-policy snapshots and accurate explicit-member scan coverage. [Review findings and regressions](REVIEW-2026-11-13-NOTES.md).
 
 Invoice scope and next service layer: [INVOICES.md](INVOICES.md). Business terms stay client-held; merchant API persistence, signed webhooks, fiat conversion and contract-enforced invoice caps/deadlines remain future work.
 
