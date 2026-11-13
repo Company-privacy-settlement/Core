@@ -1,23 +1,25 @@
 name: Core checks
 on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: core-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  core:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run check && npm test
-      - run: npm run build:sdk
-      - run: npm run test:service-runtime
+  integration:
+    uses: ./.github/workflows/integration.yml
+    with:
+      core-ref: ${{ github.sha }}
+    secrets:
+      INTEGRATION_READ_TOKEN: ${{ secrets.INTEGRATION_READ_TOKEN }}
   service-image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
       - run: docker build --tag core-service:ci .

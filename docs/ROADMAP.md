@@ -24,7 +24,7 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 
 The latest recorded full implementation runs on **2026-11-13** include:
 
-- Core: `npm run check`, **223 tests** via `npm test`, browser-client build.
+- Core: `npm run check`, **232 tests** via `npm test`, browser-client build.
 - Front: type/build checks, **98 browser cases**, and sample-KYB unit coverage.
 - `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
 
@@ -52,7 +52,7 @@ All entries below except **R01/R02 tooling** are **open** unless explicitly labe
 | R02 | **Implemented:** testnet deployment tooling — Core, consuming Contract artifacts | [Hash-pinned plan, preflight, explicit execution, journal reconciliation and sealed verification](DEPLOYMENT.md); atomic initialization, separate FT registrations and acknowledged key removal. Local WASM rehearsal remains distinct from public deployment. | R01; actual funded public execution and real wallets remain R03/R04 |
 | R03 | Funded testnet wallet qualification — all three | With the independently pinned testnet token, complete actual-wallet deposit, cross-vault payout, recipient registration, uncertain-result reconciliation and allowed retries; record exact fees, final records, balances and original-group recovery. Clearly distinguish local TESTUSD tests from token/public-network tests. | R02, activated accounts, gas/storage/token balances, compatible wallets |
 | R04 | **Hosting tooling delivered; live deployment open** — Core / operations | [Compiled supervisor, Docker/Compose HTTPS, optional Render blueprint, policy pin, single-writer volume, readiness and online backup/restore](HOSTING.md). Local process/restart/restore tests do not establish a reachable deployed HTTPS endpoint. | Actual host/access, deployed policy, DNS/TLS and live readyz still required |
-| R05 | Cross-repository CI and release checks — all three | Add Front type/unit/build/browser CI; build/check Core client and verify Front vendoring; run a bounded real WASM/Groth16 integration against an exact Contract revision. Report failing stages and matching source/artifacts. | Existing Core/Contract CI, deterministic test inputs and artifact policy |
+| R05 | **CI tooling delivered; hosted qualification open** — all three | [Exact-revision shared pipeline](CI.md): Front types/units/build/browser, rebuilt SDK versus vendoring/source inventory, Core/service checks, actual native/FT WASM/Groth16 and exact-source development-release verification. Stage/source/artifact evidence is allowlisted. | Private-repository read secret and reusable-workflow access; observe a successful hosted Actions run before release qualification |
 | R06 | Demo access and complete user journey — Front / operations | Check landing → Docs → trusted group → deposit → invoice checkout → finalized status → selected evidence on the intended audience/device. Verify checkout-link access separately. Preserve owner-private access until a different audience is explicitly selected. | R03/R04; audience decision for external viewers |
 
 ## P1 — wallet usability (6)
@@ -139,11 +139,11 @@ Severity describes potential impact for the relevant deployment stage, not a new
 ## Suggested execution order
 
 1. **R01/R02 tooling delivered → R04/R03:** review the [release bundle](RELEASES.md) and [deployment plan](DEPLOYMENT.md); provision the API/index and deliberately execute funded testnet steps when credentials/funding are available.
-2. **R05 in parallel as ordinary project work:** wire existing checks into Front and the exact three-repository release. This does not require new protocol features.
+2. **R05 tooling delivered:** configure private-repository checkout and reusable-workflow access, then observe the [exact three-repository integration](CI.md) in Actions. Local checks do not substitute for a hosted run.
 3. **R04 → R03 → R06:** stand up a verified testnet API/index, qualify actual funded-wallet settlement, then test the complete demo for its intended audience. Funding/access choices remain explicit dependencies.
 4. **U01 → U02**, with U03–U06: remove the proving CLI handoff and qualify user recovery/devices before promising wallet-only checkout.
 5. **M01 → M02/M03**, then M04–M06: add persistent merchant operations without giving a service custody of principal.
 6. **E01 → E02/E03/E04 → E05 → E06:** add enterprise controls and real reviewed preparation. Use fixtures until provider/data access is deliberately configured.
 7. **S01–S06 start alongside the relevant stages and must close before production funds.** X01–X06 are optional, separately scoped/versioned work; none is a reason to silently change existing notes, groups or destinations.
 
-This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 223 Core tests, 98 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
+This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 232 Core tests, 98 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).

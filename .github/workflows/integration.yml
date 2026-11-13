@@ -1,0 +1,186 @@
+name: Three-repository integration
+
+on:
+  workflow_call:
+    inputs:
+      core-ref:
+        type: string
+        default: ''
+      contract-ref:
+        type: string
+        default: ''
+      front-ref:
+        type: string
+        default: ''
+    secrets:
+      INTEGRATION_READ_TOKEN:
+        required: false
+  workflow_dispatch:
+    inputs:
+      core-ref:
+        description: 'Core full commit SHA (blank = selected workflow revision)'
+        type: string
+      contract-ref:
+        description: 'Contract full commit SHA (blank = Core integration lock)'
+        type: string
+      front-ref:
+        description: 'Front full commit SHA (blank = Core integration lock)'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Core + Contract + Front
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: Core
+        shell: bash
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      CORE_CI_CORE_SHA: ${{ inputs.core-ref || github.sha }}
+      CORE_CI_CONTRACT_SHA: ${{ inputs.contract-ref }}
+      CORE_CI_FRONT_SHA: ${{ inputs.front-ref }}
+    steps:
+      - name: Checkout selected Core
+        id: checkout-core
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: Company-privacy-settlement/Core
+          ref: ${{ env.CORE_CI_CORE_SHA }}
+          path: Core
+          token: ${{ secrets.INTEGRATION_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - name: Set up Node.js
+        id: node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Resolve immutable candidate and baseline revisions
+        id: refs
+        run: node scripts/integration.mjs refs
+      - name: Checkout selected Contract
+        id: checkout-contract
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: Company-privacy-settlement/Contract
+          ref: ${{ steps.refs.outputs.contract }}
+          path: Contract
+          token: ${{ secrets.INTEGRATION_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - name: Checkout selected Front
+        id: checkout-front
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: Company-privacy-settlement/Front
+          ref: ${{ steps.refs.outputs.front }}
+          path: Front
+          token: ${{ secrets.INTEGRATION_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - name: Verify exact source revisions and public vectors
+        id: sources
+        run: node scripts/integration.mjs sources
+      - name: Set up pinned Rust and WASM target
+        id: rust
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable action; explicit compiler below
+        with:
+          toolchain: 1.99.1
+          targets: wasm32-unknown-unknown
+      - name: Cache locked Rust dependencies and build outputs
+        id: cache
+        uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+        with:
+          workspaces: |
+            Contract/contracts/pool -> ../../target
+            Contract/contracts/factory -> ../../target
+            Contract/contracts/shared-vault -> ../../target
+            Contract/contracts/forest -> ../../target
+            Contract/contracts/test-ft -> ../../target
+          save-if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      - name: Install all three locked dependency trees
+        id: install
+        run: |
+          npm ci
+          npm ci --prefix ../Contract
+          npm ci --prefix ../Front
+      - name: Core types and unit tests
+        id: core
+        run: npm run check && npm test
+      - name: Build Node and browser SDKs
+        id: sdk
+        run: npm run build:sdk
+      - name: Reject stale Front SDK or mismatched source inventory
+        id: client
+        run: node scripts/integration.mjs client
+      - name: Compiled API and indexer restart, lock, backup and restore
+        id: service
+        run: npm run test:service-runtime
+      - name: Front types, units and static production build
+        id: front
+        working-directory: Front
+        run: npm run check && npm test && npm run build
+      - name: Install Chromium with operating-system dependencies
+        id: chromium
+        working-directory: Front
+        run: npx playwright install --with-deps chromium
+      - name: Desktop and mobile browser regressions
+        id: browser
+        working-directory: Front
+        run: npm run test:e2e -- --reporter=line,html
+      - name: Build actual WASM, test FT fixture and all contract unit suites
+        id: contracts
+        run: |
+          npm run contract:build
+          npm run build:test-ft --prefix ../Contract
+          npm test --prefix ../Contract
+      - name: Create disposable development-only proving artifacts
+        id: setup
+        run: npm run zk:setup
+      - name: Native NEAR real WASM and Groth16 integration
+        id: native
+        timeout-minutes: 10
+        run: npm run demo:shared
+      - name: FT real WASM, Groth16, API, index, invoice and evidence integration
+        id: ft
+        timeout-minutes: 15
+        run: npm run demo:ft
+      - name: Prepare and verify exact-source development release
+        id: release
+        run: |
+          node scripts/integration.mjs release-input
+          node scripts/integration.mjs release
+      - name: Record source, stage and public artifact evidence
+        if: always() && steps.refs.outcome == 'success'
+        env:
+          CORE_CI_STAGES: ${{ toJSON(steps) }}
+        run: node scripts/integration.mjs report
+      - name: Retain allowlisted public integration evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: integration-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            Core/dist/integration/report.json
+            Core/dist/integration/sources.json
+            Core/dist/integration/client.json
+            Core/dist/integration/release-result.json
+            Core/dist/integration/bundle.tar.gz
+            Contract/artifacts/build-manifest.json
+            Contract/artifacts/core_*.wasm
+            Core/dist/client/
+      - name: Retain failed browser fixture diagnostics
+        if: failure() && steps.browser.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-fixture-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            Front/playwright-report/
+            Front/test-results/

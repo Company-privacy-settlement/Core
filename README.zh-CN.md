@@ -86,6 +86,10 @@ npm run serve
 
 `build:service` 编译运行代码，`serve:service` 完成初始同步并监督只读 API 与单一 SQLite 写入进程。Docker/Compose 提供可选 Caddy HTTPS、持久卷及重启策略，并附有 Render 配置。必须提供策略摘要、准确来源及索引就绪验证，支持在线备份和禁止覆盖的恢复。[托管与恢复](docs/HOSTING.md) · [VPS 环境示例](ops/service.env.example)。实际对外部署仍需托管目标及已部署的测试网策略。
 
+## 集成 CI
+
+三个仓库调用固定提交的同一流水线，验证 Core 类型/单元及 API/索引恢复、重建 SDK 与 Front 副本、Front 类型/单元/静态构建/桌面和移动浏览器、合约 WASM/单元、原生/FT Groth16 沙箱及开发发布包。私有仓库需要 `INTEGRATION_READ_TOKEN` 和复用工作流访问设置。[版本、步骤和 GitHub 配置](docs/CI.md)。本地验证不等于托管 Actions 成功。
+
 ## 本地合约与证明验证
 
 将 Core、Contract、Front 放在相邻目录。Contract 需要固定 Rust **1.99.1**、WASM target 和 C/C++ 构建工具。在 Core 中：
@@ -100,7 +104,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` 可覆盖默认路径。Core 导入前验证 WASM/证明产物清单哈希。当前 setup 为单机开发仪式；替换时需匹配验证器、产物和新部署。生成文件不提交到 Git。
 
-**2026-11-13 记录的验证：**Core **223 个测试**、Front **98 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
+**2026-11-13 记录的验证：**Core **232 个测试**、Front **98 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
 
 ## 隐私、保管与恢复
 
