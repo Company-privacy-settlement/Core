@@ -86,3 +86,5 @@ node scripts/integration.mjs release
 Local setup reuses an existing matching development setup; CI starts without one. Never force setup replacement for an existing deployment. Release output must be new; an existing `dist/integration/bundle` or archive is deliberately refused. Use a disposable checkout or retain previous evidence elsewhere before another run. Do not infer an Actions success from locally passing commands: remote checkout permissions, runner dependencies and the service Docker build still need their own observed run.
 
 If another local service occupies port 3000, set `CORE_E2E_PORT` for the Front browser command. CI deliberately refuses to reuse a pre-existing server.
+
+Local validation recorded on 2026-11-13 passed Core's 232 tests (including nine integration regressions), all 57 contract tests, Front's three units and 98 browser cases, SDK/static/service builds, and actual native/FT sandbox runs with 12/14 finalized records. The compiled service restart/backup/restore harness also passed. Actionlint 1.7.12 validated all four workflow files. These results do not claim an observed GitHub Actions run or a local Docker execution.
