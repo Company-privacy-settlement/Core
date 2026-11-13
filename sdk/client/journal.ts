@@ -177,24 +177,25 @@ export class OperationJournal {
 /** Refuse concurrent tabs and unsupported lock APIs; never fall back to an unsafe read/write race. */
 export function browserJournalStorage(
   key = "core-live-journal-v1",
+  label = 'Journal',
 ): JournalStorage {
   return {
     read: async () => localStorage.getItem(key),
     write: async (e) => {
       localStorage.setItem(key, e);
       if (localStorage.getItem(key) !== e)
-        throw new Error("Journal persistence failed");
+        throw new Error(`${label} persistence failed`);
     },
     exclusive: async (fn) => {
       if (!navigator.locks)
-        throw new Error("This browser needs Web Locks to sign safely");
+        throw new Error("This browser needs Web Locks for encrypted storage");
       return navigator.locks.request(
         key,
         { mode: "exclusive", ifAvailable: true },
         async (lock) => {
           if (!lock)
             throw new Error(
-              "Journal is in use by another tab or signing request",
+              `${label} is in use by another tab or request`,
             );
           return fn();
         },

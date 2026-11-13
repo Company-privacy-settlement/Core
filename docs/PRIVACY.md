@@ -46,6 +46,8 @@ V2 reconciliation uses an internal SQLite reference-set lookup: recipient, compl
 
 ## Evidence and limits
 
+The optional [invoice library](INVOICE_LIBRARY.md) stores signed business terms locally under account/network-specific AES-GCM encryption. Save/search/open/backup operations make no API requests and store no payment-status cache. It is separate from private-note backups and the wallet-operation journal. Shared payment links and individually exported signed JSON still disclose their signed terms to holders.
+
 Existing salted receipt commitments support selected field openings. Finalized evidence checks selected public transaction records. Neither establishes that every company transaction was disclosed, that a merchant is KYB-verified, or that a tax return is accepted. Keep legal names, payroll documents and statutory forms in separately encrypted business-document storage; such a provider is not implemented here. Sharing evidence can intentionally reveal associations to its recipient.
 
 This is a local/testnet hackathon implementation with a development trusted setup and no production security audit. Public deployment, larger trees, browser proof generation, scalable private reconciliation and real KYB/tax integrations remain separate work. See [invoice behavior](INVOICES.md), [index coverage](INDEXER.md) and the [contract specification](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md).

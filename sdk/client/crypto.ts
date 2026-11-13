@@ -52,11 +52,15 @@ function bytes(value: unknown, max: number): Uint8Array<ArrayBuffer> {
   if (b.length > max) throw new Error("Journal is too large");
   return b;
 }
-const ITERATIONS = 250_000,
-  AAD = new TextEncoder().encode("core:operation-journal:v1");
+const ITERATIONS = 250_000;
+type StorageFormat = 'core-operation-journal' | 'core-invoice-library';
+function storageContext(format: StorageFormat) {
+  if (format !== 'core-operation-journal' && format !== 'core-invoice-library') throw new Error('Unsupported encrypted storage format');
+  return new TextEncoder().encode(format === 'core-operation-journal' ? 'core:operation-journal:v1' : 'core:invoice-library:v1');
+}
 async function key(password: string, salt: Uint8Array<ArrayBuffer>) {
   if (password.length < 12 || password.length > 1024)
-    throw new Error("Use a journal passphrase of 12–1024 characters");
+    throw new Error("Use a passphrase of 12–1024 characters");
   const material = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(password),
@@ -72,18 +76,18 @@ async function key(password: string, salt: Uint8Array<ArrayBuffer>) {
     ["encrypt", "decrypt"],
   );
 }
-export async function seal(value: unknown, password: string): Promise<string> {
+export async function seal(value: unknown, password: string, format: StorageFormat = 'core-operation-journal'): Promise<string> {
   const plaintext = new TextEncoder().encode(canonical(value));
-  if (plaintext.length > 2_000_000) throw new Error("Journal exceeds 2 MB");
+  if (plaintext.length > 2_000_000) throw new Error("Encrypted storage exceeds 2 MB");
   const salt = crypto.getRandomValues(new Uint8Array(16)),
     iv = crypto.getRandomValues(new Uint8Array(12));
   const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv, additionalData: AAD },
+    { name: "AES-GCM", iv, additionalData: storageContext(format) },
     await key(password, salt),
     plaintext,
   );
   return JSON.stringify({
-    format: "core-operation-journal",
+    format,
     version: 1,
     kdf: "PBKDF2-SHA256",
     iterations: ITERATIONS,
@@ -95,22 +99,25 @@ export async function seal(value: unknown, password: string): Promise<string> {
 export async function unseal(
   envelope: string,
   password: string,
+  format: StorageFormat = 'core-operation-journal',
 ): Promise<unknown> {
-  if (envelope.length > 3_000_000) throw new Error("Journal exceeds 3 MB");
+  if (envelope.length > 3_000_000) throw new Error("Encrypted backup exceeds 3 MB");
   const e = JSON.parse(envelope);
   if (
-    e.format !== "core-operation-journal" ||
+    !e || typeof e !== 'object' || Array.isArray(e) ||
+    Object.keys(e).sort().join('|') !== 'ciphertext|format|iterations|iv|kdf|salt|version' ||
+    e.format !== format ||
     e.version !== 1 ||
     e.kdf !== "PBKDF2-SHA256" ||
     e.iterations !== ITERATIONS
   )
-    throw new Error("Unsupported journal envelope");
+    throw new Error("Unsupported encrypted storage envelope");
   const salt = bytes(e.salt, 16),
     iv = bytes(e.iv, 12);
   if (salt.length !== 16 || iv.length !== 12)
     throw new Error("Invalid journal salt or IV");
   const plaintext = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv, additionalData: AAD },
+    { name: "AES-GCM", iv, additionalData: storageContext(format) },
     await key(password, salt),
     bytes(e.ciphertext, 2_000_016),
   );

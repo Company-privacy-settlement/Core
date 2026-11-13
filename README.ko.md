@@ -168,3 +168,5 @@ npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
 공유되는 것은 암호학적 membership 집합입니다. 작은 참여자 수, 시간·금액·수신자·가스 지갑·공개 자료로 추정될 수 있으므로 네트워크 익명성까지 보장하지 않습니다. 공통 registry는 논리적 상태 조정 지점이며 운영자 승인 키를 갖지 않습니다. RPC에 대한 신뢰는 남습니다.
 
 Native NEAR v2와 USDC/NEP-141 v3, 고정 denomination, 공유 트리 총 256 output의 해커톤 코어입니다. 버전·자산마다 별도 도메인을 사용하며 기존 노트 자동 이전은 지원하지 않습니다. 가변 금액·cross-asset bridge, 실제 법정 신고, production 감사·분산 trusted setup은 포함하지 않습니다. 네트워크 label은 설정값이며 실제 메인넷 배포를 자동 차단하지 않습니다. 개발 setup은 로컬/테스트넷 시연용입니다.
+
+선택형 [암호화 인보이스 보관함](docs/INVOICE_LIBRARY.md)은 서명 요청을 계정·네트워크별 로컬 저장소에 보관하고 불변 ID 검증, 검색·다시 열기, 암호화 백업·복원·병합을 지원합니다. 저장은 명시적으로 수행하며 결제 상태는 캐시하지 않습니다. 정산은 기존 API로 새로 검증합니다.

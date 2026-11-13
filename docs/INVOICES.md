@@ -41,7 +41,7 @@ The protocol holds no invoice-operator signing key and collects no principal in 
 | Reconcile | Read-only indexed confirmations matched to the signed reference set, recipient, pinned token and denomination; unique successful nullifiers only |
 | Export | Signed request and indexed settlement summary; neither is labeled a tax certificate |
 
-The merchant page is client-held: download the signed JSON before leaving. Open that file to inspect/track it later. It does not silently persist business terms in localStorage or a server database. Sharing visibility follows the hosting site's access settings; the existing Sites preview remains owner-private. External customer checkout requires hosting/access appropriate to those customers.
+The merchant page is client-held. Explicitly save a request to the optional [encrypted invoice library](INVOICE_LIBRARY.md), or download its signed JSON before leaving. Signing alone does not persist it. The library keeps encrypted terms in the browser and supports account-separated search, backups and immutable merging; Core has no merchant invoice database. Sharing visibility follows the hosting site's access settings; the existing Sites publication remains owner-private. External customer checkout requires hosting/access appropriate to those customers.
 
 ## Signed terms and chain binding
 
