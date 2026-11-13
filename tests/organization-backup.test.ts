@@ -197,3 +197,14 @@ test('legacy organization databases gain the gate without losing existing live a
   const second = new OrganizationStore(f.source,audience); try {assert.equal(second.detail(f.org.id,'old-owner.testnet').role,'owner');} finally {second.close();}
   const result=await backupOrganizations(f.source,f.path('legacy-backup.sqlite'),audience);assert.equal(result.status.recovery.state,'quarantined');
 });
+test('interrupted legacy recovery-gate initialization rolls back instead of stranding an unusable half-state', t => {
+  const f=fixture(t), db=new DatabaseSync(f.source);db.exec('DROP TABLE organization_recovery');db.close();
+  const prepare=DatabaseSync.prototype.prepare;
+  const mock=t.mock.method(DatabaseSync.prototype,'prepare',function(this:DatabaseSync,sql:string){
+    if(sql.startsWith('INSERT OR IGNORE INTO organization_recovery'))throw new Error('Injected initialization interruption');
+    return prepare.call(this,sql);
+  });
+  try{assert.throws(()=>new OrganizationStore(f.source,audience),/Injected initialization interruption/);}finally{mock.mock.restore();}
+  assert.deepEqual(read(f.source,"SELECT name FROM sqlite_schema WHERE name='organization_recovery'"),[]);
+  const recovered=new OrganizationStore(f.source,audience);try{assert.equal(recovered.detail(f.org.id,'old-owner.testnet').role,'owner');}finally{recovered.close();}
+});

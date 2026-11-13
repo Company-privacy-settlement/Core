@@ -112,7 +112,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` overrides the default `../Contract`. Core verifies artifact manifest hashes before importing WASM/proving files. The setup is a single-machine development ceremony; replacing it requires matching verifier/artifacts and new deployments. Generated artifacts stay out of Git.
 
-Recorded validation on **2026-11-13**: Core **302 tests**, Front **148 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
+Recorded validation on **2026-11-13**: Core **303 tests**, Front **148 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
 
 ## Privacy, custody and recovery
 

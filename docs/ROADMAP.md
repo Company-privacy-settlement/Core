@@ -28,7 +28,7 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 
 The latest recorded full implementation runs on **2026-11-13** include:
 
-- Core: `npm run check`, **302 tests** via `npm test`, browser-client build.
+- Core: `npm run check`, **303 tests** via `npm test`, browser-client build.
 - Front: type/build checks, **148 browser cases** verified (146 in the full run plus two corrected selected-unit regressions on a focused rerun), and three sample-KYB unit cases.
 - `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
 
@@ -150,8 +150,8 @@ Severity describes potential impact for the relevant deployment stage, not a new
 6. **E01 → E02/E03/E04 → E05 → E06:** add enterprise controls and real reviewed preparation. Use fixtures until provider/data access is deliberately configured.
 7. **S01–S06 start alongside the relevant stages and must close before production funds.** X01–X06 are optional, separately scoped/versioned work; none is a reason to silently change existing notes, groups or destinations.
 
-This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 302 Core tests, 148 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
+This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 303 Core tests, 148 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
 
 Organization access review and fixes: [2026-11-13 findings and validation](REVIEW-2026-11-13-ORGANIZATIONS.md).
 
-Organization backup/recovery validation on 2026-11-13: Core types and all 302 tests passed, including 13 recovery regressions; the compiled CLI/service harness exercised quarantine and reviewed activation. This addition does not complete E01 payment approvals or operational off-host/retention qualification.
+Organization backup/recovery validation on 2026-11-13: Core types and all 303 tests passed, including 14 recovery regressions; the compiled CLI/service harness exercised quarantine and reviewed activation. This addition does not complete E01 payment approvals or operational off-host/retention qualification.

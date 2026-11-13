@@ -46,8 +46,10 @@ export class OrganizationStore {
         CREATE TABLE IF NOT EXISTS organization_sessions(hash TEXT PRIMARY KEY,account TEXT NOT NULL,public_key TEXT NOT NULL,origin TEXT NOT NULL,expires INTEGER NOT NULL);
         CREATE INDEX IF NOT EXISTS organization_sessions_account ON organization_sessions(account,expires);`);
       this.run('INSERT OR IGNORE INTO organization_meta VALUES(1,1,?,?)', audience, 'testnet');
+      this.db.exec('BEGIN IMMEDIATE');
       this.db.exec(recoverySchema);
       this.run("INSERT OR IGNORE INTO organization_recovery VALUES(1,1,'ready',NULL,?,NULL)", this.now());
+      this.db.exec('COMMIT');
     } catch (e) { this.db.close(); throw e; }
   }
   close() { this.db.close(); }

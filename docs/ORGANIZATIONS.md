@@ -121,4 +121,4 @@ The compiled runtime smoke check covers required audience configuration, health,
 
 Initial organization-access validation on 2026-11-13: Core **256 tests**, including **24 organization regressions**, Front **120 desktop/mobile cases** and three unit cases, type checks, SDK/static builds and both compiled-service runtime harnesses passed. The standalone Compose schema and Caddy configuration were validated; Docker execution and a public Organization API deployment were not performed.
 
-Subsequent [organization recovery validation](ORGANIZATION_BACKUPS.md) passed all **302 Core tests**, the compiled maintenance/service harness, SDK builds and **32 targeted desktop/mobile Docs and organization cases** with Front type/static-build checks. Recovery tests are local and do not establish a live deployment or Docker execution.
+Subsequent [organization recovery validation](ORGANIZATION_BACKUPS.md) passed all **303 Core tests**, the compiled maintenance/service harness, SDK builds and **32 targeted desktop/mobile Docs and organization cases** with Front type/static-build checks. Recovery tests are local and do not establish a live deployment or Docker execution.
