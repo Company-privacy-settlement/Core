@@ -42,6 +42,7 @@ export class OrganizationAuth {
 export class NearOrganizationIdentity implements OrganizationIdentitySource {
   readonly rpcUrl: string;
   constructor(rpcUrl: string) {
+    if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') throw new Error('TLS_VERIFICATION_MUST_STAY_ENABLED');
     const url = new URL(rpcUrl);
     if (url.protocol !== 'https:' || url.username || url.password || url.hash || url.search) throw new Error('Organization identity requires an HTTPS testnet RPC');
     this.rpcUrl = url.href;
@@ -69,11 +70,13 @@ export class NearOrganizationIdentity implements OrganizationIdentitySource {
       const status = z.object({ chain_id: z.literal('testnet'), sync_info: z.object({ syncing: z.literal(false), latest_block_time: z.string() }) }).parse(await this.rpc('status', [], signal));
       const latest = Date.parse(status.sync_info.latest_block_time), now = Date.now();
       if (!Number.isFinite(latest) || now - latest > 120_000 || latest - now > 30_000) throw new Error('Stale chain');
-      const block = z.object({ header: z.object({ hash: z.string().min(32).max(64), timestamp_nanosec: z.string().regex(/^[0-9]{1,20}$/) }) }).parse(await this.rpc('block', { finality: 'final' }, signal));
+      const block = z.object({ header: z.object({ height: z.number().int().nonnegative().safe(), hash: z.string().min(32).max(64), timestamp_nanosec: z.string().regex(/^[0-9]{1,20}$/) }) }).parse(await this.rpc('block', { finality: 'final' }, signal));
       const time = Number(BigInt(block.header.timestamp_nanosec) / 1000000n);
       if (now - time > 120_000 || time - now > 30_000) throw new Error('Stale finalized block');
       const key = await this.rpc('query', { request_type: 'view_access_key', account_id: accountId, public_key: publicKey, block_id: block.header.hash }, signal);
-      return key?.permission === 'FullAccess';
+      if (key === null) return false;
+      const snapshot = z.object({ block_hash: z.literal(block.header.hash), block_height: z.literal(block.header.height), permission: z.unknown() }).parse(key);
+      return snapshot.permission === 'FullAccess';
     } catch (e) {
       signal.throwIfAborted();
       if (e instanceof OrganizationError) throw e;

@@ -137,6 +137,8 @@ The [separate Organization API](ORGANIZATIONS.md) adds NEP-413 testnet wallet au
 
 ## Recorded validation and next work
 
-The latest recorded implementation validation on **2026-11-13** passed **249 Core tests**, **112 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
+The latest recorded implementation validation on **2026-11-13** passed **256 Core tests**, **120 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
 
 Reproduction commands and prioritized remaining work are in the [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract) and [roadmap](ROADMAP.md). Detailed review findings remain dated historical records rather than a claim that every suite was rerun for each documentation edit.
+
+Organization access review and fixes: [2026-11-13 findings and validation](REVIEW-2026-11-13-ORGANIZATIONS.md).

@@ -57,6 +57,16 @@ export class OrganizationStore {
   private audit(org: string, actor: string, action: string, target: string, detail: Record<string, unknown> = {}) {
     this.run('INSERT INTO organization_audit(sequence,org,actor,action,target,detail,occurred) VALUES((SELECT COALESCE(MAX(sequence),0)+1 FROM organization_audit WHERE org=?),?,?,?,?,?,?)', org, org, actor, action, target, JSON.stringify(detail), this.now());
   }
+  /** Called within a write transaction; membership revision is the grant boundary. */
+  private revokeInvalidInvitations(org: string, actor: string) {
+    const rows = this.all<InviteRow>("SELECT * FROM organization_invitations WHERE org=? AND status='pending' AND expires>?", org, this.now());
+    for (const row of rows) {
+      const creator = this.member(org, row.creator);
+      if (creator?.status === 'active' && creator.version === row.creator_version && canGrant(creator.role, row.role)) continue;
+      this.run("UPDATE organization_invitations SET status='revoked',version=version+1 WHERE id=?", row.id);
+      this.audit(org, actor, 'invitation.revoked', row.account, { invitationId: row.id, reason: 'INVITER_MEMBERSHIP_CHANGED' });
+    }
+  }
   private org(id: string): OrgRow {
     const row = this.get<OrgRow>('SELECT * FROM organizations WHERE id=?', id);
     if (!row) throw new OrganizationError(404, 'ORGANIZATION_NOT_FOUND'); return row;
@@ -101,6 +111,7 @@ export class OrganizationStore {
       versionMatches(member.version, version);
       this.run('UPDATE organization_members SET role=?,version=version+1 WHERE org=? AND account=?', role, id, target);
       this.audit(id, actor, 'member.role_changed', target, { previousRole: member.role, role });
+      this.revokeInvalidInvitations(id, actor);
     });
   }
   remove(id: string, actor: string, target: string, version: number) {
@@ -112,6 +123,7 @@ export class OrganizationStore {
       versionMatches(member.version, version);
       this.run("UPDATE organization_members SET status='revoked',version=version+1 WHERE org=? AND account=?", id, target);
       this.audit(id, actor, target === actor ? 'member.left' : 'member.removed', target, { previousRole: member.role });
+      this.revokeInvalidInvitations(id, actor);
     });
   }
   transfer(id: string, actor: string, target: string, version: number) {
@@ -123,7 +135,7 @@ export class OrganizationStore {
       this.run("UPDATE organization_members SET role='admin',version=version+1 WHERE org=? AND account=?", id, actor);
       this.run("UPDATE organization_members SET role='owner',version=version+1 WHERE org=? AND account=?", id, target);
       this.run('UPDATE organizations SET owner=?,version=version+1 WHERE id=?', target, id);
-      this.audit(id, actor, 'ownership.transferred', target, { previousOwner: actor }); return this.detail(id, actor);
+      this.audit(id, actor, 'ownership.transferred', target, { previousOwner: actor }); this.revokeInvalidInvitations(id, actor); return this.detail(id, actor);
     });
   }
   private activeMemberships(account: string) { return this.get<{ n: number }>("SELECT COUNT(*) n FROM organization_members WHERE account=? AND status='active'", account)!.n; }
@@ -135,13 +147,14 @@ export class OrganizationStore {
     return this.all<InviteRow>("SELECT i.*,o.name FROM organization_invitations i JOIN organizations o ON o.id=i.org WHERE i.org=? AND i.status='pending' AND i.expires>? ORDER BY i.created,i.id LIMIT 100", id, this.now()).map(r => this.inviteView(r));
   }
   inbox(account: string): OrganizationInvitation[] {
-    return this.all<InviteRow>("SELECT i.*,o.name FROM organization_invitations i JOIN organizations o ON o.id=i.org WHERE i.account=? AND i.status='pending' AND i.expires>? ORDER BY i.created,i.id LIMIT 100", account, this.now()).map(r => this.inviteView(r));
+    return this.all<InviteRow>("SELECT i.*,o.name FROM organization_invitations i JOIN organizations o ON o.id=i.org JOIN organization_members m ON m.org=i.org AND m.account=i.creator WHERE i.account=? AND i.status='pending' AND i.expires>? AND m.status='active' AND m.version=i.creator_version AND (m.role='owner' OR (m.role='admin' AND i.role!='admin')) ORDER BY i.created,i.id LIMIT 100", account, this.now()).map(r => this.inviteView(r));
   }
   invite(id: string, actor: string, target: string, role: Exclude<OrganizationRole, 'owner'>): OrganizationInvitation {
     return this.atomic(() => {
       const acting = this.authorize(id, actor, 'invitations.manage');
       if (!canGrant(acting, role)) throw new OrganizationError(403, 'ROLE_GRANT_DENIED');
       if (this.member(id, target)?.status === 'active') throw new OrganizationError(409, 'ALREADY_A_MEMBER');
+      this.revokeInvalidInvitations(id, actor);
       this.run("UPDATE organization_invitations SET status='expired',version=version+1 WHERE org=? AND account=? AND status='pending' AND expires<=?", id, target, this.now());
       if (this.get("SELECT id FROM organization_invitations WHERE org=? AND account=? AND status='pending'", id, target)) throw new OrganizationError(409, 'INVITATION_EXISTS');
       const count = this.get<{ n: number }>("SELECT COUNT(*) n FROM organization_invitations WHERE org=? AND status='pending' AND expires>?", id, this.now())!.n;

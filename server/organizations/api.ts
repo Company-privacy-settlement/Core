@@ -29,7 +29,10 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
   const limiter = new PeerRateLimiter(ApiLimits.parse({ ratePoints: options.ratePoints ?? 120, maxClients: 1024 }));
   let active = 0;
   const server = createServer(async (req, res) => {
-    const send = (status: number, value: unknown) => { if (!res.destroyed && !res.writableEnded) { res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' }); res.end(JSON.stringify(value)); } };
+    const send = (status: number, value: unknown) => { if (!res.destroyed && !res.writableEnded) {
+      if (status === 413 || (status >= 400 && !req.complete)) { res.setHeader('connection', 'close'); req.resume(); }
+      res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' }); res.end(JSON.stringify(value));
+    } };
     let controller: AbortController | undefined, timeout: ReturnType<typeof setTimeout> | undefined;
     try {
       res.setHeader('vary', 'Origin');

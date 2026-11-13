@@ -11,7 +11,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { OrganizationStore } from '../server/organizations/store.js';
 import { OrganizationAuth, NearOrganizationIdentity, type OrganizationIdentitySource } from '../server/organizations/auth.js';
 import { createOrganizationApi } from '../server/organizations/api.js';
-import { ORGANIZATION_ROLE_PERMISSIONS, OrganizationClient, organizationOrigin, parseOrganizationChallenge, type OrganizationChallenge, type OrganizationRole } from '../sdk/client/organizations.js';
+import { ORGANIZATION_ROLE_PERMISSIONS, OrganizationApiError, OrganizationClient, organizationOrigin, parseOrganizationChallenge, type OrganizationChallenge, type OrganizationRole } from '../sdk/client/organizations.js';
 
 const audience = 'https://organization-api.example', origin = 'https://front.example';
 function fixture(t: { after(fn: () => void): void }) {
@@ -66,9 +66,9 @@ test('expiry, decline and inviter revocation invalidate pending invitation autho
   add(store, org.id, 'owner.testnet', 'admin.testnet', 'admin');
   const pending = store.invite(org.id, 'admin.testnet', 'next.testnet', 'operator');
   store.remove(org.id, 'owner.testnet', 'admin.testnet', 1);
-  assert.throws(() => store.respondInvite(pending.id, 'next.testnet', true, 1), /AUTHORITY_REVOKED/);
+  assert.throws(() => store.respondInvite(pending.id, 'next.testnet', true, 1), /VERSION_CONFLICT/);
   add(store, org.id, 'owner.testnet', 'admin.testnet', 'admin');
-  assert.throws(() => store.respondInvite(pending.id, 'next.testnet', true, 1), /AUTHORITY_REVOKED/, 're-adding an inviter must not resurrect old authority');
+  assert.throws(() => store.respondInvite(pending.id, 'next.testnet', true, 1), /VERSION_CONFLICT/, 're-adding an inviter must not resurrect old authority');
   const expired = store.invite(org.id, 'owner.testnet', 'late.testnet', 'viewer'); advance(7 * 86400_000);
   assert.throws(() => store.respondInvite(expired.id, 'late.testnet', true, 1), /INVITATION_NOT_PENDING/);
   assert.equal(store.inbox('late.testnet').length, 0);
@@ -167,7 +167,7 @@ test('identity transport rejects wrong networks, stale snapshots and function-ca
   t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
     const req = JSON.parse(init.body as string); calls.push(req.method);
     if (oversized) return new Response('x'.repeat(128_001));
-    const result = req.method === 'status' ? { chain_id: network, sync_info: { syncing: false, latest_block_time: new Date(Date.now() - (stale ? 300_000 : 0)).toISOString() } } : req.method === 'block' ? { header: { hash: 'a'.repeat(44), timestamp_nanosec: String(BigInt(Date.now()) * 1000000n) } } : { permission };
+    const result = req.method === 'status' ? { chain_id: network, sync_info: { syncing: false, latest_block_time: new Date(Date.now() - (stale ? 300_000 : 0)).toISOString() } } : req.method === 'block' ? { header: { height: 10, hash: 'a'.repeat(44), timestamp_nanosec: String(BigInt(Date.now()) * 1000000n) } } : { permission, block_hash: 'a'.repeat(44), block_height: 10 };
     return new Response(JSON.stringify({ result }));
   });
   const reader = new NearOrganizationIdentity('https://rpc.example'), signal = new AbortController().signal;
@@ -184,6 +184,84 @@ test('browser challenge parser rejects substitution, expiry and wrong audience b
   for (const changed of [{ ...c, accountId: 'bob.testnet' }, { ...c, audience: 'https://evil.example' }, { ...c, message: 'Approve payment' }, { ...c, expiresAt: new Date(0).toISOString() }]) assert.throws(() => parseOrganizationChallenge(changed, 'alice.testnet', audience, origin), /binding mismatch/);
   assert.throws(() => organizationOrigin('http://unsafe.example'));
 });
+test('identity refuses access-key responses from a different finalized snapshot', async t => {
+  let returnedHash = 'b'.repeat(44), returnedHeight = 9;
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+    const { method } = JSON.parse(init.body as string);
+    const result = method === 'status' ? { chain_id: 'testnet', sync_info: { syncing: false, latest_block_time: new Date().toISOString() } }
+      : method === 'block' ? { header: { height: 10, hash: 'a'.repeat(44), timestamp_nanosec: String(BigInt(Date.now()) * 1000000n) } }
+      : { permission: 'FullAccess', block_hash: returnedHash, block_height: returnedHeight };
+    return new Response(JSON.stringify({ result }));
+  });
+  const reader = new NearOrganizationIdentity('https://rpc.example'), signal = new AbortController().signal, key = signer().publicKey;
+  await assert.rejects(reader.currentFullAccessKey('alice.testnet', key, signal), /IDENTITY_CHAIN_UNAVAILABLE/);
+  returnedHash = 'a'.repeat(44);
+  await assert.rejects(reader.currentFullAccessKey('alice.testnet', key, signal), /IDENTITY_CHAIN_UNAVAILABLE/);
+  returnedHeight = 10;
+  assert.equal(await reader.currentFullAccessKey('alice.testnet', key, signal), true);
+});
+test('organization identity refuses globally disabled TLS certificate verification', t => {
+  const previous = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+  t.after(() => { if (previous === undefined) delete process.env.NODE_TLS_REJECT_UNAUTHORIZED; else process.env.NODE_TLS_REJECT_UNAUTHORIZED = previous; });
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  assert.throws(() => new NearOrganizationIdentity('https://rpc.example'), /TLS_VERIFICATION_MUST_STAY_ENABLED/);
+});
+test('revoking an inviter removes invitation visibility and permits a replacement', t => {
+  const { store } = fixture(t), org = store.create('owner.testnet', 'Private original name');
+  add(store, org.id, 'owner.testnet', 'admin.testnet', 'admin');
+  store.invite(org.id, 'admin.testnet', 'outside.testnet', 'viewer');
+  assert.equal(store.inbox('outside.testnet').length, 1);
+  store.remove(org.id, 'owner.testnet', 'admin.testnet', 1);
+  store.rename(org.id, 'owner.testnet', 'Private later name', org.version);
+  assert.equal(store.inbox('outside.testnet').length, 0, 'invalid invitation must not expose the latest organization name');
+  const replacement = store.invite(org.id, 'owner.testnet', 'outside.testnet', 'auditor');
+  assert.equal(replacement.role, 'auditor');
+  assert.ok(store.auditPage(org.id, 'owner.testnet').items.some(r => r.action === 'invitation.revoked' && r.detail.reason === 'INVITER_MEMBERSHIP_CHANGED'));
+});
+test('ownership transfer revokes pending invitations bound to either changed membership', t => {
+  const { store } = fixture(t), org = store.create('owner.testnet', 'Company');
+  add(store, org.id, 'owner.testnet', 'successor.testnet', 'admin');
+  store.invite(org.id, 'owner.testnet', 'first.testnet', 'viewer');
+  store.invite(org.id, 'successor.testnet', 'second.testnet', 'auditor');
+  store.transfer(org.id, 'owner.testnet', 'successor.testnet', org.version);
+  assert.equal(store.inbox('first.testnet').length, 0); assert.equal(store.inbox('second.testnet').length, 0);
+});
+test('older persisted invalid invitations reveal no current tenant name and can be replaced', t => {
+  const dir = mkdtempSync(resolve(tmpdir(), 'core-org-stale-invite-')); t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const filename = resolve(dir, 'organizations.sqlite'); let store = new OrganizationStore(filename, audience);
+  const org = store.create('owner.testnet', 'Old name'); add(store, org.id, 'owner.testnet', 'admin.testnet', 'admin');
+  const invite = store.invite(org.id, 'admin.testnet', 'outside.testnet', 'viewer'); store.close();
+  // Simulate an invalid pending record retained by an earlier server version.
+  const db = new DatabaseSync(filename); db.prepare('UPDATE organization_members SET version=version+1 WHERE org=? AND account=?').run(org.id, 'admin.testnet'); db.close();
+  store = new OrganizationStore(filename, audience); t.after(() => store.close());
+  store.rename(org.id, 'owner.testnet', 'New private name', 1);
+  assert.equal(store.inbox('outside.testnet').length, 0);
+  assert.throws(() => store.respondInvite(invite.id, 'outside.testnet', true, 1), /AUTHORITY_REVOKED/);
+  assert.equal(store.invite(org.id, 'owner.testnet', 'outside.testnet', 'auditor').role, 'auditor');
+});
+test('organization client preserves HTTP denial when an upstream sends non-JSON', async t => {
+  let status = 403;
+  t.mock.method(globalThis, 'fetch', async () => new Response('<h1>Proxy error</h1>', { status }));
+  const client = new OrganizationClient(audience);
+  await assert.rejects(client.request('/v1/organizations'), e => e instanceof OrganizationApiError && e.status === 403);
+  status = 200;
+  await assert.rejects(client.request('/v1/organizations'), e => e instanceof OrganizationApiError && e.status === 502 && e.code === 'INVALID_RESPONSE');
+});
+test('organization client bounds a stalled request while preserving caller cancellation', async t => {
+  const nativeTimeout = AbortSignal.timeout.bind(AbortSignal);
+  t.mock.method(AbortSignal, 'timeout', () => nativeTimeout(20));
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+    const signal = init.signal; assert.ok(signal);
+    signal.throwIfAborted();
+    return await new Promise<Response>((_resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+  });
+  const client = new OrganizationClient(audience), guard = setTimeout(() => {}, 2000);
+  try {
+    await assert.rejects(client.request('/v1/organizations'), e => (e as Error).name === 'TimeoutError');
+    const caller = new AbortController(); const pending = client.request('/v1/organizations', 'GET', undefined, caller.signal); caller.abort();
+    await assert.rejects(pending, e => (e as Error).name === 'AbortError');
+  } finally { clearTimeout(guard); }
+});
 test('HTTP API enforces real signatures, origin, tenant and strict input against live membership', async t => {
   const { store } = fixture(t), key = signer(); let current = true;
   const identity: OrganizationIdentitySource = { currentFullAccessKey: async (_a, publicKey) => current && publicKey === key.publicKey };
@@ -199,6 +277,8 @@ test('HTTP API enforces real signatures, origin, tenant and strict input against
   const c = await (await request('/v1/auth/challenge', 'POST', { accountId: 'alice.testnet' })).json() as OrganizationChallenge;
   const session = await (await request('/v1/auth/login', 'POST', key.sign(c))).json() as { token: string };
   assert.ok(session.token);
+  const oversized = await request('/v1/organizations', 'POST', { name: 'x'.repeat(9000) }, session.token);
+  assert.equal(oversized.status, 413); assert.equal(oversized.headers.get('connection'), 'close'); await oversized.arrayBuffer();
   assert.equal((await request('/v1/organizations', 'POST', { name: 'Business', owner: 'bob.testnet' }, session.token)).status, 400);
   const org = await (await request('/v1/organizations', 'POST', { name: 'Business' }, session.token)).json() as { id: string };
   assert.ok(org.id); const foreign = store.create('bob.testnet', 'Other business');

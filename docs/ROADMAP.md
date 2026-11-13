@@ -25,8 +25,8 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 
 The latest recorded full implementation runs on **2026-11-13** include:
 
-- Core: `npm run check`, **249 tests** via `npm test`, browser-client build.
-- Front: type/build checks, **112 browser cases**, and sample-KYB unit coverage.
+- Core: `npm run check`, **256 tests** via `npm test`, browser-client build.
+- Front: type/build checks, **120 browser cases**, and sample-KYB unit coverage.
 - `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
 
 The FT is a local **TESTUSD fixture, not Circle-issued USDC**. No funded public-network wallet smoke test has been completed. These are dated results; documentation edits do not imply fresh execution of every suite. Reproduction: [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract).
@@ -147,4 +147,6 @@ Severity describes potential impact for the relevant deployment stage, not a new
 6. **E01 → E02/E03/E04 → E05 → E06:** add enterprise controls and real reviewed preparation. Use fixtures until provider/data access is deliberately configured.
 7. **S01–S06 start alongside the relevant stages and must close before production funds.** X01–X06 are optional, separately scoped/versioned work; none is a reason to silently change existing notes, groups or destinations.
 
-This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 249 Core tests, 112 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
+This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 256 Core tests, 120 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
+
+Organization access review and fixes: [2026-11-13 findings and validation](REVIEW-2026-11-13-ORGANIZATIONS.md).
