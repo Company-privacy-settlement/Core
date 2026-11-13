@@ -1,5 +1,7 @@
 # Local encrypted invoice library
 
+[Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
+
 The merchant workspace can keep up to **100 signed invoice requests** in an encrypted browser library. This is optional client-held storage, separate from the encrypted wallet-operation journal. It does not create an invoice database on the Core API or store private notes.
 
 ## Merchant workflow

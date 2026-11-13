@@ -1,5 +1,7 @@
 # Private browser receipts and selective disclosure
 
+[Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
+
 Front `/evidence/` creates a version-1 receipt locally, encrypts its complete contents, and exports proofs for explicitly selected fields. `/notes/` can import a disclosed receipt locally and use only its root in a public deposit plan. No receipt service, identity provider, AI tax calculation or filing endpoint is involved.
 
 ## Create, keep and disclose
@@ -16,7 +18,9 @@ Use a fresh receipt for each operation. Reusing a root links public activity eve
 
 On `/notes/`, open and verify your encrypted private note first. Use **Import receipt root from disclosure JSON** to load a selected disclosure. The browser validates its field proofs against its own root and retains only that root for the deposit request. This import is a preparation check, not independent settlement verification. Invalid imports clear the previous root and deposit plan.
 
-The API receives the note commitment, receipt root and optional vault. Receipt values, opening salts, private notes and backup passwords remain local. Review and sign the existing deposit flow separately. For a withdrawal prepared in the CLI, use the receipt's root as the action's `disclosureRoot`. The contract/circuit binds this opaque root; it does not inspect the business values.
+The API receives the note commitment, receipt root and optional vault. Receipt values, opening salts, private notes and backup passwords remain local. Review and sign the existing deposit flow separately. For a generic non-invoice withdrawal prepared in the CLI, use the receipt's root as the action's `disclosureRoot`. The contract/circuit binds this opaque root; it does not inspect the business values.
+
+**Invoice checkout is a distinct binding.** An [invoice payment](INVOICES.md) must use its signed-derived per-unit reference as `disclosureRoot`. An arbitrary receipt root cannot replace it or be silently attached to the same reference. A combined invoice/business-evidence commitment needs a separately designed/versioned format. Deposit receipt roots and invoice withdrawal references should not be presented as one automatically linked receipt trail.
 
 ## Verify a disclosed receipt
 

@@ -1,6 +1,6 @@
 # Wallet signing and encrypted operation recovery
 
-The browser client connects the read-only operations API to a wallet supplied by the application. The separate [Front repository](https://github.com/Company-privacy-settlement/Front) exposes this flow at `/live/`, using **NEAR Connect 0.12.0** on testnet. Its `/app/` route remains a local simulation.
+The browser client connects the read-only operations API to a wallet supplied by the application. The separate [Front repository](https://github.com/Company-privacy-settlement/Front) exposes this flow at `/live/`, using **NEAR Connect 0.12.0** on testnet. Legacy `/app/` routes redirect to the corresponding English Docs guide; the simulation dashboard has been removed. See the [service overview](SERVICE.md) for all current workspaces.
 
 This milestone provides reviewed FT payment execution and recovery. FT note creation, encrypted backups and public deposit planning are also available on [Front `/notes/`](BROWSER_NOTES.md). Groth16 spend proving still uses the local Core CLI. It does not deploy or fund a public testnet group, integrate an external KYB provider, or certify tax/legal compliance.
 

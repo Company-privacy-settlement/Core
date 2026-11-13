@@ -1,5 +1,7 @@
 # Distributed vaults and fresh recipient accounts
 
+[Current service overview](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [FT v3 specification](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/USDC.md) · [Recipient readiness](https://github.com/Company-privacy-settlement/Core/blob/main/docs/RECIPIENTS.md)
+
 Shared anonymity is implemented in **v2**. Its authoritative contracts and failure-recovery specification live in [Contract/docs/SHARED.md](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md). Core provides `sdk/shared.ts`, verified routing, witness reconstruction, proof generation, CLI preparation and the real-chain `demo:shared` integration. The remainder of this document describes the retained **v1 independent-vault** interface.
 
 The factory automatically deploys independent NEAR contract accounts without ever adding access keys to the children. Each holds its own funds and applies the same ZK spend rules. `discoverVaults` checks pinned bytecode, verification-key hashes, domains and empty access key lists at one finalized block. `chooseIndependentVault` selects from a caller-approved list without receiving funds. See [FACTORY.md](FACTORY.md) for deployment, verification and refunds.

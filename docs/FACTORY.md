@@ -1,5 +1,7 @@
 # Permissionless keyless vault factory
 
+This document specifies the retained **v1 independent factory**. Paths and build artifacts are relative to [Contract](https://github.com/Company-privacy-settlement/Contract). Shared v2/v3 groups use the [forest specification](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md); see the [service overview](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) for current integration. Networking and SDK helpers live in Core.
+
 `contracts/factory` embeds the optimized vault WASM. Its constructor pins the network label, denomination, verification key and fee recipient. Each child inherits the same fixed recipient and the 0.15% deposit/withdrawal add-on fee policy. There are no setters, arbitrary calls into children, key-installation methods or admin withdrawals.
 
 Deploy `artifacts/core_factory.wasm` to an account ID of at most 30 characters, fund its code storage, then initialize `new(network, denomination, verification_key, fee_recipient)` from that account with at least 1 NEAR. `init-args` generates the same constructor arguments as for the pool. A factory deployer can replace its code while keys remain; the SDK requires empty key lists for both factory and vault. Key removal on public networks is not automated.

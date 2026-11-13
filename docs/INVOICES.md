@@ -1,5 +1,7 @@
 # Recipient-issued invoices and private checkout
 
+[Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
+
 Core now supports a recipient-led payment flow: the merchant signs an invoice, shares a checkout link, the payer reviews and signs private-settlement calls, and the merchant reconciles finalized payouts against that invoice.
 
 CoinGate's [order → payment URL](https://developer.coingate.com/reference/create-order) and [payment-state notification](https://developer.coingate.com/reference/payment-callback) flows inform the user journey. Core's first version uses a signed request carried by the client and read-only settlement queries. It does not integrate CoinGate, perform currency conversion, or maintain a merchant custody balance.
@@ -66,7 +68,7 @@ The NEP recipient is `core.invoice.v1`; the invoice nonce is the 32-byte NEP non
 
 Browser verification checks the signature and all signed terms. `POST /v1/invoices/verify` additionally reads the named merchant account's keys at one final block and requires that exact key's permission to be `FullAccess`. A valid signature under an unrelated key, removed key or function-call key does not pass. The payout account may differ from the merchant signer because the signed request explicitly authorizes that destination. Wallet control is **not** legal-entity identity or KYB. Current-key verification can stop new checkout after key removal; historical key/issuer attestations are a later integration.
 
-A payer's withdrawal proof must use `recipient = invoice.recipient` and `disclosureRoot = settlementRoot[i]` (one of the signed-derived references). Existing v3 action context binds these values, the chosen vault, registry, token and denomination. Importing a valid proof for another invoice/root or recipient is rejected by checkout. Reusing one completed nullifier cannot increase the confirmed invoice amount. Different invoices receive independent random IDs/nonces and roots, even when their human references happen to match.
+A payer's withdrawal proof must use `recipient = invoice.recipient` and `disclosureRoot = settlementRoot[i]` (one of the signed-derived references). Existing v3 action context binds these values, the chosen vault, registry, token and denomination. Importing a valid proof for another invoice/root or recipient is rejected by checkout. An arbitrary [business receipt root](BROWSER_RECEIPTS.md) cannot replace this signed-derived unit root. The current action has one disclosure reference; combining invoice binding with arbitrary receipt evidence needs a separately designed/versioned commitment. Receipt integrity alone does not establish invoice payment. Reusing one completed nullifier cannot increase the confirmed invoice amount. Different invoices receive independent random IDs/nonces and roots, even when their human references happen to match.
 
 ## Amount and fee model
 
@@ -74,7 +76,7 @@ The current privacy protocol uses fixed denominations. Invoice principal is `uni
 
 For a 1 USDC group (six decimals), a two-unit invoice requests **2,000,000 atomic units = 2 USDC**. Two withdrawals charge **3,000 atomic units = 0.003 USDC** in protocol fees, on top of principal; the merchant receives the full 2 USDC. Fee rounding happens per note. NEAR storage/first-use credit bonds/token registration and network gas are separate. A payer who must first create private notes also pays the existing deposit-side 0.15% fee. The merchant's off-chain invoice signature itself charges no protocol fee or gas.
 
-Payers currently generate private notes/proofs locally with the Core CLI. The browser checkout executes prepared public FT withdrawal plans; it does not create new Groth16 proofs or accept private note files. It supports repeated per-note payments for multi-unit invoices. No easy wallet-only/fiat checkout is implied.
+Payers can create FT notes and verify encrypted backups locally in [Front Private notes](BROWSER_NOTES.md), or use the Core CLI. New Groth16 spend proofs still require the CLI. Browser checkout executes prepared public FT withdrawal plans; it does not create new Groth16 proofs or accept private note files. It supports repeated per-note payments for multi-unit invoices. No easy wallet-only/fiat checkout is implied.
 
 ## Run a private invoice payment
 
@@ -140,7 +142,7 @@ SQLite adds a disclosure-root column/index through an additive writer migration.
 
 For a production merchant gateway, add an authenticated invoice API with encrypted business terms, durable merchant-owned invoice IDs, immutable terms and audit history. Keep it separate from keyless settlement authority. A webhook worker should consume independently verified final events, write an idempotent outbox, and send signed notifications with bounded retries to reviewed destinations. Merchant systems must re-check status and deduplicate fulfillment. An HTTP return/success URL must never authorize paid status.
 
-Also outstanding: indexed-provider scaling, browser proof generation, account/FT activation UX, independent security review, explicit cancellation/reservation semantics, merchant-controlled refunds, real KYB providers, jurisdiction-specific invoice/tax preparation, fiat conversion and public-network operations. These are not advertised as implemented by this MVP.
+Also outstanding: indexed-provider scaling, browser proof generation, account-activation funding/creation UX beyond the implemented [recipient readiness checks](RECIPIENTS.md), independent security review, explicit cancellation/reservation semantics, merchant-controlled refunds, real KYB providers, jurisdiction-specific invoice/tax preparation, fiat conversion and public-network operations. These are not advertised as implemented by this MVP.
 
 ## Validation
 

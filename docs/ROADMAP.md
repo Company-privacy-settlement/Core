@@ -1,75 +1,66 @@
-# Core development backlog
+# Core development roadmap
 
-This backlog is based on the current code. Contract and circuit work stays in the separate Contract repository. English is the default documentation language.
+Current service state as of **2026-11-13**. [Service overview](SERVICE.md) describes the user flow and repository boundaries. [Contract](https://github.com/Company-privacy-settlement/Contract) owns contract/circuit changes; [Front](https://github.com/Company-privacy-settlement/Front) owns the English-first website and wallet workspaces. This roadmap separates implemented capabilities from remaining work.
 
-## P0 — usable settlement operations (this iteration)
+## Implemented
 
-- [x] Validate immutable deployment policies before reads; preserve structured RPC failures rather than treating provider errors as missing accounts.
-- [x] Read FT balances, metadata, NEP-145 registrations, and sender NEAR storage credit at one finalized block.
-- [x] Prepare ordered registration and exact storage-credit top-up calls; keep token amounts, NEAR attachments, gas, and account activation distinct.
-- [x] Verify a selected vault directly even when it is beyond the default catalog page.
-- [x] Observe deposit and withdrawal state from verified contracts, with optional original-owner/destination/receipt bindings.
-- [x] Return bound retry/refund calls only when contract state permits them. A timeout does not establish failed payment; no automatic re-broadcast occurs.
-- [x] Add bounded, cancellable SDK polling and CLI commands for preflight, status and waiting.
-- [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
-- [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
-
-Validation: `npm run check` and **192 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks browser receipt backup/selective disclosure and finalized root anchoring, browser note backup and public deposit planning, recipient activation/registration transitions, preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
-
-Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
-
-## P1 — connect a real product flow
-
-- [x] Browser-safe FT execution bundle with declarations and SHA-256 manifest; independent Front build verifies its vendored copy.
-- [x] Wallet port and NEAR Connect testnet frontend; explicit single-call review, trusted policy, fees, payer/network binding and finalized observation.
-- [x] Encrypted local operation journal, cross-tab exclusion, backup/restore and unresolved signature reconciliation. No automatic resubmission after reconnect.
-- [x] Exact finalized wallet transaction verification and sandbox coverage of storage, deposit and withdrawal recovery.
-- [x] Durable registry-journal index with SQLite transactions/checkpoints, finalized-block conflict checks, restart/resume and bounded record replay.
-- [x] Persistent public TX-reference queue, exact finalized receipt correlation, and read-only activity/status APIs with stable filtered pagination.
-
-- [x] Bounded automatic all-shard TX discovery with complete receipt-graph checks, atomic cursor/candidate persistence and canonical gap validation.
-- [x] Front public group activity with validated index responses, checkpoint age, unresolved provenance, discovery coverage and stable filters/pages.
-
-- [x] Recipient-signed FT invoices, merchant full-access key checks, private checkout plan binding and indexed partial/paid/late/overpayment reconciliation.
-- [x] Invoice terms v2 with distinct per-unit signed references, indexed reuse checks, honest race accounting and legacy v1 compatibility. [Privacy model and public metadata limits](PRIVACY.md).
-- [x] Indexed invoice reference-set lookup with stable cursors, bounded matching-record reads, legacy adapter fallback, late-total consistency and checkout invalidation regressions. [Review findings and resolution](REVIEW-2026-11-12.md).
-- [x] Complete paginated CLI vault selection at one final block, direct selected-member verification and invoice fragment/history lifecycle fixes. [Review findings and resolution](REVIEW-2026-11-13.md).
-- [x] Process-local bounded peer rate limits, weighted route admission, RPC read budgets, request deadlines and transport cancellation; retained slots for non-cancellable work and separate deployment/index readiness checks. [Settings and operational limits](OPERATIONS.md#request-limits-and-readiness).
-- [x] Approved group directories, same-block capacity discovery, ordered new-note selection, encrypted backups and original-group deposit/spend preparation, including full/retired-group withdrawals. [Group capacity SDK/CLI](GROUPS.md).
-- [x] Browser-safe approval/capacity validation, bounded `/v1/group/capacity`, and Front group selection with fresh API checks, retired-group recovery, stale-response invalidation and matching journal namespaces. [Front group selection](GROUPS.md#front-group-selection).
-- [x] Optional merchant/network-separated encrypted invoice library, immutable signed requests, local search/open, authenticated backups/merge, cross-context exclusion and lock cancellation. No server terms or paid-status cache. [Invoice library](INVOICE_LIBRARY.md).
-
-- [x] Read-only recipient preparation across SDK, CLI, API, invoice creation/checkout and prepared withdrawals: distinct account activation and token registration, pinned storage minimum, exact public call validation and stale-response cancellation. [Recipient guide](RECIPIENTS.md).
-
-- [x] Local browser FT note creation with pinned Poseidon parameters, encrypted single-note backups with file re-verification, direct CLI interoperability, bounded public deposit planning and explicit wallet-plan handoff. [Browser notes](BROWSER_NOTES.md).
-
-- [x] Review fixes: browser history-cache locks for private notes and invoice library, immutable backup trust-policy snapshots and accurate explicit-member scan coverage. [Review findings and regressions](REVIEW-2026-11-13-NOTES.md).
-
-- [x] Generation-bound journal read/write cancellation and last-moment wallet dispatch guard, with conservative recovery of already-started signatures; settlement workspace cache locks and invalidation of late unlock/review results. [Journal review](REVIEW-2026-11-13-JOURNAL.md).
-
-- [x] Browser receipt creation, separate encrypted backups, explicit selected-field export, independent-root integrity verification and root-only deposit preparation. Existing CLI disclosure and finalized evidence verification remain compatible. [Browser receipts](BROWSER_RECEIPTS.md).
-
-Invoice scope and next service layer: [INVOICES.md](INVOICES.md). Business terms stay client-held; merchant API persistence, signed webhooks, fiat conversion and contract-enforced invoice caps/deadlines remain future work.
-
-Integration: [WALLET.md](WALLET.md). Browser FT note creation, encrypted backups and public deposit plans are implemented; Groth16 spend proving remains in the CLI. A publicly deployed/funded testnet wallet smoke test is still outstanding.
-
-Index scope and deployment: [INDEXER.md](INDEXER.md). All configured registry records are copied; transaction provenance is enriched from bounded all-shard scans or supplied public references. Discovery start/progress and unresolved links remain explicit, with no complete business-history claim.
-
-| Task | Deliverable / acceptance condition | Dependency |
+| Area | Delivered behavior | Guide |
 | --- | --- | --- |
-| Browser note/prover expansion | Browser FT note creation/backups and public deposit plans are implemented. Remaining: new Groth16 proofs locally in the browser, mobile memory/performance measurements and the same committed vectors. | Prover packaging and browser measurements |
-| Discovery scaling | Add indexed-provider adapters, throughput/cost controls and operational alerting for large public-network backfills. Current RPC scanner enumerates all shards/transactions with persistent offsets and explicit coverage. | Archival/indexed data provider |
-| Remaining API deployment hardening | Authentication for any future private business data, distributed/edge limits, OpenAPI/client generation and redacted operational telemetry. Process-local budgets, deadlines/cancellation and readiness probes are implemented. | Hosting/access model; current API defaults to loopback |
-| Testnet deployment workflow | Reproducible artifact/policy release, verified token registration, explicit key-removal phase and a real-wallet smoke test. | Funded deployer account and reviewed setup hashes |
-| Group deployment and policy release | SDK/CLI routing and Front capacity/recovery selection are implemented. Publish independently reviewed group deployments and distribute pinned policies/API origins; signed invoices stay group-bound. | Funded deployer, reviewed artifacts and policy distribution |
+| Settlement | Native NEAR v2 and immutable-token FT v3 shared groups; separate keyless principal vaults, global nullifiers, fixed-destination retries and additive 15 bps fees | [Privacy](PRIVACY.md) |
+| Operations | Independent deployment-policy checks, same-final-block balances/registrations, exact storage calls, selected-member verification and bounded cancellable observation | [Operations](OPERATIONS.md) |
+| Read-only API | Policy-pinned endpoints, exact-origin CORS, peer admission/RPC budgets, deadlines/cancellation and liveness/deployment/index readiness | [Operations](OPERATIONS.md#request-limits-and-readiness) |
+| Wallet execution | Browser-safe verified SDK, reviewed testnet FT calls, encrypted journal/backup, cross-tab exclusion, transaction verification and conservative unresolved-signature recovery | [Wallet](WALLET.md) |
+| Finalized index | Durable SQLite checkpoints, restart/resume, receipt correlation, bounded all-shard discovery, explicit provenance/coverage and stable paginated activity | [Indexer](INDEXER.md) |
+| Invoices | Merchant NEP-413 signature/current FullAccess check, per-unit v2 references, v1 reading, exact checkout binding and indexed partial/paid/late/overpayment | [Invoices](INVOICES.md) |
+| Invoice library | Optional encrypted merchant/network storage, explicit save/search/open, backup/restore and immutable-request merge; no paid-status cache | [Library](INVOICE_LIBRARY.md) |
+| Groups | Caller-approved directory, capacity discovery and ordered selection, browser rechecks, full/retired original-group recovery and namespace-bound journals | [Groups](GROUPS.md) |
+| Recipients | Distinct account activation/token registration, observed minimum storage cost, inspectable registration calls and stale-response invalidation | [Recipients](RECIPIENTS.md) |
+| Browser notes | Local FT note creation, encrypted file backup/reopen, CLI interoperability and bounded public deposit plans | [Notes](BROWSER_NOTES.md) |
+| Browser evidence | Private receipts, separate encrypted backup/reopen, explicit selected-field exports, independent-root integrity checks, root-only deposit preparation and CLI evidence compatibility | [Receipts](BROWSER_RECEIPTS.md) |
+| Lifecycle protection | Page-hide/history-cache locks; generation-bound private work, journal reads/writes and last-moment wallet dispatch guards | [Wallet](WALLET.md), [Notes](BROWSER_NOTES.md) |
+| Product shell | Landing, nine English Docs guides and separate sample KYB steps; English/Korean/Chinese repository READMEs | [Service](SERVICE.md) |
 
-## P2 — enterprise and compliance integrations
+## Recorded validation
 
-- [ ] Real KYB/KYC provider: entity and beneficial-owner review, trusted issuer configuration, credential expiry/revocation freshness, and provider callbacks. Existing signature checks alone do not establish identity. A circuit-enforced admission policy requires separately versioned Contract work.
-- [ ] US / Abu Dhabi preparation: determine the US state, ADGM versus mainland, payment classification and effective date; version cited official rules, calculate deterministically, and prepare reviewable AI drafts. Do not invent tax rates or claim filing/approval.
-- [ ] Encrypted business-document packages: access-controlled off-chain attachments, integrity commitments, selective exports, and a documented retention/deletion policy. No legal names, salary documents or raw tax forms on-chain.
-- [ ] Independent evidence review: check disclosed-field semantics against settlement data and provider attestations; distinguish integrity, payment completion, identity and legal/tax conclusions.
+The latest recorded full implementation runs on **2026-11-13** include:
+
+- Core: `npm run check`, **192 tests** via `npm test`, browser-client build.
+- Front: type/build checks, **98 browser cases**, and sample-KYB unit coverage.
+- `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
+
+The FT is a local **TESTUSD fixture, not Circle-issued USDC**. No funded public-network wallet smoke test has been completed. These are dated results; documentation edits do not imply fresh execution of every suite. Reproduction: [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract).
+
+Historical reviews: [invoice/index](REVIEW-2026-11-12.md), [selection/checkout](REVIEW-2026-11-13.md), [notes/library](REVIEW-2026-11-13-NOTES.md), [journal lifecycle](REVIEW-2026-11-13-JOURNAL.md).
+
+## Next — verifiable public testnet release
+
+| Priority | Deliverable / acceptance condition | Dependency |
+| --- | --- | --- |
+| P0 | Reproducible versioned artifact/policy release: reviewed WASM/verifier hashes, independently distributed policies and exact API origins | Reviewed setup and release owner |
+| P0 | Public testnet deployment: funded deployer, explicit reviewed key-removal phase, token registration, verified keyless state and complete real-wallet deposit/withdrawal/recovery smoke test | Funded accounts, reviewed artifacts and wallet access |
+| P0 | Demo access appropriate for intended recipients; hosted checkout availability tested separately from local wallet execution | Hosting audience decision and deployed group |
+| P1 | Browser Groth16 spend proving with committed-vector parity, mobile memory/time measurements and cancellation/recovery tests | Prover packaging and browser measurements |
+| P1 | Operational scaling: indexed-provider adapters, backfill cost/throughput controls, distributed limits and redacted alerting/telemetry | Archival/indexed provider and hosting model |
+| P1 | OpenAPI/client generation; authenticate any future private business API while preserving the current public read-only boundary | Defined API compatibility and private-data model |
+
+Capacity selection and recovery routing are implemented. Adding groups still requires independently reviewed deployments; it does not implement private migration or merge their anonymity sets. Account/FT readiness is implemented; activation funding and account creation remain external.
+
+## Next — merchant and enterprise service
+
+| Area | Required result |
+| --- | --- |
+| Merchant service | Authenticated merchant-owned invoice IDs, encrypted immutable terms, audit history, independently verified final events and an idempotent signed-webhook outbox with bounded retries |
+| Invoice/evidence composition | Explicitly versioned combined commitment and verification model; an arbitrary receipt root must not replace the currently signed invoice unit root |
+| Payment semantics | Separately designed cancellation/reservation/cap enforcement and merchant-controlled refunds; current app-only expiry/caps do not reserve on-chain capacity |
+| KYB/KYC provider | Real entity/beneficial-owner review, trusted issuer configuration, current expiry/revocation and callbacks; signature checks alone do not establish identity |
+| US / Abu Dhabi preparation | Resolve US state/federal scope, ADGM versus mainland, employment/contractor/B2B classification and effective date; version cited official rules, compute deterministically and prepare reviewable AI drafts |
+| Business documents | Encrypted access-controlled attachments, integrity commitments, selective export and retention/deletion policy; no raw identity/salary/tax forms on-chain |
+| Evidence review | Separate integrity, selected finalized transaction inclusion, declared-field truth, identity and legal/tax conclusions |
+
+Real KYB, AI tax/legal preparation, payroll withholding, treaty analysis, statutory filing and fiat conversion remain unimplemented. See [compliance scope](../compliance/README.md). Circuit-enforced admission requires separately versioned Contract work.
 
 ## Production gates and protocol limits
 
-Independent contract/circuit/SDK security review, a reviewed multi-party trusted setup, operational incident procedures, and issuer-control risk assessment are still required before production use. Permanently missing vault payout callbacks remain conservatively reserved; the SDK must not manufacture recovery by resetting a nullifier or redirecting the destination. The current group has 256 outputs and fixed denominations. Public-network deployment is not part of this iteration.
+Independent contract/circuit/SDK audit, reviewed multi-party setup, issuer-control risk review, incident procedures and operational recovery validation remain required before production. The group has fixed denominations and 256 total outputs; variable amounts, automatic private group migration and cross-asset bridges are not implemented.
+
+Permanently missing payout callbacks remain conservatively reserved. SDK/API tooling must not reset a nullifier or redirect a destination to manufacture recovery. Public metadata and API/RPC observations remain privacy/trust dependencies. [Privacy model](PRIVACY.md).

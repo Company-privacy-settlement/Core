@@ -1,180 +1,105 @@
-# Core
+# Core — NEAR 기반 기업 프라이버시 정산
 
 [English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md)
 
-원금은 독립 볼트에 보관하고 공유 ZK 노트로 한 지급 볼트에서 수취인에게 직접 지급합니다. 원금이 여러 볼트를 연속 경유하는 구조가 아닙니다. 새 인보이스 v2는 결제 단위마다 서로 다른 서명된 참조를 사용하고 기존 v1은 조회를 유지합니다. 수취인·금액·시간·서명자는 공개되며 볼트 수가 익명성 보장 수치는 아닙니다. [프라이버시 구조와 한계](docs/PRIVACY.md)를 확인하세요.
+Core는 기업 간 결제와 기업→근로자 송금을 위한 개발용 프로토콜입니다. 독립 볼트가 원금을 보관하고, 공유 ZK 노트로 자금이 있는 한 볼트에서 수취인에게 직접 지급합니다. 수취인은 서명된 인보이스를 발행하고, 지급자는 지갑 호출을 각각 검토하며, 증빙 보유자는 필요한 필드만 공개할 수 있습니다.
 
-인보이스의 참조 집합을 인덱스로 직접 조회하고 고정 커서로 페이지를 유지해 무관한 수취인 기록을 건너뜁니다. 지연 지급 합계를 개별 확인 내역과 대조하며 조회 실패·신뢰 설정 변경 시 이전 결제 검증 상태를 비웁니다. [리뷰 결과와 수정](docs/REVIEW-2026-11-12.md)을 참고하세요.
+이 저장소는 SDK·로컬 증명 CLI·읽기 전용 API·확정 기록 인덱스·증빙 도구를 제공합니다. 브라우저 실행은 독립적으로 구성한 테스트넷 FT 그룹을 지원합니다. Native NEAR v2는 계약과 CLI에서 사용할 수 있습니다. 서비스와 Docs의 기본 언어는 영어입니다.
 
-NEAR 프라이버시 정산의 **지갑 SDK·CLI·연동 코드**입니다. Rust 계약, ZK 회로, 계약 테스트는 별도 [Contract 저장소](https://github.com/Company-privacy-settlement/Contract)에 보관합니다. 검증된 vault 조회, FT 사전 점검, 최종 확정 정산 상태를 제공하는 읽기 전용 HTTP API를 포함합니다. 서명과 증명 생성은 로컬 클라이언트에서 처리합니다.
+[서비스 개요](docs/SERVICE.md) · [웹 Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [개발 현황](docs/ROADMAP.md)
 
-현재 버전은 native NEAR **공유 익명성 v2**와 **USDC/NEP-141 v3**를 지원합니다. 송금 원금은 각 vault에 분산 보관하고, 공통 forest가 하나의 노트 트리와 전역 nullifier를 관리합니다. A에 예치한 노트로 B에서 출금할 수 있으며, 동시 요청과 재시도에서도 한 노트를 두 번 지급하지 않습니다. v1 독립 풀과 팩토리도 호환 유지합니다.
+## 저장소
 
-| 저장소 | 보관 내용 |
+| 저장소 | 역할 |
 | --- | --- |
-| [Contract](https://github.com/Company-privacy-settlement/Contract) | `pool`, `factory`, `shared-vault`, `forest`, Circom 회로, native 테스트, WASM 빌드 |
-| Core (현재) | 비밀 노트·지갑, 로컬 증명 생성, 검증된 vault 선택, 선택 공개, TX 증빙, KYB 서명 검증, CLI·통합 데모 |
+| [Core](https://github.com/Company-privacy-settlement/Core) | 브라우저/Node SDK, CLI 증명, API, SQLite 인덱스, 증빙 검증 |
+| [Contract](https://github.com/Company-privacy-settlement/Contract) | Rust 계약, Circom 회로, 벡터, WASM·증명 아티팩트 |
+| [Front](https://github.com/Company-privacy-settlement/Front) | Next.js 랜딩·영문 Docs·인보이스·노트·정산·증빙·샘플 KYB |
 
-## 개발 현황과 운영 연결
+## 현재 기능
 
-이번 단계에서는 브라우저용 FT 실행 SDK, 지갑 호출별 검토, 암호화 작업 기록, 최종 확정 TX 대조를 추가했습니다. [Front의 `/live/` 화면](https://github.com/Company-privacy-settlement/Front)은 독립적으로 신뢰한 배포 정책을 이용해 NEAR Connect로 테스트넷 지갑을 연결합니다. 서명 결과가 불확실하면 재시작 후에도 재송금을 막고 기존 TX를 확인합니다. 토큰 수락과 최종 지급은 구분합니다. [지갑 연동·복구 안내](docs/WALLET.md)를 확인하세요. 비밀 노트 생성·증명은 CLI에 남겨두었으며 대규모 탐색 최적화, 공개 테스트넷 배포, 실제 KYB·세무 연동은 [개발 목록](docs/ROADMAP.md)의 후속 작업입니다.
+| 기능 | 구현 범위 |
+| --- | --- |
+| 프라이빗 정산 | Native NEAR v2와 토큰 고정 NEP-141 v3 그룹 분리, 고정 액면, 그룹별 총 256개 트리 출력 |
+| 브라우저 노트 | FT 노트 로컬 생성, 암호화 파일 백업·재검증, 공개 입금 계획 |
+| 지갑 실행 | 등록·스토리지·결제별 승인, 암호화 작업 기록, 확정 상태 확인·보수적 복구 |
+| 인보이스 | 수취인 NEP-413 서명, v2 단위별 참조, v1 읽기, 부분·완납·지연·초과 지급 대사 |
+| 인보이스 보관함 | 선택형 계정/네트워크별 암호화 저장·검색·열기·백업·복원·병합 |
+| 수취 준비 | 계정 활성화와 토큰 등록 분리 확인, 실제 등록비 조회, 활성화 금액 임의 추정 없음 |
+| 증빙 | 전체 영수증 암호화, 선택 필드 증명, 별도 루트 무결성 확인과 분리된 확정 TX 검증 |
+| 공개 인덱스 | SQLite 체크포인트, 범위가 명시된 전체 샤드 TX 탐색, 검증된 출처·페이지 조회 |
+| KYB | Front 로컬 샘플 접수와 SDK의 신뢰 발급자 서명 검사. 실제 사업자 심사는 후속 작업 |
 
-확정된 registry 정산 기록을 SQLite에 체크포인트와 함께 저장하는 인덱서를 추가했습니다. 재시작 시 중복 없이 이어가고, 제공한 공개 TX 참조의 영수증 출처를 검증하며, 필터·고정 커서 기반 거래 내역을 조회합니다. `CORE_INDEX_DB`를 설정하고 `npm run index -- once` 또는 `watch`로 실행합니다. API는 같은 DB를 읽기 전용으로 엽니다. 출처 미확인 기록은 별도로 표시하며 전체 기업 거래 내역이라고 주장하지 않습니다. [인덱서 실행·범위 안내](docs/INDEXER.md)를 확인하세요.
+## 서비스 흐름
 
-지정한 시작 블록부터 모든 샤드의 TX를 읽고 확정 영수증 그래프를 검사하는 자동 탐색을 추가했습니다. 블록 중간 위치도 저장합니다. Front `/live/`에서 공개 정산 내역, 수집 시점, 탐색 진행, 출처 미확인 여부와 고정 필터·페이지를 확인할 수 있습니다. `CORE_DISCOVERY_START_HEIGHT`로 활성화하며 기존 공개 TX 참조 입력도 지원합니다. 시작 블록 이전이나 현재 체인 최신 상태까지 수집됐다는 뜻은 아닙니다.
+1. 운영자로부터 독립적으로 배포 정책을 확보하고 네트워크·registry·토큰·액면·수수료 수취인·코드/검증기 해시를 Core API와 확인합니다.
+2. Front **Private notes**에서 FT 노트를 생성하고 암호화 백업을 내려받아 다시 엽니다. API에는 공개 커밋먼트·루트만 보냅니다.
+3. **Settlements**에 공개 입금 계획을 가져와 테스트넷 지갑을 연결하고 등록·스토리지·결제를 각각 승인합니다. 입금 기록이 `Active`여야 예치 완료입니다.
+4. 원래 정책과 암호화 노트로 CLI에서 출금 증명을 생성합니다. 인보이스 결제는 서명된 수취 계정과 해당 단위의 참조에 고정합니다.
+5. 앱에서 공개 출금 계획을 검토·승인합니다. 지급 기록의 `Complete`가 완료 기준이며, 지갑 응답이나 타임아웃만으로 성공·실패를 판단하지 않습니다.
+6. 용도별 백업을 보관하고 필요한 영수증 필드만 공개합니다. 무결성·TX 포함·사업자 신원·세무 신고 수리는 서로 다른 검증입니다.
 
-수취인 발행 인보이스를 추가했습니다. 판매자 NEP-413 지갑 서명, fragment 결제 링크, 청구서에 묶인 출금 증명, 일부·완료·지연·과입금 집계를 지원합니다. Front `/invoices/`에서 발행·조회하고 `/pay/`에서 검증 후 기존 지갑 기록으로 결제합니다. 청구 내용은 클라이언트에 남고 읽기 전용 API는 지갑 소유권과 공개 지급 확인만 조회합니다. [인보이스 구조·사용법](docs/INVOICES.md)을 참고하세요.
+인보이스 결제 참조와 임의 영수증 루트는 별도 흐름입니다. Evidence 루트로 서명된 인보이스의 결제 참조를 대체할 수 없습니다.
+
+## 수수료
+
+입금과 출금에 각각 **원금의 0.15%를 추가**하며 자산 최소 단위에서 내림합니다. 수취인은 원금 전액을 받습니다.
+
+| 예시 | 입금 | 출금 수수료 | 수취 원금 |
+| --- | --- | --- | --- |
+| 1 USDC 노트, 6자리 소수 | 1.0015 USDC | 0.0015 USDC | 1 USDC |
+| Native 1 NEAR 노트 | 동작 스토리지 포함 1.0215 NEAR | 동작 스토리지 포함 0.0215 NEAR | 1 NEAR |
+
+FT 동작 스토리지는 해당 동작당 0.02 NEAR이며 최초 송금자 credit에는 대상 계약별 0.005 NEAR 원장 보증금이 추가됩니다. 토큰 등록·계정 활성화·네트워크 가스는 별도입니다. 새 노트를 예치하는 지급자는 입금 측 수수료도 냅니다. [운영 가이드](docs/OPERATIONS.md)와 [FT 계약 명세](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/USDC.md)를 참고하세요.
+
+## Core 실행
+
+Node.js **22.13.0+**가 필요합니다. SDK/API/인덱스 개발에는 Rust나 Contract 체크아웃이 필요하지 않습니다.
 
 ```bash
-npm run cli -- ft-preflight trusted-policy.json https://rpc.testnet.near.org public-request.json
-npm run cli -- settlement-status trusted-policy.json https://rpc.testnet.near.org public-reference.json
-npm run cli -- settlement-wait trusted-policy.json https://rpc.testnet.near.org public-reference.json
+npm ci
+npm run check
+npm test
+npm run build:client
+```
 
+실제 그룹 실행에는 독립 검증된 정책이 필요합니다. 템플릿의 자리표시자는 그대로 사용할 수 없으며 `.env` 파일은 자동 로드하지 않습니다.
+
+```bash
 export CORE_POLICY_FILE=/absolute/path/to/trusted-policy.json
 export CORE_RPC_URL=https://rpc.testnet.near.org
 export CORE_ALLOWED_ORIGINS=http://localhost:3000
 npm run serve
 ```
 
-API 기본 주소는 `127.0.0.1:3001`이며 실제 신뢰 배포 정책이 필요합니다. 시뮬레이션으로 대체하지 않습니다. `/v1/vaults`, `/v1/ft/preflight`, `/v1/settlements/status`, `/v1/transactions/verify`를 제공하며 지갑·비밀 노트·서명 키는 서비스 밖에 둡니다. 트랜잭션 수락이나 관찰 시간 초과만으로 지급 완료·실패를 판단하지 않습니다. 입력 형식, 준비 상태와 복구 동작은 [운영 기능과 HTTP 명세](docs/OPERATIONS.md)를 확인하세요.
+기본 주소는 `127.0.0.1:3001`입니다. `/healthz`는 프로세스 생존, `/readyz`는 배포와 연결된 인덱스를 확인합니다. 인덱스를 연결하려면 동일한 정책·RPC·`CORE_INDEX_DB`로 별도 터미널에서 작업자를 먼저 실행하세요. [.env.example](.env.example) · [API 설정](docs/OPERATIONS.md) · [인덱스 설정](docs/INDEXER.md). 노트·지갑 키·비밀번호·업무 문서는 API에 보내지 않습니다.
 
-API에는 연결 IP별 속도 제한, 경로별 RPC 조회 예산, 기본 동시 작업 2개 제한과 취소 가능한 15초 요청 제한 시간이 적용됩니다. `/healthz`는 프로세스 생존을, `/readyz`는 배포 상태와 연결된 인덱스의 최신성·현재 기록 수를 확인합니다. 프록시 환경의 한계와 설정은 [운영 문서](docs/OPERATIONS.md#request-limits-and-readiness), [.env.example](.env.example)에 있습니다.
+## 로컬 계약·증명 검증
 
-## 실행
-
-Node.js 22.13.0+가 필요합니다. 계약 빌드는 Contract에 고정한 Rust 1.99.1 및 C/C++ 빌드 도구를 사용합니다. 두 저장소를 형제 폴더로 체크아웃합니다.
-
-```text
-workspace/
-  Contract/
-  Core/
-```
-
-Core 폴더에서:
+Core·Contract·Front를 형제 폴더로 체크아웃합니다. Contract 빌드에는 고정 Rust **1.99.1**, WASM target과 C/C++ 빌드 도구가 필요합니다. Core에서:
 
 ```bash
 (cd ../Contract && npm ci)
-npm ci
 npm run contract:build
 npm run zk:setup
-npm run check
-npm test
-npm run demo:shared
-```
-
-`CORE_CONTRACT_REPO`를 export하면 다른 Contract 경로를 사용할 수 있습니다. Core 빌드 명령은 Contract의 빌드를 호출한 뒤 manifest의 SHA-256을 검증해 WASM을 복사합니다. `zk:setup`도 Contract에서 실행하고 검증한 proving artifacts를 가져옵니다. 생성 파일은 Git에 포함하지 않습니다.
-
-`npm test`는 커밋된 공개 벡터를 사용하므로 계약 checkout·Rust·setup 없이 단독 실행할 수 있습니다. `npm run contract:test` / `npm run factory:test`는 Contract의 v1 테스트를 호출합니다. 전체 계약 검증은 `(cd ../Contract && npm test)`로 실행합니다. 계약 테스트 전에 빌드가 필요합니다.
-
-데모는 공식 NEAR sandbox 2.14.1을 사용합니다(Linux x64 / macOS arm64). 실제 WASM, 실제 Groth16 증명, 최종 확정 RPC를 검증하며 종료 시 일회용 체인을 제거합니다. 보고서의 TX는 테스트넷 TX가 아닙니다.
-
-| 데모 | 검증 |
-| --- | --- |
-| `npm run demo:ft` | 6자리 FT 입출금, 가짜 토큰 거부, 교차 vault·동시 사용 방지, 미등록/동결 수신자 복구, 자산별 확정 증빙 |
-| `npm run demo:shared` | 공유 트리, 교차 출금, 동시 이중 사용 방지, 중복 예치 환불, 실패 지급 재시도, 수수료, 12개 확정 기록 |
-| `npm run demo:factory` | v1 keyless 자동 배포·실패 환불·독립 출금 |
-| `npm run demo` | v1 비공개 노트 이전·새 지갑 출금·영수증 검증 |
-
-v2 보고서는 `demo-output/shared-validation.json`입니다. 자동 관리자 키 제거는 일회용 로컬 체인 안에서만 수행합니다. 공개 네트워크 배포나 키 제거는 실행하지 않습니다.
-
-## USDC / NEP-141 v3
-
-Contract의 `new_ft`로 **토큰 주소·고정 denomination을 묶은 별도 forest**를 배포합니다. Native NEAR 그룹과 노트를 섞지 않습니다. 원금은 각 vault 주소의 토큰 잔액에 분산하고 forest는 출금 수수료만 받습니다.
-
-1 USDC(1,000,000 atomic units) 입금 시 **1.0015 USDC**, 출금 시 별도 **0.0015 USDC**를 받고 수신자는 **1 USDC 전액**을 받습니다. NEAR 스토리지 0.02와 가스는 별도입니다. `ft_on_transfer`에 NEAR를 첨부할 수 없으므로 토큰 송금자의 storage credit을 먼저 적립합니다. 첫 사용에는 contract별 0.005 NEAR ledger bond가 추가되고 이후에는 다시 부과하지 않습니다. 미사용 credit은 소유자에게 환불할 수 있습니다.
-
-```bash
 (cd ../Contract && npm run build:test-ft)
-npm run contract:build
 npm run demo:ft
-npm run cli -- quote-usdc 1
 ```
 
-`demo:ft`는 official near-contract-standards 기반 테스트 토큰을 일회용 sandbox에 배포합니다. **Circle 발행 USDC나 공개 네트워크 실거래가 아닙니다.** `demo-output/ft-validation.json`에서 결과를 확인합니다. 기존 proving setup이 필요하며 새 setup을 만들면 공개 벡터도 다시 생성해야 합니다.
+다른 경로는 `CORE_CONTRACT_REPO`로 지정합니다. Core는 WASM·증명 파일의 매니페스트 해시를 확인해 가져옵니다. 개발용 단일 머신 setup을 바꾸면 검증기·아티팩트·새 배포도 일치해야 합니다. 생성 파일은 Git에서 제외합니다.
 
-`SharedPolicy`에 공식 `tokenId`를 추가하면 v3 자산 그룹으로 검증합니다. 테스트넷 native USDC 주소는 `3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af`입니다. [Circle 공식 주소](https://developers.circle.com/stablecoins/usdc-contract-addresses)를 확인하고 USDC.e와 구분하세요. `examples/usdc-policy.template.json`의 registry·코드 해시는 실제 새 배포 값으로 교체해야 합니다.
+**2026-11-13 기록된 검증:** Core **192개 테스트**, Front **98개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
 
-SDK `sdk/ft.ts`:
+## 프라이버시·보관·복구
 
-- `parseUsdc`, `quoteFtFees`: 부동소수점 없이 6자리 USDC 금액과 원금에 가산하는 수수료 계산; 토큰과 yoctoNEAR를 합산하지 않음.
-- `buildFtRegistration`: 토큰에서 읽은 storage minimum으로 명시적 NEP-145 등록 payload 작성.
-- `buildStoragePrepayment`: 실제 `get_storage_credit` 결과에 맞춰 첫 bond·잔여 credit을 계산.
-- `buildFtDeposit`, `buildFtWithdrawal`: 검증된 catalog와 증명 목적지에 묶은 token call, storage 대상, 최종 상태 확인 방법 작성.
+원금은 A→B→C를 경유하지 않습니다. 그룹 공유 트리가 입력 노트 membership을 숨기고 선택한 볼트가 직접 지급합니다. 그룹별 프라이버시 집합은 별도입니다. 수취 계정·서명자·금액·시간·볼트 잔액·nullifier·공개 참조로 거래를 연결할 수 있으며 볼트 수가 실측 익명성 집합은 아닙니다. Keyless registry의 상태 조정과 RPC/API 관측에 대한 신뢰가 남습니다.
 
-`shared-note`, `shared-deposit-args`, `shared-spend-args` CLI는 v3 정책도 처리합니다. 전송 전에 실제 지갑이 수신 vault/registry/treasury/수신자를 토큰에 등록하고, 토큰 송금자에게 필요한 NEAR storage credit을 적립해야 합니다. 새 implicit 지갑은 NEAR 계정 생성과 FT 등록을 모두 마쳐야 USDC를 받을 수 있습니다. 성공한 `ft_transfer_call`은 토큰 수락만 뜻하며 지급 완료는 `get_withdrawal`의 `Complete`로 판단합니다.
+브라우저 노트와 전체 영수증은 메모리 및 내려받은 암호화 파일에 둡니다. 작업 기록과 선택형 인보이스 보관함은 별도 브라우저 저장소에 암호화해 저장합니다. 잠금·페이지 캐시 처리는 진행 작업을 무효화합니다. 이미 열린 지갑 요청은 잠금으로 취소하지 못하며 저장된 서명 시도를 명시적으로 대사해야 합니다. 운영자는 잃은 노트 비밀값·암호를 복구할 수 없습니다.
 
-FT 증빙은 `SettlementBundle { version: 3, assetTokenId, ... }`를 사용합니다. 토큰 ID를 확정 로그와 함께 검증하고, 토큰 protocol fee와 NEAR storage fee를 별도 통화로 요약합니다. 상세 ABI·실패 복구·재배포 조건은 [Contract USDC 명세](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/USDC.md)를 확인하세요. 기존 binary state에 덮어쓰는 업그레이드는 지원하지 않습니다.
+미국/아부다비는 후속 준비 계층의 범위이며 미국 주와 ADGM/본토 구분이 필요합니다. AI 세무 초안·세율 규칙·실제 KYB 심사·법정 신고·법정화폐 전환·프로덕션 배포는 구현하지 않았습니다. [컴플라이언스 범위](compliance/README.md).
 
-## 공유 v2 사용 흐름
+## 가이드
 
-1. Contract를 빌드하고 독립적으로 확인한 forest/vault WASM 해시와 verifier 해시로 `examples/shared-policy.json`을 작성합니다. 모르는 계약에서 복사한 해시를 신뢰 기준으로 삼지 않습니다.
-2. SDK가 하나의 최종 확정 블록에서 registry·vault의 코드, 빈 키 목록, 소속 그룹, 수수료와 가용 잔액을 검증합니다.
-3. 수신자는 공통 그룹의 비밀 노트를 만들고 commitment만 송금자에게 전달합니다. 송금자는 검증된 vault에 직접 예치합니다.
-4. SDK는 공통 트리를 재구성하고 로컬에서 증명을 생성합니다. 출금 시 선택한 vault와 수신자를 증명에 묶습니다.
-5. Forest가 nullifier를 먼저 사용 처리하고 선택 vault가 원금을 직접 지급합니다. 실패 시 목적지와 사용 상태를 유지한 채 같은 요청을 재시도합니다.
+[지갑·복구](docs/WALLET.md) · [브라우저 노트](docs/BROWSER_NOTES.md) · [수취 준비](docs/RECIPIENTS.md) · [인보이스](docs/INVOICES.md) · [보관함](docs/INVOICE_LIBRARY.md) · [영수증](docs/BROWSER_RECEIPTS.md) · [그룹](docs/GROUPS.md) · [프라이버시](docs/PRIVACY.md) · [인덱스](docs/INDEXER.md) · [로드맵](docs/ROADMAP.md)
 
-```bash
-# 비밀번호는 안전하게 입력하고 명령행 인자나 저장소에 넣지 않습니다.
-read -rs CORE_NOTE_PASSWORD
-export CORE_NOTE_PASSWORD
-
-npm run cli -- discover-shared examples/shared-policy.json https://rpc.testnet.near.org
-npm run cli -- shared-note examples/shared-policy.json https://rpc.testnet.near.org receiver-note.encrypted.json
-npm run cli -- receipt examples/receipt-values.json private-receipt.json
-npm run cli -- shared-deposit-args examples/shared-policy.json https://rpc.testnet.near.org receiver-note.encrypted.json RECEIPT_ROOT
-npm run cli -- shared-spend-args examples/shared-policy.json https://rpc.testnet.near.org receiver-note.encrypted.json examples/withdraw-action.json withdrawal-args.json
-```
-
-자동 입출금 볼트 선택은 하나의 확정 블록에서 모든 카탈로그 페이지를 검증하며, 기본 조회 한도는 레지스트리 기록 1,000개입니다. 더 큰 그룹은 명시적으로 오류를 반환합니다. `shared-deposit-args` 마지막에 `vault-account`를 추가하거나 출금 액션에 `vault`를 지정하면 해당 구성원만 직접 검증합니다. 첫 페이지만 조회하고 자동 선택하지 않습니다. SDK의 `discoverSharedVaultGroup`은 `maxRecords` 조회 한도를 1–10,000개로 지정할 수 있습니다.
-
-위 명령은 payload를 준비합니다. 실제 NEAR 지갑이 서명·전송해야 합니다. action의 `vault`가 없으면 검증된 유동성에서 선택합니다. 원금 수신자 `target`과 새로운 `disclosureRoot`는 실제 값으로 교체합니다. Private transfer는 `kind: transfer`, `target: 수신자 commitment`를 사용하며 vault를 지정하지 않습니다.
-
-Vault 입금이 `Active`로 등록되었는지 확인합니다. 등록 거절은 원래 송금자에게 principal + protocol fee를 환불할 수 있고, 네트워크 실패는 `retry_deposit`로 재개합니다. 출금은 forest의 `get_withdrawal`이 `Complete`여야 완료입니다. 요청 이벤트만으로 지급 완료를 판단하지 않습니다. 명세: [Shared v2](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md).
-
-## 승인된 그룹과 용량 관리
-
-`groups-status`, `group-note`, `group-deposit-args`, `group-spend-args`는 사용자가 독립적으로 승인한 그룹 목록을 받습니다. 새 노트는 입금이 활성화되고 출력 공간이 남은 그룹을 선택하며, 기존 노트의 입출금·복구는 원래 그룹에 고정됩니다. 가득 찼거나 새 입금이 중지된 그룹에서도 출금할 수 있습니다. [그룹 용량 관리](docs/GROUPS.md)와 [목록 템플릿](examples/approved-groups.template.json)을 참고하세요. 그룹별 익명성 집합은 별도이며 자동 배포나 노트 이전은 수행하지 않습니다.
-
-`npm run test:groups-proof`는 로컬 RPC 픽스처에서 가득 차고 입금이 중지된 그룹의 실제 Groth16 CLI 출금 계획을 추가 검증합니다. 기존 증명 아티팩트가 필요하며 트랜잭션을 전송하지 않습니다.
-
-## 수수료
-
-입금·출금 각각 원금의 **0.15%를 추가**로 내며 수신자는 원금 전액을 받습니다. NEAR는 yoctoNEAR, FT는 토큰 atomic units로 내림합니다. 보관 비용 0.02 NEAR와 가스는 별도입니다.
-
-1 NEAR 기준 입금은 **1.0215 NEAR**, 출금은 별도로 **0.0215 NEAR**를 내고 수신자는 **1 NEAR**를 받습니다. v2에서 보관 비용은 forest 0.015 / vault 0.005로 배분하며 추가 요금이 아닙니다. 이전·재시도는 보관 비용만 납부하고 protocol fee를 중복 부과하지 않습니다.
-
-```bash
-npm run cli -- quote-fees 1000000000000000000000000
-```
-
-수취 주소는 초기화 시 `fee_recipient`로 고정합니다. 입금 수수료는 vault, 성공한 출금 수수료는 forest가 적립합니다. 확정 수수료만 고정 treasury로 회수하며 원금·대기 지급·환불·보관 잔액을 보호합니다. 수수료 전송 실패 시 장부를 복원합니다.
-
-## 영수증·KYB·새 지갑
-
-```bash
-npm run cli -- wallet receiver-wallet.encrypted.json
-npm run cli -- disclose private-receipt.json asset,amount,reference
-npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
-```
-
-새 implicit 지갑의 키는 사용자 기기에서 만들고 AES-256-GCM으로 암호화해 백업합니다. 계약이 비밀키를 생성·보관하지 않습니다. 비밀 노트를 잃으면 운영자도 복구할 수 없습니다.
-
-영수증은 필드마다 독립 salt를 사용하며 **동작마다 새 root를 만듭니다**. 같은 root를 재사용하면 공개적으로 연결됩니다. v2 증빙은 실제 registry executor의 최종 확정 이벤트와 journal을 대조하고, vault·원금·수수료·공개 필드가 변조되지 않았는지 확인합니다. 선택한 TX의 포함·무결성을 검증하며 전체 이력·노트 간 자금 흐름·실명·세무 수리를 증명하지 않습니다.
-
-기업 KYB는 신뢰한 외부 발급기관의 Ed25519 서명, subject commitment, 만료와 제공된 폐기 목록을 검증합니다. 실제 법인/실소유자 심사나 회로가 강제하는 자격 정책은 아닙니다. 미국·UAE 아부다비 세금/AI 초안은 후속 범위이며 [compliance/README.ko.md](compliance/README.ko.md)에 경계를 기록합니다.
-
-## 한계
-
-공유되는 것은 암호학적 membership 집합입니다. 작은 참여자 수, 시간·금액·수신자·가스 지갑·공개 자료로 추정될 수 있으므로 네트워크 익명성까지 보장하지 않습니다. 공통 registry는 논리적 상태 조정 지점이며 운영자 승인 키를 갖지 않습니다. RPC에 대한 신뢰는 남습니다.
-
-Native NEAR v2와 USDC/NEP-141 v3, 고정 denomination, 공유 트리 총 256 output의 해커톤 코어입니다. 버전·자산마다 별도 도메인을 사용하며 기존 노트 자동 이전은 지원하지 않습니다. 가변 금액·cross-asset bridge, 실제 법정 신고, production 감사·분산 trusted setup은 포함하지 않습니다. 네트워크 label은 설정값이며 실제 메인넷 배포를 자동 차단하지 않습니다. 개발 setup은 로컬/테스트넷 시연용입니다.
-
-선택형 [암호화 인보이스 보관함](docs/INVOICE_LIBRARY.md)은 서명 요청을 계정·네트워크별 로컬 저장소에 보관하고 불변 ID 검증, 검색·다시 열기, 암호화 백업·복원·병합을 지원합니다. 저장은 명시적으로 수행하며 결제 상태는 캐시하지 않습니다. 정산은 기존 API로 새로 검증합니다.
-
-읽기 전용 [수취 계정 준비 확인](docs/RECIPIENTS.md)을 SDK·CLI·API·앱에서 사용할 수 있습니다. 계정 활성화, 토큰 등록, 결제 검토를 구분하고 확정 블록의 등록비와 정확한 등록 호출을 확인합니다. 활성화 비용을 추정하거나 조회만으로 트랜잭션을 전송하지 않습니다.
-
-[브라우저 노트 흐름](docs/BROWSER_NOTES.md)에서 FT 비밀 노트를 로컬 생성하고, 암호화 백업 파일을 내려받아 재검증한 뒤 공개 입금 계획을 준비할 수 있습니다. 백업은 기존 shared/group CLI에서 바로 읽습니다. API에는 공개 커밋먼트만 전달되며 Groth16 출금 증명은 기존 CLI에서 생성합니다.
-
-페이지 캐시 진입·복귀 시 노트·인보이스 보관함·결제 기록을 잠급니다. 진행 중인 결제 기록 접근과 늦은 지갑 호출을 무효화하며, 이미 시작된 서명은 미확정 기록으로 유지해 명시적으로 복구합니다. [비공개 화면 리뷰](docs/REVIEW-2026-11-13-NOTES.md) · [결제 기록 취소 리뷰](docs/REVIEW-2026-11-13-JOURNAL.md).
-
-[브라우저 비공개 영수증](docs/BROWSER_RECEIPTS.md)에서 전체 내용을 암호화하고 선택한 필드의 값·증명만 내보냅니다. 별도로 확보한 루트로 무결성을 검증하며 입금 준비에는 루트만 전달합니다. 암호화 백업은 CLI `disclose`와 호환되고, 실제 TX 포함 확인은 별도 `verify-bundle`로 수행합니다.
+현재 호스팅은 소유자 비공개입니다. 외부 고객 결제에는 알맞은 접근 권한과 별도 배포·자금 공급된 그룹이 필요합니다. 공개 자금 배포는 포함하지 않습니다. 브라우저 Groth16 증명·가변 금액·프라이빗 그룹 이전·실제 컴플라이언스 연동·독립 보안 감사·검토된 다자 setup은 후속 작업입니다.

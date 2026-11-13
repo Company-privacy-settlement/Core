@@ -1,5 +1,7 @@
 # Browser notes and public deposit plans
 
+[Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
+
 Front `/notes/` creates a private FT note locally, encrypts a single-note backup, verifies the downloaded file, and prepares a public deposit plan. The existing `/live/` wallet flow reviews and submits that plan. Creating a note or preparing a plan does not deposit funds. Groth16 withdrawal/private-transfer proof generation still runs in the local CLI.
 
 ## Create and fund a note

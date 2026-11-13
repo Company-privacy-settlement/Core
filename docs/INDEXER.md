@@ -1,5 +1,7 @@
 # Finalized settlement journal index
 
+[Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
+
 The Core indexer copies the configured shared registry's append-only `get_records` journal into local SQLite. It verifies the same immutable code, keyless-account, verifier, asset, denomination and fee policy used by the operations SDK. It supports native shared v2 and FT/USDC v3, without changing Contract or Front.
 
 This is a **registry journal index**, not an assertion of complete company history. A withdrawal request, failure or retry is an event, not proof that principal arrived. Only the corresponding successful settlement state/event establishes completion. Legal identity, tax classification and filing are separate claims.

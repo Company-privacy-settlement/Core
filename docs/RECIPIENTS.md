@@ -1,5 +1,7 @@
 # Recipient preparation
 
+[Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
+
 Check a receiving account before issuing an invoice or preparing a withdrawal. This read-only check separates account activation, registration on the trusted token contract, and payment review. It generates no keys, account-creation transaction, funding transfer, or payout.
 
 ## States

@@ -1,5 +1,7 @@
 # Approved groups and capacity management
 
+[Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
+
 A shared group has **256 total tree outputs**. Deposits and private transfers both consume output slots; withdrawals do not free them. When a group fills, new deposits can use another independently approved group while existing notes retain their original withdrawal path.
 
 This SDK/CLI flow selects deployments already present in a caller-held directory. It does not deploy contracts, move notes between groups, or fetch trust anchors from the API. Each group retains a separate note domain, tree and anonymity set. Principal still goes directly to a selected keyless vault.

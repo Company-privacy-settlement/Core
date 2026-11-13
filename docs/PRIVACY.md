@@ -1,5 +1,7 @@
 # Privacy model and distributed custody
 
+[Service overview](SERVICE.md) · [Browser receipts](BROWSER_RECEIPTS.md) · [Invoices](INVOICES.md)
+
 ## Settlement structure
 
 Each reviewed group has independent keyless vaults and one immutable forest. Deposit principal stays in the selected vault; the forest maintains a shared Poseidon note tree, spent nullifiers and payout reservations. A holder proves a right in that shared tree and can withdraw from one verified vault with sufficient liquidity. The payout goes directly from that vault to the proof-bound recipient. Principal does not travel through an A → B → C chain.
@@ -48,6 +50,6 @@ V2 reconciliation uses an internal SQLite reference-set lookup: recipient, compl
 
 The optional [invoice library](INVOICE_LIBRARY.md) stores signed business terms locally under account/network-specific AES-GCM encryption. Save/search/open/backup operations make no API requests and store no payment-status cache. It is separate from private-note backups and the wallet-operation journal. Shared payment links and individually exported signed JSON still disclose their signed terms to holders.
 
-Existing salted receipt commitments support selected field openings. Finalized evidence checks selected public transaction records. Neither establishes that every company transaction was disclosed, that a merchant is KYB-verified, or that a tax return is accepted. Keep legal names, payroll documents and statutory forms in separately encrypted business-document storage; such a provider is not implemented here. Sharing evidence can intentionally reveal associations to its recipient.
+[Browser Evidence](BROWSER_RECEIPTS.md) creates salted receipt commitments, separate encrypted full backups and explicitly selected field openings. Its local verifier requires an independently supplied root and makes no chain request. CLI finalized evidence checks selected public transaction records separately. An arbitrary receipt root cannot replace a signed invoice unit reference; a combined invoice/business-evidence commitment requires a separately designed format. Neither establishes that every company transaction was disclosed, that a merchant is KYB-verified, or that a tax return is accepted. Keep legal names, payroll documents and statutory forms in separately encrypted business-document storage; such a provider is not implemented here. Sharing evidence can intentionally reveal associations to its recipient.
 
 This is a local/testnet hackathon implementation with a development trusted setup and no production security audit. Public deployment, larger trees, browser proof generation, scalable private reconciliation and real KYB/tax integrations remain separate work. See [invoice behavior](INVOICES.md), [index coverage](INDEXER.md) and the [contract specification](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md).
