@@ -1,0 +1,10 @@
+import { spawn } from 'node:child_process';
+import { lstatSync, mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+const dir = resolve(process.env.CORE_DATA_DIR ?? 'data/service');
+mkdirSync(dir, { recursive: true, mode: 0o700 });
+if (!lstatSync(dir).isDirectory() || lstatSync(dir).isSymbolicLink()) throw new Error('Invalid service data directory');
+const child = spawn('flock', ['--nonblock', '--no-fork', resolve(dir, '.core-service.lock'), process.execPath, 'dist/service/scripts/service.js'], { stdio: 'inherit' });
+for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => child.kill(signal));
+child.once('error', () => { console.error('Service requires Linux flock and a writable data directory'); process.exitCode = 1; });
+child.once('exit', (code, signal) => { process.exitCode = code ?? (signal ? 1 : 0); });

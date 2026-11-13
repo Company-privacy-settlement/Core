@@ -1,5 +1,7 @@
 # Finalized settlement journal index
 
+[Supervised API/indexer hosting, HTTPS and backup/restore](HOSTING.md)
+
 [Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
 
 The Core indexer copies the configured shared registry's append-only `get_records` journal into local SQLite. It verifies the same immutable code, keyless-account, verifier, asset, denomination and fee policy used by the operations SDK. It supports native shared v2 and FT/USDC v3, without changing Contract or Front.

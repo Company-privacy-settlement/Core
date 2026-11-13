@@ -82,6 +82,10 @@ npm run serve
 
 `deploy:plan` 绑定测试网发布包与公开输入，`deploy:preflight` 检查最终化的网络、账户、密钥、代币及成本。`deploy:execute` 每次仅执行原子初始化、FT 注册或明确确认的移除密钥步骤，并持久记录公开交易意图。`deploy:reconcile` 只查询、不重发，`deploy:verify` 验证无密钥部署。签名密钥由独立的本地所有者专用文件管理，不进入 API。[命令与演练](docs/DEPLOYMENT.md) · [输入模板](examples/deployment.template.json)。
 
+## API 与索引器托管
+
+`build:service` 编译运行代码，`serve:service` 完成初始同步并监督只读 API 与单一 SQLite 写入进程。Docker/Compose 提供可选 Caddy HTTPS、持久卷及重启策略，并附有 Render 配置。必须提供策略摘要、准确来源及索引就绪验证，支持在线备份和禁止覆盖的恢复。[托管与恢复](docs/HOSTING.md) · [VPS 环境示例](ops/service.env.example)。实际对外部署仍需托管目标及已部署的测试网策略。
+
 ## 本地合约与证明验证
 
 将 Core、Contract、Front 放在相邻目录。Contract 需要固定 Rust **1.99.1**、WASM target 和 C/C++ 构建工具。在 Core 中：
@@ -96,7 +100,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` 可覆盖默认路径。Core 导入前验证 WASM/证明产物清单哈希。当前 setup 为单机开发仪式；替换时需匹配验证器、产物和新部署。生成文件不提交到 Git。
 
-**2026-11-13 记录的验证：**Core **215 个测试**、Front **98 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
+**2026-11-13 记录的验证：**Core **223 个测试**、Front **98 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
 
 ## 隐私、保管与恢复
 

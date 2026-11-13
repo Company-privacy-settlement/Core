@@ -1,0 +1,11 @@
+import { spawn } from 'node:child_process';
+import { resolve } from 'node:path';
+import { mkdirSync } from 'node:fs';
+const [mode, ...args] = process.argv.slice(2), dir = resolve(process.env.CORE_DATA_DIR ?? 'data/service');
+if (!['backup', 'restore'].includes(mode)) throw new Error('Choose backup or restore');
+mkdirSync(dir, { recursive: true, mode: 0o700 });
+const command = [process.execPath, 'dist/service/scripts/index-maintenance.js', mode, ...args];
+const child = mode === 'restore' ? spawn('flock', ['--nonblock', '--no-fork', resolve(dir, '.core-service.lock'), ...command], { stdio: 'inherit' }) : spawn(command[0], command.slice(1), { stdio: 'inherit' });
+for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => child.kill(signal));
+child.once('error', () => { console.error('Index maintenance launcher failed'); process.exitCode = 1; });
+child.once('exit', (code, signal) => { process.exitCode = code ?? (signal ? 1 : 0); });

@@ -1,0 +1,8 @@
+# Restore into a dedicated new volume; the original core-data volume is retained.
+services:
+  api:
+    volumes:
+      - core-restored:/data
+volumes:
+  core-restored:
+    name: ${CORE_RESTORE_VOLUME:?Choose a new empty restore volume name}

@@ -82,6 +82,10 @@ npm run serve
 
 `deploy:plan`으로 테스트넷 릴리스·공개 배포 입력을 고정하고 `deploy:preflight`로 최종화된 네트워크·계정·키·토큰·비용을 확인합니다. `deploy:execute`는 원자적 초기화·FT 등록·명시적으로 승인한 키 제거 중 한 단계만 실행하고 공개 전송 의도를 영구 기록합니다. `deploy:reconcile`은 재전송 없이 조회하며 `deploy:verify`는 키 없는 배포를 검증합니다. 서명 키는 별도의 소유자 전용 로컬 파일로 관리하며 API에서 사용하지 않습니다. [명령·리허설](docs/DEPLOYMENT.md) · [입력 템플릿](examples/deployment.template.json).
 
+## API·인덱서 서버 운영
+
+`build:service`로 운영용 코드를 컴파일하고 `serve:service`로 읽기 전용 API·단일 SQLite 인덱서의 초기 동기화와 프로세스 감시를 실행합니다. Docker/Compose는 선택적 Caddy HTTPS·영구 볼륨·재시작 정책을 제공하며 Render 설정도 포함합니다. 정책 해시·정확한 origin·인덱스 준비 검증을 요구하고 온라인 백업·덮어쓰지 않는 복원을 지원합니다. [서버 운영·복구](docs/HOSTING.md) · [VPS 환경 예시](ops/service.env.example). 실제 외부 배포에는 호스팅 대상과 배포된 테스트넷 정책이 필요합니다.
+
 ## 로컬 계약·증명 검증
 
 Core·Contract·Front를 형제 폴더로 체크아웃합니다. Contract 빌드에는 고정 Rust **1.99.1**, WASM target과 C/C++ 빌드 도구가 필요합니다. Core에서:
@@ -96,7 +100,7 @@ npm run demo:ft
 
 다른 경로는 `CORE_CONTRACT_REPO`로 지정합니다. Core는 WASM·증명 파일의 매니페스트 해시를 확인해 가져옵니다. 개발용 단일 머신 setup을 바꾸면 검증기·아티팩트·새 배포도 일치해야 합니다. 생성 파일은 Git에서 제외합니다.
 
-**2026-11-13 기록된 검증:** Core **215개 테스트**, Front **98개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
+**2026-11-13 기록된 검증:** Core **223개 테스트**, Front **98개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
 
 ## 프라이버시·보관·복구
 

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { execFileSync, spawnSync } from 'node:child_process';
+const image = process.argv[2] ?? 'core-service:ci';
+const config = JSON.parse(execFileSync('docker', ['image', 'inspect', image], { encoding: 'utf8' }))[0].Config;
+assert.equal(config.User, 'node');
+assert.deepEqual(config.Entrypoint, ['/usr/bin/tini', '--']);
+const result = spawnSync('docker', ['run', '--rm', '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges:true', '--tmpfs', '/data:rw,uid=1000,gid=1000,mode=0700', image], { encoding: 'utf8', timeout: 30000 });
+assert.equal(result.status, 1, 'Unconfigured image must fail closed');
+assert.match(result.stderr, /SERVICE_POLICY_PIN_REQUIRED/);
+console.log('Service image: unprivileged runtime and missing-policy fail-closed check passed');

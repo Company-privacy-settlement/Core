@@ -12,3 +12,13 @@ jobs:
       - run: npm ci
       - run: npm run check && npm test
       - run: npm run build:sdk
+      - run: npm run test:service-runtime
+  service-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: docker build --tag core-service:ci .
+      - run: node scripts/check-service-image.mjs core-service:ci

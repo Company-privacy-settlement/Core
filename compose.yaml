@@ -1,0 +1,55 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 30s
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    expose: ["3001"]
+    environment:
+      CORE_DATA_DIR: /data
+      CORE_POLICY_FILE: /config/policy.json
+      CORE_POLICY_SHA256: ${CORE_POLICY_SHA256:?Set the reviewed policy file SHA-256}
+      CORE_RPC_URL: ${CORE_RPC_URL:-https://rpc.testnet.near.org}
+      CORE_ALLOWED_ORIGINS: ${CORE_ALLOWED_ORIGINS:?Set exact Front origins}
+      CORE_API_REQUIRE_INDEX: "true"
+      CORE_API_HOST: 0.0.0.0
+      CORE_SERVICE_NETWORK: testnet
+      PORT: "3001"
+      CORE_BACKUP_INTERVAL_MS: ${CORE_BACKUP_INTERVAL_MS:-21600000}
+      CORE_BACKUP_KEEP: ${CORE_BACKUP_KEEP:-7}
+    volumes:
+      - core-data:/data
+      - type: bind
+        source: ${CORE_POLICY_PATH:?Set an existing reviewed policy JSON path}
+        target: /config/policy.json
+        read_only: true
+        bind:
+          create_host_path: false
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+  https:
+    profiles: [https]
+    image: caddy:2-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      CORE_API_DOMAIN: ${CORE_API_DOMAIN:?Set the API DNS name}
+      CORE_TLS_EMAIL: ${CORE_TLS_EMAIL:?Set the TLS operator email}
+    volumes:
+      - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
+      - tls-data:/data
+      - tls-config:/config
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+volumes:
+  core-data:
+  tls-data:
+  tls-config:

@@ -1,0 +1,5 @@
+# Optional override; use an archival RPC and a reviewed existing start block.
+services:
+  api:
+    environment:
+      CORE_DISCOVERY_START_HEIGHT: ${CORE_DISCOVERY_START_HEIGHT:?Set a reviewed discovery start height}

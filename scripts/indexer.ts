@@ -28,7 +28,7 @@ try {
   if (mode === "status") console.log(JSON.stringify(store.status(), null, 2));
   else {
     const worker = new SettlementIndexer(
-        new NearRpcIndexSource(policy.network, policy.registry, rpc!),
+        new NearRpcIndexSource(policy.network, policy.registry, rpc!, controller.signal),
         store,
       ),
       interval = z.coerce

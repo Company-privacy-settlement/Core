@@ -1,5 +1,7 @@
 # Settlement operations SDK and read-only API
 
+[Supervised API/indexer hosting, HTTPS and backup/restore](HOSTING.md)
+
 [Service overview](SERVICE.md) · [Development roadmap](ROADMAP.md)
 
 These operations work with a caller-supplied, independently trusted shared v2/v3 policy. They do not sign, broadcast, generate a proof, or custody notes. Wallet execution is provided by Front’s configured testnet workspace through the browser SDK; private note creation and proof generation remain local CLI operations. See [wallet execution and recovery](WALLET.md).

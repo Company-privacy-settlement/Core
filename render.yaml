@@ -1,0 +1,29 @@
+# Optional paid hosting blueprint; review service/disk cost before provisioning.
+services:
+  - type: web
+    name: core-api-indexer
+    runtime: docker
+    plan: starter
+    autoDeployTrigger: "off"
+    healthCheckPath: /readyz
+    dockerfilePath: ./Dockerfile
+    numInstances: 1
+    disk:
+      name: core-index
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: CORE_POLICY_JSON
+        sync: false
+      - key: CORE_POLICY_SHA256
+        sync: false
+      - key: CORE_ALLOWED_ORIGINS
+        sync: false
+      - key: CORE_RPC_URL
+        value: https://rpc.testnet.near.org
+      - key: CORE_API_REQUIRE_INDEX
+        value: "true"
+      - key: CORE_BACKUP_INTERVAL_MS
+        value: "21600000"
+      - key: CORE_BACKUP_KEEP
+        value: "7"

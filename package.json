@@ -32,6 +32,12 @@
     "deploy:reconcile": "tsx scripts/deploy.ts reconcile",
     "deploy:verify": "tsx scripts/deploy.ts verify",
     "test:deployment-sandbox": "tsx tests/manual/deployment-sandbox.ts",
+    "build:service": "node scripts/build-service.mjs",
+    "serve:service": "node scripts/start-service.mjs",
+    "index:backup": "node scripts/index-maintenance.mjs backup",
+    "index:restore": "node scripts/index-maintenance.mjs restore",
+    "service:health": "node scripts/service-health.mjs",
+    "test:service-runtime": "npm run build:service && tsx tests/manual/service-runtime.ts",
     "index": "tsx scripts/indexer.ts",
     "test:groups-proof": "tsx tests/manual/groups-proof.ts"
   },

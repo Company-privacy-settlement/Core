@@ -1,0 +1,23 @@
+{
+    email {$CORE_TLS_EMAIL}
+}
+
+{$CORE_API_DOMAIN} {
+    encode zstd gzip
+    header {
+        -Server
+        Cache-Control "no-store"
+        X-Content-Type-Options "nosniff"
+    }
+    request_body {
+        max_size 64KB
+    }
+    reverse_proxy api:3001 {
+        health_uri /readyz
+        health_interval 30s
+        health_timeout 20s
+        health_status 200
+        header_up -X-Forwarded-For
+        header_up -X-Real-IP
+    }
+}
