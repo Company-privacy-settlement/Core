@@ -9,7 +9,7 @@ Front `/prove/` creates and verifies a Groth16 FT withdrawal proof on the user's
 1. Import the note's independently trusted **testnet FT policy**, then reopen its encrypted backup with the local passphrase. The complete backup policy and commitment must match. Keep the backup until final withdrawal reconciliation.
 2. Import `manifest.json`, `spend.wasm`, `spend.zkey` and `verification_key.json` from the reviewed release. Enter the **artifact manifest's SHA-256 from an independent trusted channel**. This is the digest of `artifacts/manifest.json`, not `release.json`, the archive, or the browser SDK manifest.
 3. Select a verified payout vault in the original group and load its finalized public snapshot from the matching API. An offline public snapshot can also be imported; importing alone does not establish chain freshness or deployment readiness.
-4. Set the exact recipient and disclosure root. For invoice payment, copy the signed invoice recipient and selected unit's reference exactly. A random reference does not settle an invoice. Connected note-to-invoice selection remains separate U02 work.
+4. Set the exact recipient and disclosure root. For invoice payment, use [connected checkout](INVOICE_PAYMENTS.md) to derive the exact signed recipient and selected unit reference automatically. For standalone/manual actions, copy both exactly; a random reference does not settle an invoice.
 5. Choose **Generate local proof**. The worker verifies files, reconstructs all 256 padded leaves/eight tree levels, finds the note, checks the advertised root, builds the witness, proves and verifies locally. All five public signals must match the locally expected values.
 6. Download the proof file and/or public withdrawal plan. Import the plan into Settlements with the same trusted policy. Existing wallet preflight, signing guards, fees, destination binding and conservative reconciliation still apply. A proof does not reserve liquidity, register a recipient or confirm withdrawal.
 
@@ -54,9 +54,9 @@ The `core-browser-proof` version-1 file contains the policy, action, information
 
 The worker uses pinned [snarkjs 0.7.6](https://github.com/iden3/snarkjs/tree/v0.7.6). Its exported curve builder initializes a single-thread engine reused for proving and verification, without nested worker pools or a SharedArrayBuffer requirement. Witness calculation requests 256 initial memory pages. Operation deadlines default to 180 seconds and are bounded to 300 seconds; errors/timeout/success all dispose of the worker. Third-party witness errors and stack traces are never returned to the UI. Dependency licensing/source notices remain in the bundled worker and corresponding repository/release sources.
 
-## Recorded validation — 2026-11-13
+## Initial U01 validation — 2026-11-13
 
-The full Core suite passed **275 tests**, including **19 prover regressions**. Front type/build checks, **132 desktop/mobile browser cases** with real proving assets and three unit cases passed, together with the compiled settlement/organization runtime harnesses. Hosted Actions and funded public-network execution remain unobserved.
+The initial U01 full Core suite passed **275 tests**, including **19 prover regressions**. Front type/build checks, **132 desktop/mobile browser cases** with real proving assets and three unit cases passed, together with the compiled settlement/organization runtime harnesses. Hosted Actions and funded public-network execution remain unobserved.
 
 The final full Core run bounded test-file concurrency to two on this host (`node --import tsx --test --test-concurrency=2 tests/*.test.ts tests/*.test.mjs`); the test inventory is the same as `npm test`.
 
@@ -70,3 +70,5 @@ Core regressions cover CLI witness/public-input and encoding parity, committed p
 | Mobile emulation 390×844 | 3.49 s | 0.50 s | ~608 MiB |
 
 The RSS sample covers the aggregate Chromium process tree, including browser/renderers; it is not a precise WASM heap peak. These are single-run observations on this development host, with concurrent work possible, not a performance guarantee or physical-phone qualification. Real Safari/Firefox/mobile wallets and constrained devices remain U05. The report at `demo-output/browser-prover-validation.json` contains timings, aggregate memory scope and public compatibility checks only. No public-network transaction or backend deployment was performed.
+
+Connected invoice payments and the subsequent 289-Core/148-browser regression verification are recorded in [Invoice payments](INVOICE_PAYMENTS.md). The measurements above remain the initial standalone-prover observations.

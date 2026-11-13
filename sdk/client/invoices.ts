@@ -333,6 +333,7 @@ export async function matchInvoicePlan(
   input: unknown,
   invoice: Invoice,
   payer: string,
+  paymentIndex?: number,
 ) {
   requireOpenInvoice(invoice);
   const p = await preparedPayment(input, invoice.policy, payer);
@@ -340,6 +341,7 @@ export async function matchInvoicePlan(
     p.reference.kind !== "withdrawal" ||
     p.reference.expectedRecipient !== invoice.recipient ||
     !(await invoicePaymentRoots(invoice)).includes(p.reference.expectedDisclosureRoot ?? "")
+    || (paymentIndex !== undefined && p.reference.expectedDisclosureRoot !== await invoiceRoot(invoice, paymentIndex))
   )
     throw new Error("Payment proof must bind this invoice root and recipient");
   return p;

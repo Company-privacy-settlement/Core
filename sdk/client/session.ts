@@ -14,6 +14,7 @@ import type {
   Observation,
   Operation,
   Policy,
+  Reference,
   TxRef,
   WalletPort,
 } from "./types.js";
@@ -27,6 +28,10 @@ export type Review = {
   callHash?: string;
   recordHash: string;
 };
+export type SettlementGuards = {
+  beforeImport?: (payment: { payment: Call; reference: Reference }, payer: string, operations: readonly Operation[]) => Promise<void>;
+  beforeSubmit?: (operation: Operation, review: Review, operations: readonly Operation[]) => Promise<() => void>;
+};
 
 export class SettlementSession {
   readonly policy: Policy;
@@ -35,6 +40,7 @@ export class SettlementSession {
     readonly gateway: Gateway,
     readonly wallet: WalletPort,
     policy: Policy,
+    private readonly guards: SettlementGuards = {},
   ) {
     this.policy = parsePolicy(policy);
   }
@@ -66,6 +72,7 @@ export class SettlementSession {
       identity.accountId,
     );
     return this.journal.update(async (operations, persist) => {
+      await this.guards.beforeImport?.(prepared, identity.accountId, operations);
       if (operations.length >= 100)
         throw new Error(
           "Journal capacity reached; preserve a backup and start another journal",
@@ -291,6 +298,8 @@ export class SettlementSession {
         throw new Error(
           "Attempt limit reached; reconcile existing transactions",
         );
+      const authorize = await this.guards.beforeSubmit?.(o, review, operations);
+      check();
       const a: Attempt = {
         kind: review.kind,
         call: review.call,
@@ -301,11 +310,17 @@ export class SettlementSession {
       o.attempts.push(a);
       await persist(); // No wallet call until the encrypted write is durable.
       check(); // Locking while storage or preflight was pending revokes dispatch.
+      try { authorize?.(); }
+      catch (error) {
+        // Dispatch has not been invoked. Remove only this never-sent intent.
+        o.attempts.pop(); await persist(); throw error;
+      }
       try {
         const tx = await this.wallet.sign(a.call, {
           operationId: id,
           attempt: o.attempts.length - 1,
           identity: { network: this.policy.network, accountId: o.payer },
+          authorize: () => { check(); authorize?.(); },
         });
         if (tx) {
           a.transaction = transactionRef(tx);

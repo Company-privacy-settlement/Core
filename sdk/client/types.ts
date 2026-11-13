@@ -75,7 +75,7 @@ export interface WalletPort {
   identity(): Promise<Identity>;
   sign(
     call: Call,
-    context: { operationId: string; attempt: number; identity: Identity },
+    context: { operationId: string; attempt: number; identity: Identity; authorize?: () => void },
   ): Promise<TxRef | void>;
 }
 export type Attempt = {

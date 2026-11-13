@@ -17,7 +17,7 @@ This repository contains the SDK, local browser prover and proving CLI, read-onl
 | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js landing, English Docs, invoices, notes, settlement, evidence and sample KYB |
 
 
-Local browser proving now supports FT withdrawal proofs, cancellation, independently pinned WASM/zkey/verifier files and proof-file verification. Export reviewed artifacts with `npm run prover:export`; see [Browser prover](docs/BROWSER_PROVER.md). Connected note-to-invoice proving remains separate.
+Local browser proving now supports FT withdrawal proofs, cancellation, independently pinned WASM/zkey/verifier files and proof-file verification. Export reviewed artifacts with `npm run prover:export`; see [Browser prover](docs/BROWSER_PROVER.md). [Connected invoice checkout](docs/INVOICE_PAYMENTS.md) supports original-group encrypted note selection → local proof → amount/fee review → separate wallet approvals → finalized confirmation, with selected-unit binding, cancellation, fresh merchant/status gates and conservative recovery.
 
 ## What is available
 
@@ -111,7 +111,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` overrides the default `../Contract`. Core verifies artifact manifest hashes before importing WASM/proving files. The setup is a single-machine development ceremony; replacing it requires matching verifier/artifacts and new deployments. Generated artifacts stay out of Git.
 
-Recorded validation on **2026-11-13**: Core **275 tests**, Front **132 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
+Recorded validation on **2026-11-13**: Core **289 tests**, Front **148 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
 
 ## Privacy, custody and recovery
 
@@ -125,4 +125,4 @@ The US / Abu Dhabi scope is a planned preparation layer, with US state and ADGM/
 
 [Wallet/recovery](docs/WALLET.md) · [Browser notes](docs/BROWSER_NOTES.md) · [Recipients](docs/RECIPIENTS.md) · [Invoices](docs/INVOICES.md) · [Invoice library](docs/INVOICE_LIBRARY.md) · [Browser receipts](docs/BROWSER_RECEIPTS.md) · [Groups](docs/GROUPS.md) · [Privacy](docs/PRIVACY.md) · [Indexer](docs/INDEXER.md) · [Roadmap](docs/ROADMAP.md)
 
-The hosted development workspace is owner-private; external customer checkout requires suitable access configuration and an independently deployed/funded group. No funded public deployment is bundled. Connected note-to-invoice browser payments, variable amounts, private group migration, real compliance integrations, independent security review and a reviewed multi-party setup remain outstanding.
+The hosted development workspace is owner-private; external customer checkout requires suitable access configuration and an independently deployed/funded group. No funded public deployment is bundled. Variable amounts, private group migration, real compliance integrations, independent security review and a reviewed multi-party setup remain outstanding.

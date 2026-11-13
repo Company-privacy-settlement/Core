@@ -121,12 +121,14 @@ export class HttpGateway implements Gateway {
     if (result.vault !== selected) throw new Error('API substituted the selected payout vault');
     return result;
   }
-  async verifyInvoice(input: SignedInvoice) {
+  async verifyInvoice(input: SignedInvoice, options: { signal?: AbortSignal } = {}) {
     const signed = await verifySignedInvoice(input);
-    await this.trusted(signed.invoice.policy);
+    options.signal?.throwIfAborted();
+    await this.trusted(signed.invoice.policy, options.signal);
     const result = await this.request(
       "/v1/invoices/verify",
       await invoiceProof(signed),
+      options.signal,
     );
     if (
       result.invoiceHash !== (await invoiceHash(signed.invoice)) ||
@@ -140,10 +142,10 @@ export class HttpGateway implements Gateway {
       );
     return signed;
   }
-  async invoiceStatus(input: SignedInvoice): Promise<InvoiceStatus> {
-    const signed = await this.verifyInvoice(input),
+  async invoiceStatus(input: SignedInvoice, options: { signal?: AbortSignal } = {}): Promise<InvoiceStatus> {
+    const signed = await this.verifyInvoice(input, options),
       hash = await invoiceHash(signed.invoice),
-      result = await this.request("/v1/invoices/status", await invoiceStatusRequest(signed.invoice)),
+      result = await this.request("/v1/invoices/status", await invoiceStatusRequest(signed.invoice), options.signal),
       roots = await invoicePaymentRoots(signed.invoice);
     if (
       result.invoiceHash !== hash ||

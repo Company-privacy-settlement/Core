@@ -76,7 +76,7 @@ The current privacy protocol uses fixed denominations. Invoice principal is `uni
 
 For a 1 USDC group (six decimals), a two-unit invoice requests **2,000,000 atomic units = 2 USDC**. Two withdrawals charge **3,000 atomic units = 0.003 USDC** in protocol fees, on top of principal; the merchant receives the full 2 USDC. Fee rounding happens per note. NEAR storage/first-use credit bonds/token registration and network gas are separate. A payer who must first create private notes also pays the existing deposit-side 0.15% fee. The merchant's off-chain invoice signature itself charges no protocol fee or gas.
 
-Payers can create FT notes and verify encrypted backups locally in [Front Private notes](BROWSER_NOTES.md), or use the Core CLI. FT withdrawal proofs can be generated in [Local proofs](BROWSER_PROVER.md) or the CLI. Copy the exact signed recipient and unit reference; connected note-to-invoice selection remains U02. Browser checkout executes prepared public FT withdrawal plans; it does not create new Groth16 proofs or accept private note files. It supports repeated per-note payments for multi-unit invoices. No easy wallet-only/fiat checkout is implied.
+Payers create FT notes and verify encrypted backups locally in [Private notes](BROWSER_NOTES.md), or use the Core CLI. [Connected checkout](INVOICE_PAYMENTS.md) opens an original-group encrypted note, derives the selected signed unit reference, generates and verifies its proof locally, then imports only the public plan for explicit fee review and wallet approval. The [standalone prover](BROWSER_PROVER.md) and CLI remain alternatives. Repeat with distinct notes and unit references for multi-unit invoices. No fiat checkout is implied.
 
 ## Run a private invoice payment
 
@@ -86,7 +86,7 @@ Run the verified Core API and index worker as described in [INDEXER.md](INDEXER.
 2. Connect the merchant wallet, review the payout account/price/expiry, and choose **Sign & create payment link**. Download the signed invoice.
 3. Share the link/file through a suitable channel. Anyone holding it can read its title/reference and signed payment terms.
 4. The payer opens checkout, independently imports the trusted group policy, verifies the merchant, connects their wallet and unlocks their encrypted operation journal.
-5. Prepare an action locally and generate one withdrawal plan per private note:
+5. Select a payment unit, open its original-group encrypted note and import independently trusted proving files/hash. Choose **Generate invoice proof**, then **Review amount & fees**. See the [connected payment guide](INVOICE_PAYMENTS.md) for cancellation, local duplicate checks and recovery. Alternatively, prepare the public plan with the CLI:
 
 ```sh
 npm run cli -- invoice-action trusted-policy.json signed-invoice.json invoice-action.json 1
@@ -96,7 +96,7 @@ npm run cli -- shared-spend-args trusted-policy.json https://rpc.testnet.near.or
 
 `invoice-action` validates the local signature, policy and open time; merchant on-chain key ownership is checked by checkout before signing. A failed/missing API verification must not be replaced with trusting the included key. Existing CLI password handling stays in `CORE_NOTE_PASSWORD`; private note files stay on the payer's device. The final CLI argument selects a **1-based payment unit**, required for multi-unit v2 invoices. Choose 2 for the next unit, and so on. Front’s Payment unit selector downloads the corresponding public proof action. Legacy v1 and single-unit v2 accept the original three-file command.
 
-6. Import `public-invoice-payment.json` into checkout. Approve each prerequisite/payment. Refresh the merchant's indexed invoice status as the worker observes completed payouts. Repeat for the required units.
+6. For CLI output, import `public-invoice-payment.json` with the matching unit selected. Review the full principal, additive 0.15% fee and separate NEAR costs, then approve each prerequisite/payment individually. Checkout observes the bound finalized record with bounded read-only polling; invoice totals are indexed separately and may lag. Repeat with a different note for each required unit.
 7. Export the indexed summary for reconciliation. Existing evidence bundles can independently verify selected linked transaction records. The request signature proves its terms; the index observations report settlement. Neither proves legal identity, complete company history or tax filing acceptance.
 
 ## State model

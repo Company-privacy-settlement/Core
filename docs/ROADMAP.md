@@ -15,6 +15,7 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 | Invoice library | Optional encrypted merchant/network storage, explicit save/search/open, backup/restore and immutable-request merge; no paid-status cache | [Library](INVOICE_LIBRARY.md) |
 | Groups | Caller-approved directory, capacity discovery and ordered selection, browser rechecks, full/retired original-group recovery and namespace-bound journals | [Groups](GROUPS.md) |
 | Recipients | Distinct account activation/token registration, observed minimum storage cost, inspectable registration calls and stale-response invalidation | [Recipients](RECIPIENTS.md) |
+| Connected invoice payments | Original-group encrypted note → local proof → selected-unit fee review → separate approvals → finalized confirmation, bounded public polling and conservative recovery | [Invoice payments](INVOICE_PAYMENTS.md) |
 | Browser proving | Local FT withdrawal Groth16 proofs in a disposable worker, independently pinned files, reconstructed original-group tree, cancellation and proof-file verification | [Browser prover](BROWSER_PROVER.md) |
 | Browser notes | Local FT note creation, encrypted file backup/reopen, CLI interoperability and bounded public deposit plans | [Notes](BROWSER_NOTES.md) |
 | Browser evidence | Private receipts, separate encrypted backup/reopen, explicit selected-field exports, independent-root integrity checks, root-only deposit preparation and CLI evidence compatibility | [Receipts](BROWSER_RECEIPTS.md) |
@@ -26,8 +27,8 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 
 The latest recorded full implementation runs on **2026-11-13** include:
 
-- Core: `npm run check`, **275 tests** via `npm test`, browser-client build.
-- Front: type/build checks, **132 browser cases**, and sample-KYB unit coverage.
+- Core: `npm run check`, **289 tests** via `npm test`, browser-client build.
+- Front: type/build checks, **148 browser cases** verified (146 in the full run plus two corrected selected-unit regressions on a focused rerun), and three sample-KYB unit cases.
 - `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
 
 The FT is a local **TESTUSD fixture, not Circle-issued USDC**. No funded public-network wallet smoke test has been completed. These are dated results; documentation edits do not imply fresh execution of every suite. Reproduction: [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract).
@@ -36,7 +37,7 @@ Historical reviews: [invoice/index](REVIEW-2026-11-12.md), [selection/checkout](
 
 ## Remaining development — priority and status
 
-The backlog below contains **36 work packages: R01/R02/U01 tooling implemented, 33 open** across six areas. They are planning items, not 36 discovered vulnerabilities or equally urgent release blockers. Completed capabilities above must be reused rather than rebuilt. Ownership names refer to repositories/workstreams, not assigned people. Effort and dates remain unestimated until deployment access, provider choices and product requirements are known.
+The backlog below contains **36 work packages: R01/R02/U01/U02 tooling implemented, 32 open** across six areas. They are planning items, not 36 discovered vulnerabilities or equally urgent release blockers. Completed capabilities above must be reused rather than rebuilt. Ownership names refer to repositories/workstreams, not assigned people. Effort and dates remain unestimated until deployment access, provider choices and product requirements are known.
 
 - **P0 — public testnet demo:** required to demonstrate the existing protocol with a real funded deployment and wallets. External accounts/funding and hosting-audience decisions are dependencies, not authorization to spend funds, remove keys or change access.
 - **P1 — usable merchant flow:** removes CLI friction and adds merchant operations. These are service additions, not claims of production safety.
@@ -44,7 +45,7 @@ The backlog below contains **36 work packages: R01/R02/U01 tooling implemented, 
 - **Design — optional protocol scope:** requires an explicit requirement and version/compatibility analysis. Do not bundle these research changes into a release of the current fixed-denomination protocol.
 - **Gate — before production funds:** independent security, setup and operational/product qualification. Gate work starts in parallel; it cannot wait until after a production launch.
 
-All entries below except **R01/R02/U01 tooling** are **open** unless explicitly labeled an existing foundation. External dependency does not mean development is blocked: prepare dry-runs, reviewable manifests, runbooks, adapters and fixtures first.
+All entries below except **R01/R02/U01/U02 tooling** are **open** unless explicitly labeled an existing foundation. External dependency does not mean development is blocked: prepare dry-runs, reviewable manifests, runbooks, adapters and fixtures first.
 
 ## P0 — public testnet release (6)
 
@@ -61,8 +62,8 @@ All entries below except **R01/R02/U01 tooling** are **open** unless explicitly 
 
 | ID | Work package / owner | Completion evidence | Dependencies |
 | --- | --- | --- | --- |
-| U01 | **Implemented:** local browser Groth16 prover — Core + Front | [Worker-based FT withdrawal proofs](BROWSER_PROVER.md), independent artifact hashes and verifier binding, reconstructed tree, CLI public-input/encoding parity, cancellation and proof-file verification. Actual Chromium proofs pass independent Node verification; timings and aggregate RSS are recorded for desktop/mobile emulation. | Physical-device/browser qualification remains U05; connected invoice flow remains U02 |
-| U02 | Connected note-to-invoice payment flow — Core + Front | Select an original-group note, chosen invoice unit and exact recipient; prepare/prove/review/pay with per-unit progress and conservative recovery. Never substitute an arbitrary evidence root for the invoice reference. | U01; existing journal, invoices and public-plan validation |
+| U01 | **Implemented:** local browser Groth16 prover — Core + Front | [Worker-based FT withdrawal proofs](BROWSER_PROVER.md), independent artifact hashes and verifier binding, reconstructed tree, CLI public-input/encoding parity, cancellation and proof-file verification. Actual Chromium proofs pass independent Node verification; timings and aggregate RSS are recorded for desktop/mobile emulation. | Physical-device/browser qualification remains U05; connected invoice flow delivered in U02 |
+| U02 | **Implemented:** connected note-to-invoice payment flow — Core + Front | [Note → proof → amount/fee review → explicit approvals → finalized confirmation](INVOICE_PAYMENTS.md), derived selected-unit action, current-key/status gates, duplicate intent checks, cancellation/cache locks and read-only recovery. Actual browser proofs pass independent Node verification. | Funded public-wallet and physical-device qualification remain R03/U05; on-chain invoice caps remain X04 |
 | U03 | Guided account activation and funding — Front + Core | Explain missing account, token registration, gas and storage separately; hand off to a compatible wallet and recheck finalized readiness. Any sponsorship is explicit and quoted; never guess activation amounts. Existing readiness checks remain read-only. | Actual wallet/token capability qualification |
 | U04 | Backup, archive and storage lifecycle — Core + Front | Exercise restore after device/browser-data loss and supported format upgrades; show bounded-store capacity and permit safe archive/export of reconciled history. Keep unresolved intents; never erase a spendable note or signing intent to free space. | Current separate encrypted note/receipt/journal/library formats |
 | U05 | Real browser and wallet matrix — Front + Core | Test supported desktop/mobile wallets, NEP-413 signing, navigation interruption, cache return, storage quota and Web Locks behavior. Existing mobile tests emulate Chromium; they do not qualify Safari, Firefox or real mobile wallets. Unsupported features fail clearly and safely. | R03; supported-device/wallet list |
@@ -131,7 +132,7 @@ Severity describes potential impact for the relevant deployment stage, not a new
 | Late/concurrent invoice overpayment | Known limit / merchant reconciliation burden | Index tracks late/overpaid/reused references; expiry/caps are app rules, not reservations. Recovery can complete after expiry. | M05/M06; X04 if required |
 | Invoice/evidence root substitution | Known integration boundary / invalid checkout or misleading evidence | Exact invoice reference checks already reject substitution; current receipts and invoice unit roots are distinct workflows. | M04; preserve existing checks |
 | Stale/incomplete index or RPC outage | Known dependency / delayed or incomplete status | Finalized checkpoints, explicit provenance/coverage, budgets and readiness exist. Scaling, multi-provider operations and restore drills remain unqualified. | R04/S04 |
-| CLI proving and unqualified wallets/devices | Product gap / users cannot complete payment | Browser notes and standalone FT proofs work; connected note-to-invoice selection is still manual. Testnet wallet adapter and Chromium-emulated mobile tests do not establish broad device support. | U01/U02/U05/R03 |
+| Unqualified public wallets/devices | Qualification gap / compatibility remains unproven | Browser notes, standalone proofs and connected invoice payments work with local proving. Testnet wallet adapter and Chromium-emulated mobile tests do not establish broad device support. | U01/U02/U05/R03 |
 | Hosted audience or missing deployment funds | Demo dependency / checkout unavailable to recipients | Hosted site remains owner-private; no funded public group is bundled. Site access and deployment funding are separate dependencies. | R02/R03/R06 |
 | Bounded browser stores and cross-device recovery | Known limit / inability to add history or recover local state | Journal/library are bounded and encrypted; exports exist, but operational archiving/device-loss drills and compatibility UX remain work. | U04/U05 |
 | Real KYB/tax claims without provider/rule evidence | Service gap / incorrect identity or business conclusions | UI exports are explicitly unverified/unsubmitted; SDK issuer checks and receipt integrity do not establish real identity or tax acceptance. | E03/E05/E06/S06 |
@@ -143,11 +144,11 @@ Severity describes potential impact for the relevant deployment stage, not a new
 1. **R01/R02 tooling delivered → R04/R03:** review the [release bundle](RELEASES.md) and [deployment plan](DEPLOYMENT.md); provision the API/index and deliberately execute funded testnet steps when credentials/funding are available.
 2. **R05 tooling delivered:** configure private-repository checkout and reusable-workflow access, then observe the [exact three-repository integration](CI.md) in Actions. Local checks do not substitute for a hosted run.
 3. **R04 → R03 → R06:** stand up a verified testnet API/index, qualify actual funded-wallet settlement, then test the complete demo for its intended audience. Funding/access choices remain explicit dependencies.
-4. **U01 → U02**, with U03–U06: connect the delivered local prover to invoice selection and qualify user recovery/devices before promising wallet-only checkout.
+4. **U01/U02 delivered → U03–U06:** qualify user recovery, backup lifecycle and real devices/wallets before promising broadly supported checkout.
 5. **M01 → M02/M03**, then M04–M06: add persistent merchant operations without giving a service custody of principal.
 6. **E01 → E02/E03/E04 → E05 → E06:** add enterprise controls and real reviewed preparation. Use fixtures until provider/data access is deliberately configured.
 7. **S01–S06 start alongside the relevant stages and must close before production funds.** X01–X06 are optional, separately scoped/versioned work; none is a reason to silently change existing notes, groups or destinations.
 
-This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 275 Core tests, 132 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
+This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 289 Core tests, 148 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
 
 Organization access review and fixes: [2026-11-13 findings and validation](REVIEW-2026-11-13-ORGANIZATIONS.md).

@@ -17,7 +17,7 @@ Core 是面向企业间付款和企业→员工转账的开发协议。独立 va
 | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js 首页、英文 Docs、发票、票据、结算、证据与示例 KYB |
 
 
-本地浏览器支持 FT 提现证明生成与取消、独立哈希固定的 WASM/zkey/验证密钥校验及证明文件重新验证。使用 `npm run prover:export` 导出已审核文件，详见[浏览器证明指南](docs/BROWSER_PROVER.md)。票据与发票自动关联仍为独立工作。
+本地浏览器支持 FT 提现证明生成与取消、独立哈希固定的 WASM/zkey/验证密钥校验及证明文件重新验证。使用 `npm run prover:export` 导出已审核文件，详见[浏览器证明指南](docs/BROWSER_PROVER.md)。[发票结账](docs/INVOICE_PAYMENTS.md)支持原分组加密票据选择 → 本地证明 → 金额与费用确认 → 逐项钱包授权 → 最终付款确认，并提供所选单位绑定、取消、签名前商户密钥/状态复查与保守恢复。
 
 ## 当前功能
 
@@ -111,7 +111,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` 可覆盖默认路径。Core 导入前验证 WASM/证明产物清单哈希。当前 setup 为单机开发仪式；替换时需匹配验证器、产物和新部署。生成文件不提交到 Git。
 
-**2026-11-13 记录的验证：**Core **275 个测试**、Front **132 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
+**2026-11-13 记录的验证：**Core **289 个测试**、Front **148 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
 
 ## 隐私、保管与恢复
 
@@ -125,4 +125,4 @@ npm run demo:ft
 
 [钱包/恢复](docs/WALLET.md) · [浏览器票据](docs/BROWSER_NOTES.md) · [收款准备](docs/RECIPIENTS.md) · [发票](docs/INVOICES.md) · [发票库](docs/INVOICE_LIBRARY.md) · [收据](docs/BROWSER_RECEIPTS.md) · [组](docs/GROUPS.md) · [隐私](docs/PRIVACY.md) · [索引](docs/INDEXER.md) · [路线](docs/ROADMAP.md)
 
-当前托管仅限所有者；外部客户结账需要相应访问设置和独立部署/注资的组。不包含已注资公开部署。票据与发票关联的浏览器支付、可变金额、私密跨组迁移、真实合规集成、独立安全审查及已审核多方 setup 仍待完成。
+当前托管仅限所有者；外部客户结账需要相应访问设置和独立部署/注资的组。不包含已注资公开部署。可变金额、私密跨组迁移、真实合规集成、独立安全审查及已审核多方 setup 仍待完成。
