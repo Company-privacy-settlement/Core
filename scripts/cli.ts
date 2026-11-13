@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { createNote, validateNote, domain, quoteFees, encodeVerificationKey, NoteTree, proveSpend, shutdownProver, STORAGE_FEE, CAPACITY, type Note, type Pool, type Action } from '../sdk/core.js';
-import { createReceipt, disclose, decryptPrivate, encryptPrivate, type Receipt, type ReceiptField } from '../sdk/disclosure.js';
+import { createReceipt, decryptPrivate, encryptPrivate, type ReceiptField } from '../sdk/disclosure.js';
 import { NearRpcEvidenceSource, verifyBundle, type SettlementBundle } from '../sdk/evidence.js';
 import { createFreshRecipient } from '../sdk/wallet.js';
 import { randomBytes } from 'node:crypto';
@@ -15,6 +15,7 @@ import {verifySignedInvoice,invoiceRoot,requireOpenInvoice} from '../sdk/client/
 import {canonical} from '../sdk/client/crypto.js';
 import {parsePolicy} from '../sdk/client/payment.js';
 import {openNoteBackup} from '../sdk/client/notes.js';
+import {openReceiptBackup, discloseReceipt} from '../sdk/client/receipts.js';
 
 const [command, ...args] = process.argv.slice(2);
 const json = async (path: string) => JSON.parse(await readFile(path, 'utf8'));
@@ -228,7 +229,16 @@ try {
     }
     case 'disclose': {
       if (args.length !== 2) throw new Error('disclose private-receipt.json asset,amount,reference');
-      output(disclose(await json(args[0]) as Receipt, args[1].split(',') as ReceiptField[]));
+      const envelope = await readFile(args[0], 'utf8');
+      if (envelope.length > 200_000) throw new Error('Receipt file exceeds 200 KB');
+      const raw = JSON.parse(envelope);
+      let receipt = raw;
+      if (raw?.format === 'core-private-receipt') {
+        const password = process.env.CORE_RECEIPT_PASSWORD;
+        if (!password) throw new Error('Set CORE_RECEIPT_PASSWORD; never pass receipt passwords as CLI arguments');
+        receipt = await openReceiptBackup(envelope, password);
+      }
+      output(await discloseReceipt(receipt, args[1].split(',') as ReceiptField[]));
       break;
     }
     case 'verify-bundle': {

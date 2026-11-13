@@ -176,3 +176,5 @@ SDK、CLI、API 和网页提供只读的[收款账户准备检查](docs/RECIPIEN
 [浏览器私密票据流程](docs/BROWSER_NOTES.md)支持本地生成 FT 票据、下载并重新验证加密备份，以及准备供钱包审核的公开存款计划。备份可直接用于现有 shared/group CLI；API 只接收公开承诺，Groth16 支出证明仍在本地 CLI 生成。
 
 私密票据、发票库和操作日志在历史缓存生命周期事件时锁定。日志锁定会撤销待处理访问并阻止延迟的钱包请求；已开始的签名保持未决，须显式核对后恢复。[私密视图审查](docs/REVIEW-2026-11-13-NOTES.md) · [日志取消审查](docs/REVIEW-2026-11-13-JOURNAL.md)。
+
+[浏览器私密收据](docs/BROWSER_RECEIPTS.md)加密完整内容，仅导出明确选择的字段与证明，并使用独立提供的根验证完整性。存款准备只传递根。加密备份兼容 CLI `disclose`；交易锚定仍由独立的 `verify-bundle` 检查。

@@ -19,6 +19,7 @@ import { NearRpcSharedSource, discoverSharedVaults, loadSharedTree, predictShare
 import { buildFtDeposit, buildFtWithdrawal, buildFtRegistration, buildStoragePrepayment, quoteFtFees, type ContractCall } from '../sdk/ft.js';
 import { createFreshRecipient } from '../sdk/wallet.js';
 import { createReceipt, disclose, type Receipt } from '../sdk/disclosure.js';
+import { createReceipt as createBrowserReceipt, encryptReceiptBackup, openReceiptBackup, discloseReceipt, verifyReceiptDisclosure } from '../sdk/client/receipts.js';
 import { NearRpcEvidenceSource, verifyBundle, type SettlementBundle } from '../sdk/evidence.js';
 import { ensureSandbox } from './sandbox.js';
 
@@ -99,7 +100,11 @@ try {
   const reopened=await openNoteBackup(browserBackup,'sandbox browser note backup',policy);
   assert.equal(reopened.note.commitment,browserNote.commitment);
   const notes=[reopened.note,await createNote(pool),await createNote(pool)];
-  const firstRoot=receipt(),firstMessage=JSON.stringify({commitment:notes[0].commitment,disclosure_root:firstRoot});
+  const browserReceipt=await createBrowserReceipt({sender:'private sandbox sender',recipient:'private sandbox recipient',asset:`nep141:${token.accountId}`,amount:USD.toString(),purpose:'Browser receipt deposit',reference:'RECEIPT-SANDBOX',occurredAt:new Date().toISOString(),credentialHash:''});
+  const browserReceiptBackup=await encryptReceiptBackup(browserReceipt,'sandbox receipt backup passphrase');
+  const restoredReceipt=await openReceiptBackup(browserReceiptBackup,'sandbox receipt backup passphrase');
+  receipts.set(restoredReceipt.root,restoredReceipt);
+  const firstRoot=restoredReceipt.root,firstMessage=JSON.stringify({commitment:notes[0].commitment,disclosure_root:firstRoot});
   const beforeAlice=await balance(token,alice);
   const missing=await send(alice,a,BigInt(quote.depositTransferTokens),firstMessage); assert.equal(missing.parseResult(),'0'); assert.equal(await balance(token,alice),beforeAlice);
   const readiness=await api('/v1/ft/preflight',{operation:'deposit',payer:alice.accountId,vault:a.accountId});
@@ -191,10 +196,12 @@ try {
   for(const tx of transactions) for(const outcome of tx.result.receipts_outcome as any[]) {
     if(outcome.outcome.executor_id!==forest.accountId)continue;
     for(const log of outcome.outcome.logs) { if(!log.startsWith('EVENT_JSON:'))continue; const event=JSON.parse(log.slice(11)); if(event.version!=='3.0.0')continue;
-      for(const record of event.data??[]) { if(typeof record.index!=='number')continue; const r=receipts.get(record.disclosure_root); assert.ok(r||record.disclosure_root===withdrawalRoot); bundle.transactions.push({tx:{hash:tx.transactionReceipt.hash,signer:tx.transactionReceipt.signer_id,recordIndex:record.index},...(r?{disclosure:disclose(r,['asset','amount'])}:{})}); }
+      for(const record of event.data??[]) { if(typeof record.index!=='number')continue; const r=receipts.get(record.disclosure_root); assert.ok(r||record.disclosure_root===withdrawalRoot); bundle.transactions.push({tx:{hash:tx.transactionReceipt.hash,signer:tx.transactionReceipt.signer_id,recordIndex:record.index},...(r?{disclosure:record.disclosure_root===firstRoot?await discloseReceipt(r,['asset','amount']):disclose(r,['asset','amount'])}:{})}); }
     }
   }
   const verified=await verifyBundle(bundle,new NearRpcEvidenceSource('sandbox',forest.accountId,rpc)); assert.equal(verified.feeSummary!.assetTokenId,token.accountId); assert.equal(verified.feeSummary!.protocolFeesCharged,'9000'); assert.equal(verified.feeSummary!.protocolFeesEarned,'9000');
+  const receiptAnchor=verified.records.find(record=>record.disclosure_root===firstRoot);assert.ok(receiptAnchor);
+  await verifyReceiptDisclosure(await discloseReceipt(restoredReceipt,['asset','amount']),receiptAnchor.disclosure_root);
   const indexPath=`demo-output/ft-index-${randomBytes(12).toString('hex')}.sqlite`,indexSource=new NearRpcIndexSource('sandbox',forest.accountId,rpc);
   indexStore=new IndexStore(indexPath,policy);let indexer=new SettlementIndexer(indexSource,indexStore);
   const indexed=await indexer.sync();assert.equal(indexed.indexedRecords,verified.records.length);assert.equal(indexed.remainingRecords,0);
