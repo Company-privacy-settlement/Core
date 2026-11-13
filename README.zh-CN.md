@@ -131,6 +131,12 @@ npm run cli -- shared-spend-args examples/shared-policy.json https://rpc.testnet
 
 确认 vault 入金达到 `Active`。登记被明确拒绝后，可将本金与协议手续费退还给原发送者；网络失败可通过 `retry_deposit` 恢复。只有 forest 的 `get_withdrawal` 达到 `Complete` 才表示提款完成，不能仅凭请求事件认定已付款。规范见 [Shared v2](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md)。
 
+## 已批准的组与容量管理
+
+`groups-status`、`group-note`、`group-deposit-args` 和 `group-spend-args` 接受用户独立批准的组目录。新 note 选择启用存款且仍有输出空间的组；现有 note 的存取款与恢复始终使用原组。已满或停止新存款的组仍可提款。详见[组容量管理](docs/GROUPS.md)和[目录模板](examples/approved-groups.template.json)。各组保留独立的匿名集合，不会自动部署合约或迁移 note。
+
+`npm run test:groups-proof` 使用本地 RPC 测试数据，额外验证已满且停用存款的组所生成的真实 Groth16 CLI 提款计划。需要现有证明文件，不会广播交易。
+
 ## 手续费
 
 入金与提款均在本金之外**加收 0.15%**，收款人获得全额本金。NEAR 按 yoctoNEAR、FT 按代币最小单位向下取整。0.02 NEAR 存储费用及 gas 另计。

@@ -1,11 +1,12 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { createNote, validateNote, domain, quoteFees, encodeVerificationKey, NoteTree, proveSpend, shutdownProver, STORAGE_FEE, type Note, type Pool, type Action } from '../sdk/core.js';
+import { createNote, validateNote, domain, quoteFees, encodeVerificationKey, NoteTree, proveSpend, shutdownProver, STORAGE_FEE, CAPACITY, type Note, type Pool, type Action } from '../sdk/core.js';
 import { createReceipt, disclose, decryptPrivate, encryptPrivate, type Receipt, type ReceiptField } from '../sdk/disclosure.js';
 import { NearRpcEvidenceSource, verifyBundle, type SettlementBundle } from '../sdk/evidence.js';
 import { createFreshRecipient } from '../sdk/wallet.js';
 import { randomBytes } from 'node:crypto';
 import { discoverVaults, predictVaultAccount, NearRpcFactorySource, type FactoryPolicy } from '../sdk/factory.js';
 import { discoverSharedVaults, discoverSharedVaultGroup, loadSharedTree, chooseSharedVault, NearRpcSharedSource, type SharedPolicy } from '../sdk/shared.js';
+import { ApprovedGroupsSchema, approvedGroupForNote, discoverApprovedGroups, chooseDepositGroup, type ApprovedGroups } from '../sdk/groups.js';
 
 import { buildFtDeposit, buildFtWithdrawal, parseUsdc, quoteFtFees } from '../sdk/ft.js';
 
@@ -26,8 +27,65 @@ function password(): string {
 async function loadNote(path: string): Promise<Note> {
   return decryptPrivate(await readFile(path, 'utf8'), password()) as Note;
 }
+async function sharedDepositArgs(policy: SharedPolicy, rpc: string, note: Note, root: string, vault?: string) {
+  const catalog = await discoverSharedVaultGroup(new NearRpcSharedSource(policy.network, policy.registry, rpc), policy, { vault });
+  await validateNote(catalog.pool, note);
+  if (!/^[a-f0-9]{64}$/.test(root)) throw new Error('Invalid disclosure root');
+  if (catalog.leafCount === CAPACITY) throw new Error('This note belongs to a full group; it cannot be rerouted to another group');
+  if (catalog.pool.version === 3)
+    return { ...await buildFtDeposit(catalog, chooseSharedVault(catalog, 'deposit'), note, root), checkedAtBlock: catalog.blockHash, prerequisite: 'Prepay NEAR storage for the token sender and register the vault on the pinned FT contract first.' };
+  return { contract: chooseSharedVault(catalog, 'deposit'), method: 'deposit', args: { commitment: note.commitment, disclosure_root: root }, depositYocto: quoteFees(policy.denomination).depositAttached, gasTgas: 300, registry: policy.registry, checkedAtBlock: catalog.blockHash };
+}
+async function sharedSpendArgs(policy: SharedPolicy, rpc: string, note: Note, action: Action, outputFile: string) {
+  const source = new NearRpcSharedSource(policy.network, policy.registry, rpc);
+  const catalog = action.kind === 'withdraw'
+    ? await discoverSharedVaultGroup(source, policy, { vault: action.vault })
+    : await discoverSharedVaults(source, policy, { maxRecords: 1 });
+  await validateNote(catalog.pool, note);
+  if (action.kind === 'withdraw') {
+    // A full tree can still pay existing notes; withdrawal adds no output.
+    action.vault ??= chooseSharedVault(catalog, 'withdraw');
+    if (!catalog.vaults.some(v => v.accountId === action.vault && v.canWithdraw)) throw new Error('Destination vault is not verified or lacks liquidity');
+  }
+  if (action.kind === 'transfer' && catalog.leafCount === CAPACITY) throw new Error('Original group tree is full; private transfers require a new output slot');
+  const proof = await proveSpend(catalog.pool, note, await loadSharedTree(source, catalog), action);
+  if (catalog.pool.version === 3 && action.kind === 'withdraw') {
+    const plan = buildFtWithdrawal(catalog, action.vault!, action.target, action.disclosureRoot, proof.args);
+    await save(outputFile, JSON.stringify({ ...plan, checkedAtBlock: catalog.blockHash, prerequisite: 'Prepay registry NEAR storage for the token fee payer; register vault, registry, recipient and treasury on the pinned FT contract.' }, null, 2));
+  } else {
+    const actionArgs = action.kind === 'withdraw' ? { vault: action.vault, recipient: action.target } : { output_commitment: action.target };
+    const feeQuote = quoteFees(policy.denomination);
+    await save(outputFile, JSON.stringify({ contract: policy.registry, method: action.kind, args: { ...actionArgs, disclosure_root: action.disclosureRoot, ...proof.args }, depositYocto: action.kind === 'withdraw' ? feeQuote.withdrawalAttached : STORAGE_FEE.toString(), gasTgas: 300, feeQuote: catalog.pool.version === 3 ? quoteFtFees(policy.denomination) : feeQuote, checkedAtBlock: catalog.blockHash }, null, 2));
+  }
+  return { prepared: outputFile, registry: policy.registry, selectedVault: action.vault };
+}
 try {
   switch (command) {
+    case 'groups-status':
+    case 'group-note': {
+      if (command === 'groups-status' ? args.length !== 2 : args.length !== 3 && args.length !== 4)
+        throw new Error(command === 'groups-status' ? 'groups-status approved-groups.json trusted-rpc-url' : 'group-note approved-groups.json trusted-rpc-url encrypted-note.json [group-id]');
+      const directory = ApprovedGroupsSchema.parse(await json(args[0]));
+      const catalog = await discoverApprovedGroups(p => new NearRpcSharedSource(p.network, p.registry, args[1]), directory);
+      if (command === 'groups-status') { output(catalog); break; }
+      const group = chooseDepositGroup(catalog, args[3]), note = await createNote(group.catalog.pool);
+      await save(args[2], encryptPrivate(note, password()));
+      output({ groupId: group.id, policy: group.policy, checkedAtBlock: catalog.blockHash, remainingOutputs: group.remainingOutputs,
+        paymentRequest: { protocol: group.catalog.pool.version === 3 ? 'core-shared-ft-v3' : 'core-shared-v2', pool: group.catalog.pool, commitment: note.commitment }, encryptedBackup: args[2] });
+      break;
+    }
+    case 'group-deposit-args':
+    case 'group-spend-args': {
+      const deposit = command === 'group-deposit-args';
+      if (deposit ? args.length !== 4 && args.length !== 5 : args.length !== 5)
+        throw new Error(deposit ? 'group-deposit-args approved-groups.json trusted-rpc-url encrypted-note.json disclosure-root [vault-account]' : 'group-spend-args approved-groups.json trusted-rpc-url encrypted-note.json action.json output.json');
+      const directory: ApprovedGroups = ApprovedGroupsSchema.parse(await json(args[0]));
+      const { group, note } = await approvedGroupForNote(directory, await loadNote(args[2]));
+      if (deposit && !group.depositsEnabled) throw new Error('New deposits are disabled for this approved group; existing notes keep their original withdrawal group');
+      const result = deposit ? await sharedDepositArgs(group.policy, args[1], note, args[3], args[4])
+        : await sharedSpendArgs(group.policy, args[1], note, await json(args[3]), args[4]);
+      output({ ...result, groupId: group.id }); break;
+    }
     case 'invoice-action':{
       if(args.length!==3&&args.length!==4)throw new Error('invoice-action trusted-policy.json signed-invoice.json action-output.json [payment-unit: 1-based]');
       const trusted=parsePolicy(await json(args[0])),signed=await verifySignedInvoice(await json(args[1]));if(canonical(trusted)!==canonical(signed.invoice.policy))throw new Error('Invoice policy differs from trusted group');requireOpenInvoice(signed.invoice);
@@ -69,38 +127,13 @@ try {
     case 'shared-deposit-args': {
       if (args.length !== 4 && args.length !== 5) throw new Error('shared-deposit-args trusted-policy.json trusted-rpc-url encrypted-note.json disclosure-root [vault-account]');
       const policy: SharedPolicy = await json(args[0]);
-      const catalog = await discoverSharedVaultGroup(new NearRpcSharedSource(policy.network, policy.registry, args[1]), policy, { vault: args[4] });
-      const note = await loadNote(args[2]); await validateNote(catalog.pool, note);
-      if (!/^[a-f0-9]{64}$/.test(args[3])) throw new Error('Invalid disclosure root');
-      if (catalog.pool.version === 3) {
-        output({ ...await buildFtDeposit(catalog, chooseSharedVault(catalog, 'deposit'), note, args[3]), checkedAtBlock: catalog.blockHash, prerequisite: 'Prepay NEAR storage for the token sender and register the vault on the pinned FT contract first.' }); break;
-      }
-      output({ contract: chooseSharedVault(catalog, 'deposit'), method: 'deposit', args: { commitment: note.commitment, disclosure_root: args[3] }, depositYocto: quoteFees(policy.denomination).depositAttached, gasTgas: 300, registry: policy.registry, checkedAtBlock: catalog.blockHash });
+      output(await sharedDepositArgs(policy, args[1], await loadNote(args[2]), args[3], args[4]));
       break;
     }
     case 'shared-spend-args': {
       if (args.length !== 5) throw new Error('shared-spend-args trusted-policy.json trusted-rpc-url encrypted-note.json action.json output.json');
       const policy: SharedPolicy = await json(args[0]);
-      const source = new NearRpcSharedSource(policy.network, policy.registry, args[1]);
-      const action: Action = await json(args[3]);
-      const catalog = action.kind === 'withdraw'
-        ? await discoverSharedVaultGroup(source, policy, { vault: action.vault })
-        : await discoverSharedVaults(source, policy, { maxRecords: 1 });
-      const note = await loadNote(args[2]);
-      if (action.kind === 'withdraw') {
-        action.vault ??= chooseSharedVault(catalog, 'withdraw');
-        if (!catalog.vaults.some(v => v.accountId === action.vault && v.canWithdraw)) throw new Error('Destination vault is not verified or lacks liquidity');
-      }
-      const proof = await proveSpend(catalog.pool, note, await loadSharedTree(source, catalog), action);
-      if (catalog.pool.version === 3 && action.kind === 'withdraw') {
-        const plan = buildFtWithdrawal(catalog, action.vault!, action.target, action.disclosureRoot, proof.args);
-        await save(args[4], JSON.stringify({ ...plan, checkedAtBlock: catalog.blockHash, prerequisite: 'Prepay registry NEAR storage for the token fee payer; register vault, registry, recipient and treasury on the pinned FT contract.' }, null, 2));
-        output({ prepared: args[4], registry: policy.registry, selectedVault: action.vault }); break;
-      }
-      const actionArgs = action.kind === 'withdraw' ? { vault: action.vault, recipient: action.target } : { output_commitment: action.target };
-      const feeQuote = quoteFees(policy.denomination);
-      await save(args[4], JSON.stringify({ contract: policy.registry, method: action.kind, args: { ...actionArgs, disclosure_root: action.disclosureRoot, ...proof.args }, depositYocto: action.kind === 'withdraw' ? feeQuote.withdrawalAttached : STORAGE_FEE.toString(), gasTgas: 300, feeQuote: catalog.pool.version === 3 ? quoteFtFees(policy.denomination) : feeQuote, checkedAtBlock: catalog.blockHash }, null, 2));
-      output({ prepared: args[4], registry: policy.registry, selectedVault: action.vault });
+      output(await sharedSpendArgs(policy, args[1], await loadNote(args[2]), await json(args[3]), args[4]));
       break;
     }
     case 'quote-usdc': {
@@ -192,7 +225,7 @@ try {
       break;
     }
     default:
-      console.log('Commands: invoice-action, ft-preflight, settlement-status, settlement-wait, wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
+      console.log('Commands: groups-status, group-note, group-deposit-args, group-spend-args, invoice-action, ft-preflight, settlement-status, settlement-wait, wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
       process.exitCode = command ? 1 : 0;
   }
 } catch (error) {

@@ -2,6 +2,8 @@
 
 These operations work with a caller-supplied, independently trusted shared v2/v3 policy. They do not sign, broadcast, generate a proof, or custody notes. Wallet execution is provided by Front’s configured testnet workspace through the browser SDK; private note creation and proof generation remain local CLI operations. See [wallet execution and recovery](WALLET.md).
 
+For new-note selection across independently approved deployments, use the [group capacity SDK/CLI](GROUPS.md). This HTTP service continues to use one pinned policy; the directory does not change an existing note or signed invoice's group.
+
 ## FT preflight
 
 For CLI payment preparation, `discoverSharedVaultGroup` verifies all registry pages at one finalized block before automatic selection. The default scan budget is 1,000 records; a larger group fails rather than selecting from an incomplete catalog. An explicit withdrawal `action.vault`, or the optional final `vault-account` argument to `shared-deposit-args`, uses `get_vault` and verifies the corresponding single catalog record and contract. Direct selection keeps code, key, asset, fee and capacity/liquidity checks. SDK callers may set `maxRecords` (1–10,000). This limit concerns registry records, not the 256-output note-tree capacity.

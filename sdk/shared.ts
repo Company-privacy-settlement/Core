@@ -87,18 +87,22 @@ export async function discoverSharedVaults(source: SharedChainSource, policy: Sh
     creationDeposit: config.creation_deposit, vaultCount: config.vault_count, checkedRecords: Math.max(0, end - from), nextIndex: end < config.vault_count ? end : null, vaults };
 }
 export type SharedCatalog = Awaited<ReturnType<typeof discoverSharedVaults>>;
-/** Payment selection uses one finalized snapshot. Never silently select from a truncated group. */
-export async function discoverSharedVaultGroup(source: SharedChainSource, input: SharedPolicy, options: { vault?: string; maxRecords?: number } = {}): Promise<SharedCatalog> {
-  const policy = SharedPolicySchema.parse(input);
-  if (source.network !== policy.network || source.factory !== policy.registry) throw new Error('Wrong shared registry');
-  const block = await source.finalizedBlock();
-  const pinned: SharedChainSource = {
+/** Keep every source read, including direct member lookup, on an existing snapshot. */
+export function pinSharedSource(source: SharedChainSource, block: string): SharedChainSource {
+  return {
     network: source.network, factory: source.factory, finalizedBlock: async () => block,
     config: b => source.config(b), records: (f, l, b) => source.records(f, l, b),
     vaultConfig: (a, b) => source.vaultConfig(a, b), codeSha256: (a, b) => source.codeSha256(a, b),
     accessKeys: (a, b) => source.accessKeys(a, b), commitments: b => source.commitments(b),
     ...(source.vaultRecord ? { vaultRecord: (a: string, b: string) => source.vaultRecord!(a, b) } : {}),
   };
+}
+/** Payment selection uses one finalized snapshot. Never silently select from a truncated group. */
+export async function discoverSharedVaultGroup(source: SharedChainSource, input: SharedPolicy, options: { vault?: string; maxRecords?: number } = {}): Promise<SharedCatalog> {
+  const policy = SharedPolicySchema.parse(input);
+  if (source.network !== policy.network || source.factory !== policy.registry) throw new Error('Wrong shared registry');
+  const block = await source.finalizedBlock();
+  const pinned = pinSharedSource(source, block);
   if (options.vault !== undefined) return discoverSharedVaults(pinned, policy, { vault: options.vault });
   const budget = z.number().int().min(1).max(10000).parse(options.maxRecords ?? 1000);
   const first = await discoverSharedVaults(pinned, policy, { maxRecords: Math.min(100, budget) });

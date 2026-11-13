@@ -131,6 +131,12 @@ npm run cli -- shared-spend-args examples/shared-policy.json https://rpc.testnet
 
 Vault 입금이 `Active`로 등록되었는지 확인합니다. 등록 거절은 원래 송금자에게 principal + protocol fee를 환불할 수 있고, 네트워크 실패는 `retry_deposit`로 재개합니다. 출금은 forest의 `get_withdrawal`이 `Complete`여야 완료입니다. 요청 이벤트만으로 지급 완료를 판단하지 않습니다. 명세: [Shared v2](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md).
 
+## 승인된 그룹과 용량 관리
+
+`groups-status`, `group-note`, `group-deposit-args`, `group-spend-args`는 사용자가 독립적으로 승인한 그룹 목록을 받습니다. 새 노트는 입금이 활성화되고 출력 공간이 남은 그룹을 선택하며, 기존 노트의 입출금·복구는 원래 그룹에 고정됩니다. 가득 찼거나 새 입금이 중지된 그룹에서도 출금할 수 있습니다. [그룹 용량 관리](docs/GROUPS.md)와 [목록 템플릿](examples/approved-groups.template.json)을 참고하세요. 그룹별 익명성 집합은 별도이며 자동 배포나 노트 이전은 수행하지 않습니다.
+
+`npm run test:groups-proof`는 로컬 RPC 픽스처에서 가득 차고 입금이 중지된 그룹의 실제 Groth16 CLI 출금 계획을 추가 검증합니다. 기존 증명 아티팩트가 필요하며 트랜잭션을 전송하지 않습니다.
+
 ## 수수료
 
 입금·출금 각각 원금의 **0.15%를 추가**로 내며 수신자는 원금 전액을 받습니다. NEAR는 yoctoNEAR, FT는 토큰 atomic units로 내림합니다. 보관 비용 0.02 NEAR와 가스는 별도입니다.

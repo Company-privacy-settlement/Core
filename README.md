@@ -131,6 +131,12 @@ Automatic deposit/withdrawal selection verifies every catalog page at one finali
 
 Check that a vault deposit reaches `Active`. Rejected registration permits a principal-plus-protocol-fee refund to the original sender; network failures can resume through `retry_deposit`. Withdrawal completes only when the forest's `get_withdrawal` reaches `Complete`. A requested event alone is not payout confirmation. Specification: [Shared v2](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md).
 
+## Approved groups and capacity
+
+`groups-status`, `group-note`, `group-deposit-args` and `group-spend-args` accept an independently approved group directory. New notes choose an enabled group with free output capacity; existing notes keep their original group for deposits, withdrawals and recovery. Full/retired groups remain usable for withdrawals. See [group capacity management](docs/GROUPS.md) and the [directory template](examples/approved-groups.template.json). Groups retain separate privacy sets; no contracts are automatically deployed and notes are not migrated.
+
+`npm run test:groups-proof` additionally verifies a real Groth16 CLI withdrawal plan from a full, deposit-disabled group using a local RPC fixture. It requires the existing proving artifacts and broadcasts no transaction.
+
 ## Fees
 
 Deposits and withdrawals each charge **0.15% on top of principal**, preserving the recipient's full amount. Round down in yoctoNEAR for NEAR or atomic token units for FTs. Storage of 0.02 NEAR and gas are separate.
