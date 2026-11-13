@@ -8,6 +8,10 @@ These operations work with a caller-supplied, independently trusted shared v2/v3
 
 For new-note selection across independently approved deployments, use the [group capacity SDK/CLI and Front selector](GROUPS.md). This HTTP service uses one pinned policy; the directory does not change an existing note or signed invoice's group. Each Front row needs the API for that specific policy.
 
+## Organization API is separate
+
+Team membership uses the authenticated [Organization API](ORGANIZATIONS.md), with its own origin, process and SQLite database. The local default is port 3002; the read-only settlement API defaults to port 3001. Organization routes and bearer sessions are not supported by this settlement service, and an organization role cannot replace a trusted group policy, invoice signature or private note. Use the organization guide for sign-in, invitations, member roles, ownership, audit history and versioned mutations.
+
 ## FT preflight
 
 For CLI payment preparation, `discoverSharedVaultGroup` verifies all registry pages at one finalized block before automatic selection. The default scan budget is 1,000 records; a larger group fails rather than selecting from an incomplete catalog. An explicit withdrawal `action.vault`, or the optional final `vault-account` argument to `shared-deposit-args`, uses `get_vault` and verifies the corresponding single catalog record and contract. Direct selection keeps code, key, asset, fee and capacity/liquidity checks. SDK callers may set `maxRecords` (1–10,000). This limit concerns registry records, not the 256-output note-tree capacity.

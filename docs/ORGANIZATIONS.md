@@ -2,11 +2,13 @@
 
 [Service overview](SERVICE.md) · [CI](CI.md) · [Hosting](HOSTING.md) · [Roadmap](ROADMAP.md)
 
+[English web guide](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/organizations/) · [Organization workspace](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/organization/). Both retain the existing owner-private Site audience. Web Docs also cover the separate service under SDK/API and organization-specific recovery; no deployed public Organization API is bundled.
+
 Core now has a separate authenticated organization service and an English-first `/organization/` workspace. It provides persistent organization names, wallet-account membership, targeted invitations, fixed roles, ownership transfer, immediate application authorization checks and an organization-scoped audit log. It does not turn a wallet signature into verified corporate identity or grant authority over settlement contracts.
 
 ## Identity and service boundary
 
-The browser authenticates to the **Organization API**, independently of the public read-only settlement API. It uses an off-chain [NEP-413 message signature](https://github.com/near/NEPs/blob/master/neps/nep-0413.md). A five-minute random challenge binds the testnet account, service audience, frontend Origin, nonce and expiration. Its recipient is the configured API host. Callback URLs and redirect-return signing are not supported by this flow: choose a wallet returning a signed message directly. No payment transaction or FullAccess key is submitted to the API.
+The browser authenticates to the **Organization API**, independently of the public read-only settlement API. It uses an off-chain [NEP-413 message signature](https://github.com/near/NEPs/blob/master/neps/nep-0413.md). A five-minute random challenge binds the testnet account, service audience, frontend Origin, nonce and expiration. Its recipient is the configured API host. Callback URLs and redirect-return signing are not supported by this flow: choose a wallet returning a signed message directly. The API receives the signature and public key; no payment transaction or private signing key is submitted.
 
 The service verifies Ed25519 over the NEP-413 digest and reads the selected key at a recent finalized block from an HTTPS **testnet** RPC. A function-call key cannot authenticate. A synchronizing, stale, wrong-network or unavailable RPC fails closed. The response is bounded to 128 KB; requests have a ten-second deadline and eight active work slots. A noncancellable identity adapter retains its slot until it settles.
 

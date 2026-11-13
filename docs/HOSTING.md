@@ -6,6 +6,12 @@ This deployment runs the read-only API and one finalized-index writer together, 
 
 The repository provides a compiled Node runtime, Docker image, Docker Compose with optional Caddy HTTPS, and an optional Render blueprint. Files alone are not a live deployment: a selected host/account, writable persistent volume, verified deployed testnet policy and actual DNS/HTTPS endpoint are still required. The earlier sandbox releases and placeholder policies do not establish a funded public group.
 
+## Organization service hosting
+
+This guide's supervisor, index readiness, `CORE_DATA_DIR`, index backup/restore and Render blueprint concern the **public settlement API/indexer**. The authenticated [Organization API](ORGANIZATIONS.md#hosted-configuration-and-recovery) is a separate process and database. Its [standalone Compose stack](../ops/organizations.compose.yaml) uses the compiled service image with an organization-specific command, volume, origin and frontend allowlist. Organization membership does not change Site audience or settlement signing rights.
+
+The organization `/healthz` endpoint is liveness only; it does not establish identity RPC readiness. Do not use the public index restore tool for the organization database. A historical organization snapshot can restore revoked memberships or sessions; operator review, session/challenge invalidation and reconciliation are required before access is reopened. Organization restore/migration automation and actual public hosting remain unimplemented.
+
 ## Prerequisites and configuration
 
 - Hosted runtime: Linux, `flock`, **Node.js 22.16+** for the SQLite online-backup API. Individual SDK/API development keeps its existing engine requirement. The Docker image supplies the hosted runtime and runs application processes as `node`, not root.
