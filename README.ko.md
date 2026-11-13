@@ -78,6 +78,10 @@ npm run serve
 
 `npm run build:sdk`는 Node ESM·타입과 브라우저 클라이언트를 빌드합니다. `release:prepare`는 변경 없는 Core/Contract/Front 커밋을 고정하고 컨트랙트·proving 아티팩트·SDK·그룹 정책·API 주소를 묶습니다. `release:verify`는 별도로 받은 매니페스트 SHA-256으로 오프라인 검증합니다. 현재 릴리스는 샌드박스·테스트넷 개발용이며 배포·온체인 준비 상태를 보장하지 않습니다. [명령과 형식](docs/RELEASES.md) · [입력 템플릿](examples/release.template.json).
 
+## 테스트넷 배포 도구
+
+`deploy:plan`으로 테스트넷 릴리스·공개 배포 입력을 고정하고 `deploy:preflight`로 최종화된 네트워크·계정·키·토큰·비용을 확인합니다. `deploy:execute`는 원자적 초기화·FT 등록·명시적으로 승인한 키 제거 중 한 단계만 실행하고 공개 전송 의도를 영구 기록합니다. `deploy:reconcile`은 재전송 없이 조회하며 `deploy:verify`는 키 없는 배포를 검증합니다. 서명 키는 별도의 소유자 전용 로컬 파일로 관리하며 API에서 사용하지 않습니다. [명령·리허설](docs/DEPLOYMENT.md) · [입력 템플릿](examples/deployment.template.json).
+
 ## 로컬 계약·증명 검증
 
 Core·Contract·Front를 형제 폴더로 체크아웃합니다. Contract 빌드에는 고정 Rust **1.99.1**, WASM target과 C/C++ 빌드 도구가 필요합니다. Core에서:
@@ -92,7 +96,7 @@ npm run demo:ft
 
 다른 경로는 `CORE_CONTRACT_REPO`로 지정합니다. Core는 WASM·증명 파일의 매니페스트 해시를 확인해 가져옵니다. 개발용 단일 머신 setup을 바꾸면 검증기·아티팩트·새 배포도 일치해야 합니다. 생성 파일은 Git에서 제외합니다.
 
-**2026-11-13 기록된 검증:** Core **203개 테스트**, Front **98개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
+**2026-11-13 기록된 검증:** Core **215개 테스트**, Front **98개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
 
 ## 프라이버시·보관·복구
 

@@ -207,7 +207,7 @@ function cleanSource(repo: string) {
 function sourceInputs(repo: string, name: typeof Repos[number]) {
   const files = command(repo, 'git', ['ls-files', '-z']).split('\0').filter(Boolean);
   const common = /^(package(?:-lock)?\.json|tsconfig(?:\.[a-z]+)?\.json|rust-toolchain\.toml|THIRD_PARTY_NOTICES\.md)$/;
-  return files.filter(p => common.test(p) || /^docs\/licenses\/[a-zA-Z0-9_.-]+$/.test(p) || (name === 'Core' && /^(sdk\/.*\.(?:ts)|scripts\/(?:build-client\.mjs|build-sdk\.mjs|browser-poseidon\.mjs|release\.ts|lib\/release\.ts))$/.test(p)) ||
+  return files.filter(p => common.test(p) || /^docs\/licenses\/[a-zA-Z0-9_.-]+$/.test(p) || (name === 'Core' && /^(sdk\/.*\.(?:ts)|scripts\/(?:build-client\.mjs|build-sdk\.mjs|browser-poseidon\.mjs|release\.ts|deploy\.ts|lib\/(?:release|deployment)\.ts))$/.test(p)) ||
     (name === 'Contract' && /^(contracts\/.*\.(?:rs|toml|lock|bin)|circuits\/.*\.circom|scripts\/.*\.mjs)$/.test(p)) ||
     (name === 'Front' && /^src\/vendor\/core-client\//.test(p))).sort();
 }

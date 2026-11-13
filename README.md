@@ -78,6 +78,10 @@ The default is `127.0.0.1:3001`. `/healthz` is process liveness; `/readyz` check
 
 `npm run build:sdk` emits Node ESM/declarations and the standalone browser client. `release:prepare` rebuilds from clean pinned Core/Contract/Front commits and bundles contract/proving artifacts, SDKs, group policies and API origins. `release:verify` requires an independently received manifest SHA-256 and checks the bundle offline. Current releases are sandbox/testnet development-only; packaging does not deploy or establish chain readiness. [Commands and release format](docs/RELEASES.md) · [Input template](examples/release.template.json).
 
+## Testnet deployment tools
+
+`deploy:plan` binds a testnet release and public deployment inputs; `deploy:preflight` checks the finalized network/account/key/token/cost snapshot. `deploy:execute` performs one explicit atomic initialization, FT registration or acknowledged key-removal phase with a durable public intent journal. `deploy:reconcile` never resends; `deploy:verify` checks the sealed keyless deployment. Local signing uses a separate owner-only deployer key file, never the API. [Commands and rehearsal](docs/DEPLOYMENT.md) · [Input template](examples/deployment.template.json).
+
 ## Local contract and proof validation
 
 Check out Core, Contract and Front as sibling directories. Contract builds require its pinned Rust **1.99.1**, the WASM target and C/C++ build tools. From Core:
@@ -92,7 +96,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` overrides the default `../Contract`. Core verifies artifact manifest hashes before importing WASM/proving files. The setup is a single-machine development ceremony; replacing it requires matching verifier/artifacts and new deployments. Generated artifacts stay out of Git.
 
-Recorded validation on **2026-11-13**: Core **203 tests**, Front **98 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
+Recorded validation on **2026-11-13**: Core **215 tests**, Front **98 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
 
 ## Privacy, custody and recovery
 

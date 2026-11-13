@@ -1,0 +1,9 @@
+{
+  "format": "core-testnet-deployment-input-v1",
+  "groupId": "usdc-testnet",
+  "rpcUrl": "https://rpc.testnet.near.org",
+  "publicKey": "REPLACE_WITH_REGISTRY_ED25519_PUBLIC_KEY",
+  "gasReserveYoctoNear": "100000000000000000000000",
+  "maxRegistrationYoctoNear": "100000000000000000000000",
+  "tokenCodeSha256": "REPLACE_WITH_INDEPENDENTLY_REVIEWED_TOKEN_CODE_SHA256"
+}
