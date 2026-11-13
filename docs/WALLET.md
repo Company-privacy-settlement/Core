@@ -83,3 +83,5 @@ Core tests cover encrypted restart/restore, persistence failure, cross-context e
 Front browser tests use the connector's standard injected-wallet interface and mocked public reads to cover desktop/mobile review, signing requests, encryption, backup and reload blocking. They do not establish that an externally funded wallet has signed against a publicly deployed testnet group. That smoke test remains dependent on a funded, reviewed deployment.
 
 Primary integration references: [NEAR Connect](https://github.com/hot-dao/near-selector), [transaction RPC/finality](https://docs.near.org/api/rpc/transactions), [NEP-141](https://github.com/near/NEPs/blob/master/neps/nep-0141.md).
+
+Before preparing a payout, use the [recipient readiness check](RECIPIENTS.md) in the SDK, CLI or browser. It separates account activation and token registration at one final block and provides an inspectable registration call without signing or submitting it.

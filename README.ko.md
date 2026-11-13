@@ -170,3 +170,5 @@ npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
 Native NEAR v2와 USDC/NEP-141 v3, 고정 denomination, 공유 트리 총 256 output의 해커톤 코어입니다. 버전·자산마다 별도 도메인을 사용하며 기존 노트 자동 이전은 지원하지 않습니다. 가변 금액·cross-asset bridge, 실제 법정 신고, production 감사·분산 trusted setup은 포함하지 않습니다. 네트워크 label은 설정값이며 실제 메인넷 배포를 자동 차단하지 않습니다. 개발 setup은 로컬/테스트넷 시연용입니다.
 
 선택형 [암호화 인보이스 보관함](docs/INVOICE_LIBRARY.md)은 서명 요청을 계정·네트워크별 로컬 저장소에 보관하고 불변 ID 검증, 검색·다시 열기, 암호화 백업·복원·병합을 지원합니다. 저장은 명시적으로 수행하며 결제 상태는 캐시하지 않습니다. 정산은 기존 API로 새로 검증합니다.
+
+읽기 전용 [수취 계정 준비 확인](docs/RECIPIENTS.md)을 SDK·CLI·API·앱에서 사용할 수 있습니다. 계정 활성화, 토큰 등록, 결제 검토를 구분하고 확정 블록의 등록비와 정확한 등록 호출을 확인합니다. 활성화 비용을 추정하거나 조회만으로 트랜잭션을 전송하지 않습니다.

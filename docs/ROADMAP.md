@@ -14,7 +14,7 @@ This backlog is based on the current code. Contract and circuit work stays in th
 - [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
 - [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
 
-Validation: `npm run check` and **164 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
+Validation: `npm run check` and **171 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks recipient activation/registration transitions, preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
 
 Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
 
@@ -38,6 +38,8 @@ Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `
 - [x] Approved group directories, same-block capacity discovery, ordered new-note selection, encrypted backups and original-group deposit/spend preparation, including full/retired-group withdrawals. [Group capacity SDK/CLI](GROUPS.md).
 - [x] Browser-safe approval/capacity validation, bounded `/v1/group/capacity`, and Front group selection with fresh API checks, retired-group recovery, stale-response invalidation and matching journal namespaces. [Front group selection](GROUPS.md#front-group-selection).
 - [x] Optional merchant/network-separated encrypted invoice library, immutable signed requests, local search/open, authenticated backups/merge, cross-context exclusion and lock cancellation. No server terms or paid-status cache. [Invoice library](INVOICE_LIBRARY.md).
+
+- [x] Read-only recipient preparation across SDK, CLI, API, invoice creation/checkout and prepared withdrawals: distinct account activation and token registration, pinned storage minimum, exact public call validation and stale-response cancellation. [Recipient guide](RECIPIENTS.md).
 
 Invoice scope and next service layer: [INVOICES.md](INVOICES.md). Business terms stay client-held; merchant API persistence, signed webhooks, fiat conversion and contract-enforced invoice caps/deadlines remain future work.
 

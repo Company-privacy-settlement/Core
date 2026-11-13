@@ -7,6 +7,7 @@ export { SettlementSession, type Review } from "./session.js";
 export { HttpGateway, CoreApiError } from "./http.js";
 export { parseApprovedGroups, parseGroupCapacity } from './groups.js';
 export type { ApprovedGroups, ApprovedGroup, GroupCapacity } from './groups.js';
+export { parseRecipientReadiness, type RecipientReadiness } from './recipients.js';
 export {
   INVOICE_SIGNING_RECIPIENT,
   parseInvoice,

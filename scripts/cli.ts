@@ -5,12 +5,12 @@ import { NearRpcEvidenceSource, verifyBundle, type SettlementBundle } from '../s
 import { createFreshRecipient } from '../sdk/wallet.js';
 import { randomBytes } from 'node:crypto';
 import { discoverVaults, predictVaultAccount, NearRpcFactorySource, type FactoryPolicy } from '../sdk/factory.js';
-import { discoverSharedVaults, discoverSharedVaultGroup, loadSharedTree, chooseSharedVault, NearRpcSharedSource, type SharedPolicy } from '../sdk/shared.js';
+import { discoverSharedVaults, discoverSharedVaultGroup, loadSharedTree, chooseSharedVault, NearRpcSharedSource, SharedPolicySchema, type SharedPolicy } from '../sdk/shared.js';
 import { ApprovedGroupsSchema, approvedGroupForNote, discoverApprovedGroups, chooseDepositGroup, type ApprovedGroups } from '../sdk/groups.js';
 
 import { buildFtDeposit, buildFtWithdrawal, parseUsdc, quoteFtFees } from '../sdk/ft.js';
 
-import { NearRpcOperationsSource, preflightFt, observeSettlement, waitForSettlement, PreflightInput, SettlementReference } from '../sdk/operations.js';
+import { NearRpcOperationsSource, preflightFt, recipientReadiness, observeSettlement, waitForSettlement, PreflightInput, SettlementReference } from '../sdk/operations.js';
 import {verifySignedInvoice,invoiceRoot,requireOpenInvoice} from '../sdk/client/invoices.js';
 import {canonical} from '../sdk/client/crypto.js';
 import {parsePolicy} from '../sdk/client/payment.js';
@@ -61,6 +61,11 @@ async function sharedSpendArgs(policy: SharedPolicy, rpc: string, note: Note, ac
 }
 try {
   switch (command) {
+    case 'recipient-readiness': {
+      if (args.length !== 3) throw new Error('recipient-readiness trusted-policy.json trusted-rpc-url recipient-account');
+      const policy = SharedPolicySchema.parse(await json(args[0]));
+      output(await recipientReadiness(new NearRpcOperationsSource(policy.network, policy.registry, args[1]), policy, { recipient: args[2] })); break;
+    }
     case 'groups-status':
     case 'group-note': {
       if (command === 'groups-status' ? args.length !== 2 : args.length !== 3 && args.length !== 4)
@@ -225,7 +230,7 @@ try {
       break;
     }
     default:
-      console.log('Commands: groups-status, group-note, group-deposit-args, group-spend-args, invoice-action, ft-preflight, settlement-status, settlement-wait, wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
+      console.log('Commands: recipient-readiness, groups-status, group-note, group-deposit-args, group-spend-args, invoice-action, ft-preflight, settlement-status, settlement-wait, wallet, note, init-args, deposit-args, spend-args, receipt, disclose, verify-bundle, discover-vaults, create-vault-args, quote-fees, quote-usdc, discover-shared, shared-note, shared-deposit-args, shared-spend-args. See README.md.');
       process.exitCode = command ? 1 : 0;
   }
 } catch (error) {

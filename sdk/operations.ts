@@ -49,6 +49,31 @@ export async function groupCapacity(source: OperationsSource, policy: SharedPoli
 }
 const Credit = z.object({ available: Atomic, in_flight: Atomic }).nullable();
 const Registration = z.object({ total: Atomic, available: Atomic }).nullable();
+export const RecipientReadinessInput = z.object({ recipient: AccountId }).strict();
+/** Receiving prerequisites only; this prepares no account activation or payment. */
+export async function recipientReadiness(source: OperationsSource, input: SharedPolicy, request: z.infer<typeof RecipientReadinessInput>) {
+  const policy = SharedPolicySchema.parse(input), { recipient } = RecipientReadinessInput.parse(request);
+  if (source.network !== policy.network || source.factory !== policy.registry) throw new Error('Wrong recipient readiness source');
+  if (!policy.tokenId) throw new OperationsError('WRONG_ASSET', 'Recipient readiness requires a token-bound v3 group');
+  if (recipient === policy.registry || recipient.endsWith(`.${policy.registry}`)) throw new OperationsError('DESTINATION_MISMATCH', 'Recipient cannot be the registry or a vault');
+  const { checkedAtBlock } = await operationCatalog(source, policy, { maxRecords: 1 });
+  const [rawAccount, rawBounds, rawRegistration] = await Promise.all([
+    source.account(recipient, checkedAtBlock.hash),
+    source.contractView(policy.tokenId, 'storage_balance_bounds', {}, checkedAtBlock.hash),
+    source.contractView(policy.tokenId, 'storage_balance_of', { account_id: recipient }, checkedAtBlock.hash),
+  ]);
+  const native = z.object({ amount: Atomic, locked: Atomic, storage_usage: Count }).nullable().parse(rawAccount);
+  const bounds = z.object({ min: Atomic, max: Atomic.nullable() }).parse(rawBounds), registration = Registration.parse(rawRegistration);
+  if ((bounds.max !== null && BigInt(bounds.max) < BigInt(bounds.min)) || (registration && BigInt(registration.available) > BigInt(registration.total))) throw new Error('Invalid recipient storage accounting');
+  const proposed = buildFtRegistration(policy.tokenId, recipient, bounds.min);
+  const accountExists = native !== null, tokenRegistered = registration !== null;
+  const state = !accountExists ? 'account_missing' as const : !tokenRegistered ? 'registration_required' as const : 'ready' as const;
+  return { policy, recipient, checkedAtBlock,
+    accountKind: /^[0-9a-f]{64}$/.test(recipient) ? 'near_implicit' as const : /^0x[0-9a-f]{40}$/.test(recipient) ? 'eth_implicit' as const : 'named_or_other' as const,
+    accountExists, tokenRegistered, state, canReceiveTokens: accountExists && tokenRegistered,
+    storageMinimumYoctoNear: bounds.min, registrationCall: accountExists && !tokenRegistered ? proposed : null,
+    activationAmountYoctoNear: null, gasBudgetIncluded: false as const, chainFreshnessChecked: false as const };
+}
 export const PreflightInput = z.discriminatedUnion('operation', [
   z.object({ operation: z.literal('deposit'), payer: AccountId, vault: AccountId }).strict(),
   z.object({ operation: z.literal('withdraw'), payer: AccountId, vault: AccountId, recipient: AccountId }).strict(),

@@ -137,7 +137,13 @@ try {
   catalog=await discoverSharedVaults(source,policy); let tree=await loadSharedTree(source,catalog);
   const output=await createNote(pool),transferRoot=receipt(); const transferred=await proveSpend(pool,notes[0],tree,{kind:'transfer',target:output.commitment,disclosureRoot:transferRoot});
   const transfer=await relay.callRaw(forest,'transfer',{output_commitment:output.commitment,disclosure_root:transferRoot,...transferred.args},{attachedDeposit:STORAGE_FEE,gas:GAS}); assert.equal(transfer.parseResult(),3); transactions.push(transfer); await final(transfer);
-  const recipient=createFreshRecipient('ft-sandbox-local-recipient'); const activation=await root.transfer(recipient.accountId,NEAR/10n); await final(activation);
+  const recipient=createFreshRecipient('ft-sandbox-local-recipient');
+  const beforeActivation=await api('/v1/recipients/readiness',{recipient:recipient.accountId});
+  assert.equal(beforeActivation.state,'account_missing');assert.equal(beforeActivation.canReceiveTokens,false);assert.equal(beforeActivation.registrationCall,null);assert.equal(beforeActivation.activationAmountYoctoNear,null);
+  const activation=await root.transfer(recipient.accountId,NEAR/10n); await final(activation);
+  const beforeRegistration=await api('/v1/recipients/readiness',{recipient:recipient.accountId});
+  assert.equal(beforeRegistration.state,'registration_required');assert.equal(beforeRegistration.registrationCall.contract,token.accountId);assert.equal(beforeRegistration.registrationCall.args.account_id,recipient.accountId);
+  assert.equal(beforeRegistration.registrationCall.attachedYoctoNear,(await token.view<any>('storage_balance_bounds')).min);
   catalog=await discoverSharedVaults(source,policy); tree=await loadSharedTree(source,catalog);
   const merchantKey=await bob.getKey();assert.ok(merchantKey);
   const invoice:Invoice=createInvoice({merchantAccount:bob.accountId,recipient:recipient.accountId,title:'Sandbox recipient invoice',reference:'INV-SANDBOX-001',policy,units:1,createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+3600000).toISOString()});
@@ -154,6 +160,8 @@ try {
   const payoutRef={kind:'withdrawal' as const,nullifier:proof.publicSignals[0],expectedVault:b.accountId,expectedRecipient:recipient.accountId,expectedDisclosureRoot:withdrawalRoot};
   const failedStatus=await api('/v1/settlements/status',payoutRef);assert.equal(failedStatus.state,'Retryable');assert.equal(failedStatus.complete,false);assert.equal(failedStatus.retryCall.method,'retry_withdrawal');
   await register(token,recipient.accountId);
+  const afterRegistration=await api('/v1/recipients/readiness',{recipient:recipient.accountId});
+  assert.equal(afterRegistration.state,'ready');assert.equal(afterRegistration.canReceiveTokens,true);assert.equal(afterRegistration.registrationCall,null);
   const retry=(await walletFlow(relay,plan.tokenCall,['retry']))[0];assert.equal(retry.parseResult(),true,retry.summary());transactions.push(retry);
   assert.equal(await balance(token,recipient.accountId),USD);
   assert.equal((await api('/v1/settlements/status',payoutRef)).complete,true);
