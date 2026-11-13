@@ -5,7 +5,7 @@ import { NearRpcEvidenceSource, verifyBundle, type SettlementBundle } from '../s
 import { createFreshRecipient } from '../sdk/wallet.js';
 import { randomBytes } from 'node:crypto';
 import { discoverVaults, predictVaultAccount, NearRpcFactorySource, type FactoryPolicy } from '../sdk/factory.js';
-import { discoverSharedVaults, loadSharedTree, chooseSharedVault, NearRpcSharedSource, type SharedPolicy } from '../sdk/shared.js';
+import { discoverSharedVaults, discoverSharedVaultGroup, loadSharedTree, chooseSharedVault, NearRpcSharedSource, type SharedPolicy } from '../sdk/shared.js';
 
 import { buildFtDeposit, buildFtWithdrawal, parseUsdc, quoteFtFees } from '../sdk/ft.js';
 
@@ -67,9 +67,9 @@ try {
       break;
     }
     case 'shared-deposit-args': {
-      if (args.length !== 4) throw new Error('shared-deposit-args trusted-policy.json trusted-rpc-url encrypted-note.json disclosure-root');
+      if (args.length !== 4 && args.length !== 5) throw new Error('shared-deposit-args trusted-policy.json trusted-rpc-url encrypted-note.json disclosure-root [vault-account]');
       const policy: SharedPolicy = await json(args[0]);
-      const catalog = await discoverSharedVaults(new NearRpcSharedSource(policy.network, policy.registry, args[1]), policy);
+      const catalog = await discoverSharedVaultGroup(new NearRpcSharedSource(policy.network, policy.registry, args[1]), policy, { vault: args[4] });
       const note = await loadNote(args[2]); await validateNote(catalog.pool, note);
       if (!/^[a-f0-9]{64}$/.test(args[3])) throw new Error('Invalid disclosure root');
       if (catalog.pool.version === 3) {
@@ -82,8 +82,11 @@ try {
       if (args.length !== 5) throw new Error('shared-spend-args trusted-policy.json trusted-rpc-url encrypted-note.json action.json output.json');
       const policy: SharedPolicy = await json(args[0]);
       const source = new NearRpcSharedSource(policy.network, policy.registry, args[1]);
-      const catalog = await discoverSharedVaults(source, policy), note = await loadNote(args[2]);
       const action: Action = await json(args[3]);
+      const catalog = action.kind === 'withdraw'
+        ? await discoverSharedVaultGroup(source, policy, { vault: action.vault })
+        : await discoverSharedVaults(source, policy, { maxRecords: 1 });
+      const note = await loadNote(args[2]);
       if (action.kind === 'withdraw') {
         action.vault ??= chooseSharedVault(catalog, 'withdraw');
         if (!catalog.vaults.some(v => v.accountId === action.vault && v.canWithdraw)) throw new Error('Destination vault is not verified or lacks liquidity');

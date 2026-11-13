@@ -8,7 +8,7 @@ import { chooseIndependentVault } from '../sdk/wallet.js';
 import { verifyBundle, type ChainRecord, type SettlementBundle } from '../sdk/evidence.js';
 const pool: Pool = { version: 3, network: 'sandbox', contract: 'forest.test.near', denomination: '1000000', tokenId: 'usdc.test.near' };
 const vault = 'b.forest.test.near';
-function catalog(): SharedCatalog { return { blockHash: 'final-block', pool, root: '1', leafCount: 2, outstandingNotes: 2, creationDeposit: '1', checkedRecords: 1, nextIndex: null,
+function catalog(): SharedCatalog { return { blockHash: 'final-block', pool, root: '1', leafCount: 2, outstandingNotes: 2, creationDeposit: '1', vaultCount: 1, checkedRecords: 1, nextIndex: null,
   vaults: [{ accountId: vault, availableNotes: 1, reservedNotes: 0, canDeposit: true, canWithdraw: true }] }; }
 test('USDC six-decimal arithmetic preserves full principal with 15 bps on top', () => {
   assert.equal(parseUsdc('1'), '1000000'); assert.equal(parseUsdc('123.456789'), '123456789');

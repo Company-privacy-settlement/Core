@@ -123,6 +123,8 @@ npm run cli -- shared-deposit-args examples/shared-policy.json https://rpc.testn
 npm run cli -- shared-spend-args examples/shared-policy.json https://rpc.testnet.near.org receiver-note.encrypted.json examples/withdraw-action.json withdrawal-args.json
 ```
 
+자동 입출금 볼트 선택은 하나의 확정 블록에서 모든 카탈로그 페이지를 검증하며, 기본 조회 한도는 레지스트리 기록 1,000개입니다. 더 큰 그룹은 명시적으로 오류를 반환합니다. `shared-deposit-args` 마지막에 `vault-account`를 추가하거나 출금 액션에 `vault`를 지정하면 해당 구성원만 직접 검증합니다. 첫 페이지만 조회하고 자동 선택하지 않습니다. SDK의 `discoverSharedVaultGroup`은 `maxRecords` 조회 한도를 1–10,000개로 지정할 수 있습니다.
+
 위 명령은 payload를 준비합니다. 실제 NEAR 지갑이 서명·전송해야 합니다. action의 `vault`가 없으면 검증된 유동성에서 선택합니다. 원금 수신자 `target`과 새로운 `disclosureRoot`는 실제 값으로 교체합니다. Private transfer는 `kind: transfer`, `target: 수신자 commitment`를 사용하며 vault를 지정하지 않습니다.
 
 Vault 입금이 `Active`로 등록되었는지 확인합니다. 등록 거절은 원래 송금자에게 principal + protocol fee를 환불할 수 있고, 네트워크 실패는 `retry_deposit`로 재개합니다. 출금은 forest의 `get_withdrawal`이 `Complete`여야 완료입니다. 요청 이벤트만으로 지급 완료를 판단하지 않습니다. 명세: [Shared v2](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md).

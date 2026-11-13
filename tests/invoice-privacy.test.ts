@@ -155,7 +155,9 @@ test('matching reference floods still report incomplete coverage instead of a fa
     validateInvoiceStatus(status, f.invoice);
   } finally { f.store.close(); }
 });
-test('v2 public plans must use a signed invoice reference and exact payout destination', async () => {
+test('v2 public plans must use a signed invoice reference and exact payout destination', async (t) => {
+  // Historical signed terms stay fixed; the live plan gate must use the fixture's clock.
+  t.mock.method(Date, 'now', () => now);
   const f = await scoped();
   try {
     const p = f.invoice.policy, domain = await shaField(`core:ft:v3|${p.network}|${p.registry}|${p.tokenId}|${p.denomination}`);

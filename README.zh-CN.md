@@ -123,6 +123,8 @@ npm run cli -- shared-deposit-args examples/shared-policy.json https://rpc.testn
 npm run cli -- shared-spend-args examples/shared-policy.json https://rpc.testnet.near.org receiver-note.encrypted.json examples/withdraw-action.json withdrawal-args.json
 ```
 
+自动选择存取款 vault 时，会在同一个最终区块上验证所有目录页，默认扫描上限为 1,000 条注册记录。更大的组会明确报错：在 `shared-deposit-args` 末尾添加 `vault-account`，或在提款 action 中设置 `vault`，即可直接验证指定成员。不会只从第一页静默选择。SDK 的 `discoverSharedVaultGroup` 可通过 `maxRecords` 设置 1–10,000 条记录的扫描上限。
+
 上述命令仅准备 payload，需要真实 NEAR 钱包签名并提交。action 未指定 `vault` 时，SDK 会从已验证的流动性中选择。请将本金收款人 `target` 和新的 `disclosureRoot` 替换为实际值。隐私转移使用 `kind: transfer`，将 `target` 设为收款人的 commitment，不指定 vault。
 
 确认 vault 入金达到 `Active`。登记被明确拒绝后，可将本金与协议手续费退还给原发送者；网络失败可通过 `retry_deposit` 恢复。只有 forest 的 `get_withdrawal` 达到 `Complete` 才表示提款完成，不能仅凭请求事件认定已付款。规范见 [Shared v2](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md)。

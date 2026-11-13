@@ -125,6 +125,8 @@ npm run cli -- shared-spend-args examples/shared-policy.json https://rpc.testnet
 
 These commands prepare payloads. An actual NEAR wallet must sign and submit them. If the action omits `vault`, the SDK selects verified liquidity. Replace the principal recipient `target` and fresh `disclosureRoot` with actual values. For a private transfer, use `kind: transfer`, set `target` to the recipient's commitment, and omit the vault.
 
+Automatic deposit/withdrawal selection verifies every catalog page at one finalized block, with a default budget of 1,000 registry records. Larger groups fail explicitly: append a `vault-account` to `shared-deposit-args`, or set `vault` in the withdrawal action, to verify that member directly. Selection never silently uses only the first page. SDK callers can set `discoverSharedVaultGroup`'s `maxRecords` scan budget (1–10,000).
+
 Check that a vault deposit reaches `Active`. Rejected registration permits a principal-plus-protocol-fee refund to the original sender; network failures can resume through `retry_deposit`. Withdrawal completes only when the forest's `get_withdrawal` reaches `Complete`. A requested event alone is not payout confirmation. Specification: [Shared v2](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md).
 
 ## Fees
