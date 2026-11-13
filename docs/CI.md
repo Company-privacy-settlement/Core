@@ -36,7 +36,7 @@ GitHub references: [reusing workflows and access](https://docs.github.com/en/act
 1. Install all three lockfiles with `npm ci`.
 2. Check Core types and all unit tests; rebuild Node/browser SDKs.
 3. Compare Front's committed browser SDK with the newly built Core files **and current source inventory**. Front's self-check alone cannot establish freshness. CI never runs `sync:core` to conceal drift.
-4. Compile API/indexer and test readiness, single writer, restart, online backup, protected restore and cancellation against local mock RPC.
+4. Compile API/indexer and test readiness, single writer, restart, online backup, protected restore and cancellation against local mock RPC. The same command also checks compiled Organization API startup requirements, liveness, unauthenticated rejection, database restart and shutdown without a public chain call.
 5. Check Front types and units; build its static export. Run the complete Chromium desktop/mobile suite with a fresh loopback server. Install Chromium/system dependencies on the runner; do not reuse an unrelated process on port 3000.
 6. Build the four real contract WASMs and the local TESTUSD fixture with Rust 1.99.1; run all four contract unit suites. Build order preserves embedded child bytes.
 7. Generate fresh **development-only** proving artifacts on the disposable runner. Run native NEAR and FT demos using actual local NEAR sandbox WASM and Groth16. The FT flow covers API, finalized index, wallet journal, invoices, recipient readiness and evidence. Existing committed public vectors remain unchanged. No proving setup or chain state is cached between runs.

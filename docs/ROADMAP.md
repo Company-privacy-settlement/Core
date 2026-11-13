@@ -18,14 +18,15 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 | Browser notes | Local FT note creation, encrypted file backup/reopen, CLI interoperability and bounded public deposit plans | [Notes](BROWSER_NOTES.md) |
 | Browser evidence | Private receipts, separate encrypted backup/reopen, explicit selected-field exports, independent-root integrity checks, root-only deposit preparation and CLI evidence compatibility | [Receipts](BROWSER_RECEIPTS.md) |
 | Lifecycle protection | Page-hide/history-cache locks; generation-bound private work, journal reads/writes and last-moment wallet dispatch guards | [Wallet](WALLET.md), [Notes](BROWSER_NOTES.md) |
-| Product shell | Landing, nine English Docs guides and separate sample KYB steps; English/Korean/Chinese repository READMEs | [Service](SERVICE.md) |
+| Product shell | Landing, ten English Docs guides and separate sample KYB steps; English/Korean/Chinese repository READMEs | [Service](SERVICE.md) |
+| Organization access | Separate wallet-authenticated API, durable organizations/members, directed invitations, fixed roles, revocation, ownership transfer and organization-scoped audit log; no payment signing or corporate identity grant | [Organizations](ORGANIZATIONS.md) |
 
 ## Recorded validation
 
 The latest recorded full implementation runs on **2026-11-13** include:
 
-- Core: `npm run check`, **232 tests** via `npm test`, browser-client build.
-- Front: type/build checks, **98 browser cases**, and sample-KYB unit coverage.
+- Core: `npm run check`, **249 tests** via `npm test`, browser-client build.
+- Front: type/build checks, **112 browser cases**, and sample-KYB unit coverage.
 - `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
 
 The FT is a local **TESTUSD fixture, not Circle-issued USDC**. No funded public-network wallet smoke test has been completed. These are dated results; documentation edits do not imply fresh execution of every suite. Reproduction: [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract).
@@ -83,7 +84,7 @@ These are optional service-layer additions for a persistent merchant gateway. Th
 
 | ID | Work package / owner | Completion evidence | Dependencies |
 | --- | --- | --- | --- |
-| E01 | Organization access and approvals — merchant service + Front | Organization membership/roles, maker-checker approvals, signer-to-business mapping, authorization revocation and audit trail. Define compatible corporate-wallet signing rather than treating current merchant FullAccess ownership as corporate identity. | M01; enterprise signing/control model |
+| E01 | **Access foundation delivered; payment approvals open** — organization service + Front | [Persistent organizations, members, invitations, fixed roles, wallet authentication, authorization revocation, ownership transfer and audit history](ORGANIZATIONS.md). Maker-checker payment approvals and verified signer-to-business/corporate-wallet mapping remain unimplemented; organization creation does not establish legal identity. | Auth foundation is separate from M01 merchant invoice storage; real business/signing qualification remains required |
 | E02 | Batch worker/contractor payments — Core + Front | Validate recipient lists and classifications, isolate failures, show each note/fee/approval and reconcile per-recipient results. Specify scheduled execution authority separately; a saved schedule must not silently gain wallet signing power. | E01; U02; explicit batch/scheduling product scope |
 | E03 | Real KYB/KYC provider and credentials — Core + enterprise service | Entity/beneficial-owner cases, documents/follow-ups, authenticated callbacks, issuer trust, expiry/current revocation and explicit decisions. Version signed claims for any finer jurisdiction/scope than current US/AE credentials. Decide off-chain eligibility versus X05 circuit admission. | Provider/account selection, data controls and business review |
 | E04 | Encrypted business-document packages — enterprise service + Front | Authenticated upload/access, encryption/key rotation, integrity commitments, authorized selective export and tested retention/deletion. Never place raw identity, beneficial-owner, salary or tax files on-chain. | E01; storage/key-management/retention decisions |
@@ -134,7 +135,7 @@ Severity describes potential impact for the relevant deployment stage, not a new
 | Bounded browser stores and cross-device recovery | Known limit / inability to add history or recover local state | Journal/library are bounded and encrypted; exports exist, but operational archiving/device-loss drills and compatibility UX remain work. | U04/U05 |
 | Real KYB/tax claims without provider/rule evidence | Service gap / incorrect identity or business conclusions | UI exports are explicitly unverified/unsubmitted; SDK issuer checks and receipt integrity do not establish real identity or tax acceptance. | E03/E05/E06/S06 |
 | External token behavior and operating dependencies | Qualification gap / rejected transfers or unavailable assets | FT calls bind one immutable token per group; token behavior, failures and external controls still require asset-specific testing and review. | R03/S03/S06 |
-| Merchant tenant leakage or unsafe callbacks | Future-service risk / business-data exposure or unintended requests | Current API stores no private merchant terms and sends no webhooks; auth/isolation/key controls and destination validation must ship with any future service. | M01/M03/E01/E04/S05 |
+| Merchant tenant leakage or unsafe callbacks | Service foundation / future merchant-data exposure | Organization API now enforces tenant/role isolation, signature sessions and revocation. Organization names/membership metadata need protected storage; no private merchant terms or webhooks exist yet. Merchant encryption, callback validation and operational qualification remain separate. | M01/M03/E01/E04/S05 |
 
 ## Suggested execution order
 
@@ -146,4 +147,4 @@ Severity describes potential impact for the relevant deployment stage, not a new
 6. **E01 → E02/E03/E04 → E05 → E06:** add enterprise controls and real reviewed preparation. Use fixtures until provider/data access is deliberately configured.
 7. **S01–S06 start alongside the relevant stages and must close before production funds.** X01–X06 are optional, separately scoped/versioned work; none is a reason to silently change existing notes, groups or destinations.
 
-This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 232 Core tests, 98 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
+This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 249 Core tests, 112 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).

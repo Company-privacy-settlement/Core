@@ -1,0 +1,20 @@
+{
+    email {$CORE_ORGANIZATION_TLS_EMAIL}
+}
+
+{$CORE_ORGANIZATION_DOMAIN} {
+    encode zstd gzip
+    header {
+        -Server
+        Cache-Control "no-store"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+    }
+    request_body {
+        max_size 8KB
+    }
+    reverse_proxy organization-api:3002 {
+        header_up -X-Forwarded-For
+        header_up -X-Real-IP
+    }
+}

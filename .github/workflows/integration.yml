@@ -116,7 +116,7 @@ jobs:
       - name: Reject stale Front SDK or mismatched source inventory
         id: client
         run: node scripts/integration.mjs client
-      - name: Compiled API and indexer restart, lock, backup and restore
+      - name: Compiled settlement and organization service lifecycle and access gates
         id: service
         run: npm run test:service-runtime
       - name: Front types, units and static production build

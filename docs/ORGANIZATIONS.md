@@ -1,0 +1,118 @@
+# Organizations, members and roles
+
+[Service overview](SERVICE.md) · [CI](CI.md) · [Hosting](HOSTING.md) · [Roadmap](ROADMAP.md)
+
+Core now has a separate authenticated organization service and an English-first `/organization/` workspace. It provides persistent organization names, wallet-account membership, targeted invitations, fixed roles, ownership transfer, immediate application authorization checks and an organization-scoped audit log. It does not turn a wallet signature into verified corporate identity or grant authority over settlement contracts.
+
+## Identity and service boundary
+
+The browser authenticates to the **Organization API**, independently of the public read-only settlement API. It uses an off-chain [NEP-413 message signature](https://github.com/near/NEPs/blob/master/neps/nep-0413.md). A five-minute random challenge binds the testnet account, service audience, frontend Origin, nonce and expiration. Its recipient is the configured API host. Callback URLs and redirect-return signing are not supported by this flow: choose a wallet returning a signed message directly. No payment transaction or FullAccess key is submitted to the API.
+
+The service verifies Ed25519 over the NEP-413 digest and reads the selected key at a recent finalized block from an HTTPS **testnet** RPC. A function-call key cannot authenticate. A synchronizing, stale, wrong-network or unavailable RPC fails closed. The response is bounded to 128 KB; requests have a ten-second deadline and eight active work slots. A noncancellable identity adapter retains its slot until it settles.
+
+Successful redemption atomically consumes the challenge and issues a random one-hour bearer session. SQLite stores only its SHA-256 digest, account, public key, approved origin and expiry. Up to ten sessions per account remain active. Every private request rechecks the signing key at finalized chain state, then re-reads the session and current organization membership. Removal of a key takes effect once observed in finalized chain state; a temporarily unavailable RPC denies access rather than using a cached authorization. Role and membership changes apply immediately to the next application check. Expiry/logout during an RPC check wins over the earlier snapshot.
+
+Browser response validation allows up to one minute of clock skew when bounding future expirations. The server's five-minute challenge and one-hour session lifetimes are not extended.
+
+Explicit logout needs only the valid origin-bound session, so an identity RPC outage cannot block revocation. The browser keeps the bearer in memory, never a URL, localStorage or sessionStorage. Editing the service origin, page-hide/history-cache return, unmount and expiry clear credentials/private views and cancel pending work. They do not undo a request already committed by the service. Explicit Sign out revokes the server token; if transport fails, local credentials are still cleared and the unconfirmed server session expires within one hour. Mutations are not automatically retried.
+
+Site access remains independently owner-private. Joining an organization does not add a visitor to the hosted Site, bypass ChatGPT sign-in or change its audience. Authentication here establishes a wallet principal only: `legalIdentityVerified`, `kybVerified` and `walletSigningAuthorityGranted` are never asserted true.
+
+## Roles
+
+| Capability | Owner | Admin | Operator | Viewer | Auditor |
+| --- | --- | --- | --- | --- | --- |
+| View organization | Yes | Yes | Yes | Yes | Yes |
+| Edit workspace name | Yes | Yes | No | No | No |
+| Read member directory | Yes | Yes | Yes | No | Yes |
+| Manage permitted members/invitations | Yes | Limited | No | No | No |
+| Read audit log | Yes | Yes | No | No | Yes |
+| Transfer ownership | Yes | No | No | No | No |
+
+An Owner can assign Admin, Operator, Viewer or Auditor. An Admin can invite/change/remove only Operators, Viewers and Auditors, and cannot revoke an Admin invitation. Admins cannot change themselves, other Admins or the Owner. Members other than the Owner may explicitly leave using their own membership version. The server applies these checks, including the target member's current role, within the same SQLite write transaction as the change and audit append.
+
+The role matrix is fixed and frozen in the shared SDK. Operator currently has member-directory read access; it does not yet provide payment creation/approval privileges. Custom roles, SSO, corporate multisig, maker-checker payment approvals and wallet execution delegation are separate work. No payment API silently treats these organization roles as invoice signatures, deployment trust or note ownership.
+
+## Organizations and membership
+
+1. Sign in at `/organization/` using an independently supplied Organization API origin.
+2. Select an existing organization or create one with a 2–120 character workspace name. A name is not KYB evidence. Each account may own ten organizations and hold 100 active memberships.
+3. Open **Invitations**, enter a NEAR testnet account and a permitted role. No email, Telegram message or anonymous bearer invitation link is sent. The intended account sees a personal invitation inbox after authentication.
+4. The recipient explicitly accepts or declines. An invitation expires after seven days. Acceptance rechecks the inviter's active membership, its exact version and permission to grant the role. Removing, changing or re-adding an inviter cannot resurrect old invitation authority; revoke the old invitation and create a new one.
+5. Use **Members** to change a role or remove access. Each organization supports 100 active members and 100 unexpired pending invitations; an account's pending inbox is bounded to 100. Duplicate pending invitations and already-active members are rejected. Rejoining creates a new membership version rather than resetting an old one.
+6. An organization has exactly one active Owner. The Owner cannot be removed or demoted through member editing. Explicitly transfer ownership to an active member; the former Owner becomes an Admin. Both membership versions and the organization version advance atomically. There is no lost-wallet or platform-admin owner reset.
+
+Mutations that edit existing records require their returned `version`. Stale versions return `409 VERSION_CONFLICT`; refresh and review before retrying. A successful response means an off-chain access change, not a finalized payment. There is no automatic mutation replay/idempotency key or organization deletion/archive in this version.
+
+## API
+
+All private routes require `Authorization: Bearer <session>` and the exact approved `Origin`. The browser supplies Origin; nonbrowser clients must set it explicitly. No cookies or forwarding headers establish identity. Missing/foreign membership returns the same `404 ORGANIZATION_NOT_FOUND` without disclosing whether a tenant exists. No organization ID or role from a header/body is accepted as authority.
+
+| Method/path | Input / behavior |
+| --- | --- |
+| `GET /healthz` | Process liveness only; does not establish current identity RPC readiness |
+| `POST /v1/auth/challenge` | `{accountId}` → challenge; approved Origin required |
+| `POST /v1/auth/login` | `{challengeId, accountId, publicKey, signature}` → one-hour session |
+| `POST /v1/auth/logout` | `{}` → revoke the supplied session |
+| `GET /v1/me` | Wallet principal/expiry; no verified business claim |
+| `GET /v1/me/invitations` | Unexpired pending invitations addressed to this account |
+| `POST /v1/me/invitations/:id/accept` or `/decline` | `{version}`; target-account authorization |
+| `GET /v1/organizations` | Only this account's active memberships |
+| `POST /v1/organizations` | `{name}` → organization with the current principal as Owner |
+| `GET /v1/organizations/:id` | Organization, current role/permissions, organization and membership versions |
+| `PATCH /v1/organizations/:id` | `{name, version}` |
+| `GET /v1/organizations/:id/members` | Active members; role permission required |
+| `PATCH /v1/organizations/:id/members/:account` | `{role, version}` |
+| `DELETE /v1/organizations/:id/members/:account` | `{version}`; remove or leave |
+| `GET` / `POST /v1/organizations/:id/invitations` | List / create `{accountId, role}` |
+| `DELETE /v1/organizations/:id/invitations/:invite` | `{version}` |
+| `GET /v1/organizations/:id/roles` | Fixed role/permission matrix for a member |
+| `POST /v1/organizations/:id/ownership` | `{accountId, version}`; active successor required |
+| `GET /v1/organizations/:id/audit?before=<sequence>` | Up to 50 descending events and `nextCursor` |
+
+JSON inputs reject extra fields; bodies are limited to 8 KB. Peer admission is 120 points/minute, authentication routes cost five points, and tracked peers are bounded to 1,024. Forwarded client headers are ignored: clients behind a proxy share its peer budget. Use edge admission controls when qualifying real multiuser hosting. Responses use exact-origin CORS, no-store, nosniff and no-referrer. No request body, signature or bearer is logged by the application or supplied Caddy configuration.
+
+Audit sequences are **per organization**, so gaps do not expose another tenant's activity. Creation, renaming, invitation creation/revocation/acceptance/decline, membership changes/leaving and ownership transfers append in the same transaction. Failed/stale changes roll back their audit append. Audit access is role-gated and paginated. This is an application append-only history; a database administrator can alter it. It is not an independently anchored or tamper-proof tax receipt.
+
+## Run locally
+
+Use Node 22.16+ for the shared compiled service package. From Core:
+
+```sh
+export CORE_ORGANIZATION_ORIGIN=http://localhost:3002
+export CORE_ORGANIZATION_DB="$PWD/data/organizations/organizations.sqlite"
+export CORE_ORGANIZATION_ALLOWED_ORIGINS=http://localhost:3000
+export CORE_ORGANIZATION_RPC_URL=https://rpc.testnet.near.org
+npm run serve:organizations
+```
+
+Use the exact frontend origin actually opened in the browser: `localhost` and `127.0.0.1` differ. In a second process run Front, enter `http://localhost:3002` in Organization, and sign in with a supported funded/existing testnet account. There is no simulated identity fallback in the CLI. Core's settlement policy/RPC and index database are not used by this process.
+
+For compiled execution:
+
+```sh
+npm run build:service
+npm run serve:organizations:compiled
+```
+
+## Hosted configuration and recovery
+
+The [standalone Compose configuration](../ops/organizations.compose.yaml), [environment example](../ops/organizations.env.example) and [Caddy config](../ops/Organizations.Caddyfile) run the compiled organization process using the existing service image, a separate persistent volume and optional HTTPS. From Core:
+
+```sh
+docker compose --env-file /absolute/path/organizations.env -f ops/organizations.compose.yaml --profile https up --build -d
+```
+
+This standalone proxy owns ports 80/443; on a host already running the settlement proxy, instead integrate the organization service into the existing reverse proxy/network. No host, domain, certificate or public backend is provisioned by these templates. Docker execution and a real public-wallet sign-in must be observed separately before claiming a live service.
+
+The database is separate from the public activity index, protected by owner-only file permissions, WAL and full synchronous transactions. Schema/network/audience metadata rejects an unrelated database or another API audience. Business names, wallet membership and audit metadata are **not encrypted by the application**. Protect the host and use encrypted volumes/backups. Do not send identity documents, beneficial-owner records, salaries, private notes, private keys or passphrases to these routes.
+
+Back up using SQLite's online backup interface or a qualified volume snapshot, preserving consistency with WAL; the public index backup tool deliberately does not accept this different database schema. Restore/migration/retention automation is not implemented for organization data. A historical snapshot can resurrect old roles or sessions. Before reopening a restored service, clear `organization_sessions` and `organization_challenges` and reconcile memberships/invitations against the latest authorized records. A changed audience needs an explicitly designed migration rather than silently reusing the same database. Retain old audit data under a reviewed retention policy; no automatic historical deletion is performed.
+
+## Validation scope
+
+Regression tests cover tenant isolation, all five role boundaries, directed/replayed/expired/revoked invitations, nonresurrection after re-adding an inviter, immediate membership/role revocation, stale-write rollback, atomic ownership transfer, per-tenant audit pagination, persisted state and hashed sessions. Authentication uses independently serialized NEP-413 signatures and exercises replay/concurrent redemption, account/origin substitution, expiry, key revocation, cancellation and identity-provider failures. HTTP tests exercise strict schemas, access denial and bounded deadline behavior.
+
+The compiled runtime smoke check covers required audience configuration, health, unauthenticated rejection, persistent database restart and shutdown without a chain call. Front browser fixtures cover role-aware controls, invitation acceptance, role edits, audit display, access revocation, page-hide cancellation and origin changes. Fixtures do not establish a real public-wallet or public-hosting qualification. See [CI](CI.md) for exact-source integration.
+
+Recorded local validation on 2026-11-13: Core **249 tests**, including **17 organization regressions**, Front **112 desktop/mobile cases** and three unit cases, type checks, SDK/static builds and both compiled-service runtime harnesses passed. The standalone Compose schema and Caddy configuration were validated; Docker execution and a public Organization API deployment were not performed.

@@ -86,6 +86,10 @@ The default is `127.0.0.1:3001`. `/healthz` is process liveness; `/readyz` check
 
 `build:service` compiles a production runtime; `serve:service` bootstraps and supervises the read-only API and a single persistent SQLite writer. Docker/Compose provides optional Caddy HTTPS, a durable volume and restart policy; a separate Render blueprint is available. Policy digest, exact origins and indexed readiness are required. Online backups and non-overwriting restore are included. [Hosting and recovery](docs/HOSTING.md) · [VPS environment](ops/service.env.example). Actual external deployment requires a hosting target and verified deployed testnet policy.
 
+## Organization access
+
+The separate Organization API provides NEP-413 testnet sign-in, persistent organizations/members, directed invitations, Owner/Admin/Operator/Viewer/Auditor roles, revocation, versioned ownership transfer and audit history. Front's `/organization/` manages these controls; its session stays in memory. These permissions do not grant on-chain signing or verify a business. `npm run serve:organizations` runs the service with independent origin/database/RPC settings. [API, roles and hosting](docs/ORGANIZATIONS.md).
+
 ## Integrated CI
 
 All three repositories call the same exact-revision pipeline: Core types/units and API/indexer recovery, rebuilt SDK versus Front vendoring, Front types/units/static build and desktop/mobile browsers, contract WASM/units, native/FT Groth16 sandboxes and a verified development release. Private siblings require `INTEGRATION_READ_TOKEN` and reusable-workflow access. [Pins, gates and GitHub setup](docs/CI.md). Local validation is separate from an observed hosted Actions run.
@@ -104,7 +108,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` overrides the default `../Contract`. Core verifies artifact manifest hashes before importing WASM/proving files. The setup is a single-machine development ceremony; replacing it requires matching verifier/artifacts and new deployments. Generated artifacts stay out of Git.
 
-Recorded validation on **2026-11-13**: Core **232 tests**, Front **98 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
+Recorded validation on **2026-11-13**: Core **249 tests**, Front **112 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
 
 ## Privacy, custody and recovery
 

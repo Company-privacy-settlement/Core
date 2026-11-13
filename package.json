@@ -22,6 +22,8 @@
     "demo:ft": "tsx scripts/ft-demo.ts",
     "vectors:ft": "tsx scripts/shared-vectors.ts --ft",
     "serve": "tsx scripts/server.ts",
+    "serve:organizations": "tsx scripts/organization-server.ts",
+    "serve:organizations:compiled": "node dist/service/scripts/organization-server.js",
     "build:client": "node scripts/build-client.mjs",
     "build:sdk": "node scripts/build-sdk.mjs",
     "release:prepare": "tsx scripts/release.ts prepare",
@@ -37,7 +39,7 @@
     "index:backup": "node scripts/index-maintenance.mjs backup",
     "index:restore": "node scripts/index-maintenance.mjs restore",
     "service:health": "node scripts/service-health.mjs",
-    "test:service-runtime": "npm run build:service && tsx tests/manual/service-runtime.ts",
+    "test:service-runtime": "npm run build:service && tsx tests/manual/service-runtime.ts && tsx tests/manual/organization-runtime.ts",
     "index": "tsx scripts/indexer.ts",
     "test:groups-proof": "tsx tests/manual/groups-proof.ts"
   },

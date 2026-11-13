@@ -10,7 +10,7 @@ This document describes implemented behavior as of **2026-11-13**. It is not a c
 | --- | --- | --- |
 | Settlement | [Contract](https://github.com/Company-privacy-settlement/Contract) | Native NEAR v2 and immutable-token NEP-141 v3 groups, independent vaults, shared forest/nullifiers, real Groth16 circuit |
 | Integration | [Core](../README.md) | Browser/Node SDK, local proving CLI, read-only HTTP API, SQLite index, evidence tools |
-| Interface | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js landing, nine English Docs guides and wallet workspaces |
+| Interface | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js landing, ten English Docs guides and wallet workspaces |
 | Future compliance | [Compliance scope](../compliance/README.md) | Real KYB providers, versioned US/Abu Dhabi rules and reviewable AI preparation |
 
 | Front route | Use |
@@ -114,6 +114,10 @@ The durable SQLite index copies configured registry records and enriches transac
 
 [Deployment tools](DEPLOYMENT.md) generate a hash-pinned public plan from a testnet release, perform finalized preflight, execute one explicitly selected deploy/registration/seal phase, reconcile unknown outcomes without resending and verify the sealed keyless registry. A one-shot local signer uses an owner-only file outside the API. Account creation/funding, real public execution, vault liquidity, hosted API/index and wallet qualification remain separate steps.
 
+## Organizations and team access
+
+The [separate Organization API](ORGANIZATIONS.md) adds NEP-413 testnet wallet authentication, durable organizations/members, targeted invitations, five fixed roles, immediate authorization revocation, versioned ownership transfer and per-organization audit history. Front's `/organization/` keeps its session in memory and clears private views on lifecycle/origin changes. Organization roles do not grant settlement signing rights, establish legal identity or issue KYB. Corporate signer mapping, payment approvals, merchant invoice storage and SSO remain separate work. Public backend hosting and real-wallet qualification are still required.
+
 ## Integrated CI
 
 [Cross-repository CI](CI.md) selects exact Core/Contract/Front commits, rebuilds and compares the browser SDK, runs types/unit/browser suites and actual native/FT WASM/Groth16 sandboxes, then verifies a development release against the tested sources. Private GitHub access and reusable-workflow sharing must be configured separately; local validation does not establish a successful hosted Actions run.
@@ -133,6 +137,6 @@ The durable SQLite index copies configured registry records and enriches transac
 
 ## Recorded validation and next work
 
-The latest recorded implementation validation on **2026-11-13** passed **232 Core tests**, **98 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
+The latest recorded implementation validation on **2026-11-13** passed **249 Core tests**, **112 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
 
 Reproduction commands and prioritized remaining work are in the [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract) and [roadmap](ROADMAP.md). Detailed review findings remain dated historical records rather than a claim that every suite was rerun for each documentation edit.

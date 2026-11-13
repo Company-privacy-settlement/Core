@@ -1,0 +1,46 @@
+services:
+  organization-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ["node", "dist/service/scripts/organization-server.js"]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 15s
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]
+    environment:
+      PORT: '3002'
+      CORE_ORGANIZATION_HOST: 0.0.0.0
+      CORE_ORGANIZATION_DB: /data/organizations.sqlite
+      CORE_ORGANIZATION_ORIGIN: ${CORE_ORGANIZATION_ORIGIN:?Set the independent organization API origin}
+      CORE_ORGANIZATION_ALLOWED_ORIGINS: ${CORE_ORGANIZATION_ALLOWED_ORIGINS:?Set the exact frontend origin}
+      CORE_ORGANIZATION_RPC_URL: ${CORE_ORGANIZATION_RPC_URL:-https://rpc.testnet.near.org}
+    volumes: [organization-data:/data]
+    expose: ['3002']
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+  organization-https:
+    image: caddy:2-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
+    profiles: [https]
+    restart: unless-stopped
+    depends_on:
+      organization-api:
+        condition: service_healthy
+    ports: ['80:80', '443:443', '443:443/udp']
+    environment:
+      CORE_ORGANIZATION_DOMAIN: ${CORE_ORGANIZATION_DOMAIN:?Set the organization API DNS name}
+      CORE_ORGANIZATION_TLS_EMAIL: ${CORE_ORGANIZATION_TLS_EMAIL:?Set the TLS contact email}
+    volumes:
+      - ./Organizations.Caddyfile:/etc/caddy/Caddyfile:ro
+      - organization-tls:/data
+      - organization-caddy:/config
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+volumes:
+  organization-data:
+  organization-tls:
+  organization-caddy:
