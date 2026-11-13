@@ -38,6 +38,8 @@ npm run serve
 
 API 기본 주소는 `127.0.0.1:3001`이며 실제 신뢰 배포 정책이 필요합니다. 시뮬레이션으로 대체하지 않습니다. `/v1/vaults`, `/v1/ft/preflight`, `/v1/settlements/status`, `/v1/transactions/verify`를 제공하며 지갑·비밀 노트·서명 키는 서비스 밖에 둡니다. 트랜잭션 수락이나 관찰 시간 초과만으로 지급 완료·실패를 판단하지 않습니다. 입력 형식, 준비 상태와 복구 동작은 [운영 기능과 HTTP 명세](docs/OPERATIONS.md)를 확인하세요.
 
+API에는 연결 IP별 속도 제한, 경로별 RPC 조회 예산, 기본 동시 작업 2개 제한과 취소 가능한 15초 요청 제한 시간이 적용됩니다. `/healthz`는 프로세스 생존을, `/readyz`는 배포 상태와 연결된 인덱스의 최신성·현재 기록 수를 확인합니다. 프록시 환경의 한계와 설정은 [운영 문서](docs/OPERATIONS.md#request-limits-and-readiness), [.env.example](.env.example)에 있습니다.
+
 ## 실행
 
 Node.js 22.13.0+가 필요합니다. 계약 빌드는 Contract에 고정한 Rust 1.99.1 및 C/C++ 빌드 도구를 사용합니다. 두 저장소를 형제 폴더로 체크아웃합니다.

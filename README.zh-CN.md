@@ -38,6 +38,8 @@ npm run serve
 
 API 默认监听 `127.0.0.1:3001`，需要真实且受信任的部署策略，不会回退到模拟链。提供 `/v1/vaults`、`/v1/ft/preflight` 、`/v1/settlements/status` 和 `/v1/transactions/verify`；钱包、秘密票据及签名密钥不进入服务。交易被接受或观察超时本身不代表付款完成或失败。输入格式、就绪标记和恢复行为见[运行功能与 HTTP 规范](docs/OPERATIONS.md)。
 
+API 提供有界的连接 IP 速率限制、各路由的 RPC 查询预算、默认 2 个并发任务，以及可取消的 15 秒请求期限。`/healthz` 检查进程存活；`/readyz` 验证部署状态，并在连接索引时检查其时效与当前日志记录数。代理环境的限制与配置见[运行文档](docs/OPERATIONS.md#request-limits-and-readiness)和 [.env.example](.env.example)。
+
 ## 开始使用
 
 需要 Node.js 22.13.0 及以上版本。合约构建使用 Contract 固定的 Rust 1.99.1 及 C/C++ 构建工具。将两个仓库检出到同级目录。

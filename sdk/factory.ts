@@ -95,12 +95,14 @@ export class NearRpcError extends Error {
 
 export class NearRpcFactorySource implements FactoryChainSource {
   private id = 0;
-  constructor(readonly network: Pool['network'], readonly factory: string, private readonly rpcUrl: string) {
+  constructor(readonly network: Pool['network'], readonly factory: string, private readonly rpcUrl: string, private readonly requestSignal?: AbortSignal) {
     const url = new URL(rpcUrl);
     if (url.protocol !== 'https:' && !(network === 'sandbox' && url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname))) throw new Error('Use HTTPS outside sandbox');
   }
   protected async rpc(method: string, params: unknown): Promise<any> {
-    const response = await fetch(this.rpcUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: ++this.id, method, params }), signal: AbortSignal.timeout(20_000) });
+    const timeout = AbortSignal.timeout(20_000);
+    const signal = this.requestSignal ? AbortSignal.any([timeout, this.requestSignal]) : timeout;
+    const response = await fetch(this.rpcUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: ++this.id, method, params }), signal });
     if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
     const body: any = await response.json();
     if (body.error) throw new NearRpcError(body.error);

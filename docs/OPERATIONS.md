@@ -89,6 +89,7 @@ Default bind: `127.0.0.1:3001`. `CORE_API_HOST` and `PORT` can override it. Ther
 | Method | Path | Input / result |
 | --- | --- | --- |
 | GET | `/healthz` | Process configuration, read-only flag; no readiness claim |
+| GET | `/readyz` | Verified registry/first catalog member at one final block, plus attached index freshness and current journal count; returns non-200 when not ready |
 | GET | `/v1/config` | Public trust policy; no RPC URL or secrets |
 | GET | `/v1/vaults?fromIndex=0&maxRecords=20` | Verified catalog at one final block; max 50 records per API request and explicit pagination |
 | POST | `/v1/ft/preflight` | Strict public preflight request; prerequisite calls and blockers |
@@ -101,16 +102,41 @@ Default bind: `127.0.0.1:3001`. `CORE_API_HOST` and `PORT` can override it. Ther
 
 ```bash
 curl http://127.0.0.1:3001/healthz
+curl --fail http://127.0.0.1:3001/readyz
 curl -H 'Content-Type: application/json' \
   --data-binary @public-request.json \
   http://127.0.0.1:3001/v1/ft/preflight
 ```
 
-The API accepts one configured policy/RPC, not a request-selected RPC or arbitrary view method. JSON bodies are limited to 8 KiB; unknown fields, including accidental note/secret fields, are rejected. CORS uses exact configured origins. Two concurrent chain requests are allowed by default; excess requests return 429. Responses are not cached, and request bodies/upstream error details are not logged or echoed.
+The API accepts one configured policy/RPC, not a request-selected RPC or arbitrary view method. JSON bodies are limited to 8 KiB; unknown fields, including accidental note/secret fields, are rejected. CORS uses exact configured origins. Responses are not cached, and request bodies/upstream error details are not logged or echoed.
 
-Errors: 400 malformed/invalid input; 403 disallowed origin; 409 incompatible destination or unavailable vault/asset; 413 body limit; 415 content type/encoding; 429 concurrency limit; 502 chain read/validation failure. Only RPC `UNKNOWN_ACCOUNT` is treated as absence. Other RPC failures must not become misleading registration instructions.
+## Request limits and readiness
 
-This is a local/development read-only integration service. Wallet signing and encrypted client recovery are documented in [WALLET.md](WALLET.md). Authentication for future private data, durable jobs, deployment rate limits/telemetry and a production deployment remain in [ROADMAP.md](ROADMAP.md). CORS is not authentication. Direct SDK use avoids adding this service as an observer of payment preparation.
+Each direct socket peer receives **120 points per 60-second fixed window** by default. `/v1/vaults` and `/readyz` cost 5 points, FT preflight costs 3, settlement/TX/merchant verification costs 2, and other requests (including allowed CORS preflights) cost 1. `/healthz` is exempt and makes no chain reads. Successful admissions include `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset` (seconds until reset). Rate/concurrency rejections include `Retry-After`; clients should wait and refresh state rather than automatically retrying wallet signatures.
+
+Rate state is bounded to 1,024 peers. A full, unexpired peer table returns `503 RATE_LIMIT_CAPACITY` for new peers rather than evicting active counters. Forwarded/X-Forwarded-For headers are ignored. Behind a reverse proxy, all clients sharing its socket address share a budget; configure edge limits for individual clients. Counters and concurrency limits are process-local and reset on restart; distributed enforcement and authentication are separate concerns.
+
+At most two work requests run concurrently. Each request has a **15-second deadline**, including JSON upload time. The CLI server creates a request-scoped RPC source, propagating cancellation to the actual HTTP transport on timeout or disconnect. Embedded servers should supply `sourceFactory(signal)` for equivalent transport cancellation. An adapter that ignores cancellation retains its concurrency slot until its real reads settle; a 504 response does not free space for orphaned background reads. Further source/database reads are blocked after cancellation. Synchronous SQLite/CPU work cannot be interrupted mid-call.
+
+RPC budgets cap the number of source read calls **before** they start:
+
+| Route | Maximum source reads |
+| --- | --- |
+| `/v1/vaults` | 160, including up to 50 member verifications |
+| `/v1/ft/preflight` | 40 |
+| `/v1/settlements/status` | 30 |
+| `/readyz` | 10 |
+| `/v1/invoices/verify` | 4 |
+| `/v1/transactions/verify` | 1 |
+| Config and indexed activity/invoice/status routes | 0 |
+
+`CORE_API_MAX_RPC_READS` can reduce any route's ceiling; it does not raise the route's own budget. Existing catalog/page/body limits still apply. Configure the validated `CORE_API_*` settings in [.env.example](../.env.example); invalid numbers/booleans fail startup. `CORE_API_MAX_CONCURRENT` accepts 1–16, timeout accepts 100–60,000 ms, and rate windows accept 100–3,600,000 ms.
+
+`/readyz` verifies the pinned registry's code, keys, asset/domain/fees/accounting and at most its first catalog member, at one finalized block. It does not scan every vault or guarantee that a particular payment has liquidity or capacity. If an index is attached, readiness requires a checkpoint within 60 seconds and 100 blocks by default, no same-height hash conflict, and an indexed record count equal to the registry's current journal count at that block. Thus a previously complete checkpoint missing a new payout returns `INDEX_BEHIND`. A checkpoint newer than the request's pinned block returns `INDEX_AHEAD`, allowing a new probe after a concurrent worker update. `CORE_API_REQUIRE_INDEX=true` also makes an absent index fail readiness. It does not check receipt provenance/discovery completeness, wall-clock freshness of the RPC's chain head, KYB or tax compliance; responses retain `chainFreshnessChecked: false`. Readiness is a snapshot, and every payment still receives its own fresh checks.
+
+Errors: 400 malformed/invalid input; 403 disallowed origin; 409 incompatible destination or unavailable vault/asset; 413 body limit; 415 content type/encoding; 429 `RATE_LIMITED` or concurrent `TOO_MANY_REQUESTS`; 503 `RPC_BUDGET_EXCEEDED`, `RATE_LIMIT_CAPACITY`, or unavailable/stale/behind/conflicting index; 504 `REQUEST_TIMEOUT`; 502 chain read/validation failure (503 on `/readyz`). Only RPC `UNKNOWN_ACCOUNT` is treated as absence. Other RPC failures must not become misleading registration instructions.
+
+This is a local/development read-only integration service. Wallet signing and encrypted client recovery are documented in [WALLET.md](WALLET.md). Authentication for future private data, distributed deployment limits/telemetry, durable jobs and a production deployment remain in [ROADMAP.md](ROADMAP.md). CORS is not authentication. Direct SDK use avoids adding this service as an observer of payment preparation.
 
 The optional [finalized journal index](INDEXER.md) runs as a separate worker. Set `CORE_INDEX_DB` after initializing it; the API opens that database read-only. Index routes return 503 when disabled/uninitialized, accept no ingestion/write calls, and report their observed checkpoint rather than implying fresh chain reads. Existing settlement status remains the source for current bound recovery decisions.
 

@@ -14,7 +14,7 @@ This backlog is based on the current code. Contract and circuit work stays in th
 - [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
 - [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
 
-Validation: `npm run check`, **122 tests** via `npm test`, and `npm run demo:ft` pass. The sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
+Validation: `npm run check` and **140 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
 
 Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
 
@@ -33,6 +33,8 @@ Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `
 - [x] Recipient-signed FT invoices, merchant full-access key checks, private checkout plan binding and indexed partial/paid/late/overpayment reconciliation.
 - [x] Invoice terms v2 with distinct per-unit signed references, indexed reuse checks, honest race accounting and legacy v1 compatibility. [Privacy model and public metadata limits](PRIVACY.md).
 - [x] Indexed invoice reference-set lookup with stable cursors, bounded matching-record reads, legacy adapter fallback, late-total consistency and checkout invalidation regressions. [Review findings and resolution](REVIEW-2026-11-12.md).
+- [x] Complete paginated CLI vault selection at one final block, direct selected-member verification and invoice fragment/history lifecycle fixes. [Review findings and resolution](REVIEW-2026-11-13.md).
+- [x] Process-local bounded peer rate limits, weighted route admission, RPC read budgets, request deadlines and transport cancellation; retained slots for non-cancellable work and separate deployment/index readiness checks. [Settings and operational limits](OPERATIONS.md#request-limits-and-readiness).
 
 Invoice scope and next service layer: [INVOICES.md](INVOICES.md). Business terms stay client-held; merchant API persistence, signed webhooks, fiat conversion and contract-enforced invoice caps/deadlines remain future work.
 
@@ -44,7 +46,7 @@ Index scope and deployment: [INDEXER.md](INDEXER.md). All configured registry re
 | --- | --- | --- |
 | Browser note/prover expansion | Generate encrypted notes and new Groth16 proofs locally in the browser, with mobile memory/performance measurements and the same committed vectors. Current bundle executes prepared CLI plans. | Prover packaging and browser measurements |
 | Discovery scaling | Add indexed-provider adapters, throughput/cost controls and operational alerting for large public-network backfills. Current RPC scanner enumerates all shards/transactions with persistent offsets and explicit coverage. | Archival/indexed data provider |
-| API deployment hardening | Authentication for any future private business data, rate limits, per-route budgets, OpenAPI/client generation, redacted telemetry and deployment health checks. | Hosting/access model; current API defaults to loopback |
+| Remaining API deployment hardening | Authentication for any future private business data, distributed/edge limits, OpenAPI/client generation and redacted operational telemetry. Process-local budgets, deadlines/cancellation and readiness probes are implemented. | Hosting/access model; current API defaults to loopback |
 | Testnet deployment workflow | Reproducible artifact/policy release, verified token registration, explicit key-removal phase and a real-wallet smoke test. | Funded deployer account and reviewed setup hashes |
 | Group capacity management | Discover and display full groups, route new deposits to separately approved groups, preserve withdrawal access to old groups. No implied private cross-group migration. | New group deployment/policy distribution |
 

@@ -38,6 +38,8 @@ npm run serve
 
 The API defaults to `127.0.0.1:3001` and uses an actual trusted deployment policy, with no simulated fallback. It exposes `/v1/vaults`, `/v1/ft/preflight`, `/v1/settlements/status`, and `/v1/transactions/verify`; wallets, private notes and signing keys stay outside the service. A transaction being accepted or an observation timing out does not establish payout completion or failure. See [operations usage and HTTP endpoints](docs/OPERATIONS.md) for inputs, readiness flags and recovery behavior.
 
+API protection includes bounded per-peer rate windows, per-route RPC read budgets, two concurrent work requests and a cancellable 15-second request deadline. `/healthz` checks liveness; `/readyz` verifies the deployment and, when attached, index freshness/current journal coverage. Settings and limitations, including reverse-proxy behavior, are in [operations](docs/OPERATIONS.md#request-limits-and-readiness) and [.env.example](.env.example).
+
 ## Getting started
 
 Requires Node.js 22.13.0+. Contract builds use Rust 1.99.1 pinned in Contract and C/C++ build tools. Check out both repositories as siblings.
