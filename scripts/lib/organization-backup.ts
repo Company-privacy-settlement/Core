@@ -25,6 +25,8 @@ const columns: Record<string, string[]> = {
   organization_audit: ['sequence','org','actor','action','target','detail','occurred'],
   organization_challenges: ['id','body','expires'], organization_sessions: ['hash','account','public_key','origin','expires'],
   organization_recovery: ['id','version','state','recovery_id','created','review_sha256'],
+  organization_payments: ['id','org','payload','content_hash','maker','creator_version','state','version','expires','approver','approver_version','approved','created','spend_key'],
+  organization_payment_dispatches: ['payment_id','call_hash','kind','actor','created'],
 };
 type Recovery = { state: 'ready' | 'quarantined'; recovery_id: string | null };
 
@@ -51,7 +53,7 @@ function inspect(path: string, audience: string) {
     if (db.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok' || db.prepare('PRAGMA foreign_key_check').get()) throw new Error('Organization SQLite integrity check failed');
     const objects = db.prepare("SELECT name,type FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
     const tables = objects.filter(o => o.type === 'table').map(o => String(o.name));
-    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => n !== 'organization_recovery').some(n => !tables.includes(n))) throw new Error('Unexpected organization schema');
+    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
     for (const name of tables) {
       const actual = db.prepare(`PRAGMA table_info(${name})`).all().map(c => String(c.name)); // name is from the closed inventory above.
       if (JSON.stringify(actual) !== JSON.stringify(columns[name])) throw new Error('Unexpected organization columns');
@@ -84,6 +86,7 @@ function quarantine(path: string) {
     // Earlier service binaries only accept v1. They must also refuse a snapshot
     // rather than ignoring the newer optional recovery-state table.
     db.exec('UPDATE organization_meta SET version=2 WHERE id=1');
+    if (db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name='organization_payments'").get()) db.exec("UPDATE organization_payments SET state='invalidated',version=version+1 WHERE state IN ('pending','approved','dispatched')");
     db.prepare("INSERT INTO organization_recovery VALUES(1,1,'quarantined',?,?,NULL)").run(recoveryId, Date.now());
     db.exec('COMMIT; VACUUM'); return recoveryId;
   } finally { db.close(); }

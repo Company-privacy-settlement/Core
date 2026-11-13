@@ -35,7 +35,7 @@ Site access remains independently owner-private. Joining an organization does no
 
 An Owner can assign Admin, Operator, Viewer or Auditor. An Admin can invite/change/remove only Operators, Viewers and Auditors, and cannot revoke an Admin invitation. Admins cannot change themselves, other Admins or the Owner. Members other than the Owner may explicitly leave using their own membership version. The server applies these checks, including the target member's current role, within the same SQLite write transaction as the change and audit append.
 
-The role matrix is fixed and frozen in the shared SDK. Operator currently has member-directory read access; it does not yet provide payment creation/approval privileges. Custom roles, SSO, corporate multisig, maker-checker payment approvals and wallet execution delegation are separate work. No payment API silently treats these organization roles as invoice signatures, deployment trust or note ownership.
+The role matrix is fixed and frozen in the shared SDK. Operator can read the directory and corporate requests, create a request and execute their own independently approved payment. Owner/Admin can approve another wallet account’s payment. See [corporate payment approval](CORPORATE_PAYMENTS.md) for immutable content, reviewed costs and one-use dispatch. Custom roles, SSO, contract-enforced corporate multisig and wallet execution delegation remain separate work. No payment API silently treats these organization roles as invoice signatures, deployment trust or note ownership.
 
 ## Organizations and membership
 
@@ -47,6 +47,12 @@ The role matrix is fixed and frozen in the shared SDK. Operator currently has me
 6. An organization has exactly one active Owner. The Owner cannot be removed or demoted through member editing. Explicitly transfer ownership to an active member; the former Owner becomes an Admin. Both membership versions and the organization version advance atomically. There is no lost-wallet or platform-admin owner reset.
 
 Mutations that edit existing records require their returned `version`. Stale versions return `409 VERSION_CONFLICT`; refresh and review before retrying. A successful response means an off-chain access change, not a finalized payment. There is no automatic mutation replay/idempotency key or organization deletion/archive in this version.
+
+## Corporate payment approval
+
+The **Payments** tab provides immutable testnet FT payout requests. Owner/Admin/Operator can prepare their own fee-payer request; a different current Owner/Admin must approve it. Viewer has no financial-request access; Auditor can read. Exact policy, principal, 0.15% fee, proof/recipient/reference and prerequisite calls are bound to the approval digest. Changed terms require cancellation and a new independent approval. Both membership revisions and exact calls are rechecked at final wallet dispatch, with durable one-use reservations and conservative reconciliation. [Workflow, API and limits](CORPORATE_PAYMENTS.md).
+
+Approval applies to the organization API, SDK and supported browser flow. The underlying proof protocol retains permissionless fixed-destination execution; a holder of a public withdrawal plan may relay it separately. Corporate identity, custody and contract-enforced dual approval are not established by an application approval.
 
 ## API
 
@@ -122,3 +128,5 @@ The compiled runtime smoke check covers required audience configuration, health,
 Initial organization-access validation on 2026-11-13: Core **256 tests**, including **24 organization regressions**, Front **120 desktop/mobile cases** and three unit cases, type checks, SDK/static builds and both compiled-service runtime harnesses passed. The standalone Compose schema and Caddy configuration were validated; Docker execution and a public Organization API deployment were not performed.
 
 Subsequent [organization recovery validation](ORGANIZATION_BACKUPS.md) passed all **303 Core tests**, the compiled maintenance/service harness, SDK builds and **32 targeted desktop/mobile Docs and organization cases** with Front type/static-build checks. Recovery tests are local and do not establish a live deployment or Docker execution.
+
+Corporate payment validation: all 320 Core tests passed, including 17 approval regressions. The compiled service rehearsal also approves/reserves a payment and verifies that recovery invalidates its approval while preserving the reservation. Browser validation and the exact authority boundary are recorded in [Corporate payments](CORPORATE_PAYMENTS.md).

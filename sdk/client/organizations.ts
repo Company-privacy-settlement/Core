@@ -3,14 +3,14 @@ import { account } from './payment.js';
 
 export const ORGANIZATION_ROLES = Object.freeze(['owner', 'admin', 'operator', 'viewer', 'auditor'] as const);
 export type OrganizationRole = typeof ORGANIZATION_ROLES[number];
-export const ORGANIZATION_PERMISSIONS = Object.freeze(['organization.read', 'organization.update', 'members.read', 'members.manage', 'invitations.manage', 'audit.read', 'ownership.transfer'] as const);
+export const ORGANIZATION_PERMISSIONS = Object.freeze(['organization.read', 'organization.update', 'members.read', 'members.manage', 'invitations.manage', 'audit.read', 'ownership.transfer', 'payments.read', 'payments.create', 'payments.approve', 'payments.execute'] as const);
 export type OrganizationPermission = typeof ORGANIZATION_PERMISSIONS[number];
 export const ORGANIZATION_ROLE_PERMISSIONS: Readonly<Record<OrganizationRole, readonly OrganizationPermission[]>> = Object.freeze({
   owner: ORGANIZATION_PERMISSIONS,
-  admin: Object.freeze(['organization.read', 'organization.update', 'members.read', 'members.manage', 'invitations.manage', 'audit.read'] as const),
-  operator: Object.freeze(['organization.read', 'members.read'] as const),
+  admin: Object.freeze(['organization.read', 'organization.update', 'members.read', 'members.manage', 'invitations.manage', 'audit.read', 'payments.read', 'payments.create', 'payments.approve', 'payments.execute'] as const),
+  operator: Object.freeze(['organization.read', 'members.read', 'payments.read', 'payments.create', 'payments.execute'] as const),
   viewer: Object.freeze(['organization.read'] as const),
-  auditor: Object.freeze(['organization.read', 'members.read', 'audit.read'] as const),
+  auditor: Object.freeze(['organization.read', 'members.read', 'audit.read', 'payments.read'] as const),
 });
 export type Organization = { id: string; name: string; ownerAccount: string; version: number; membershipVersion: number; createdAt: string; role: OrganizationRole; permissions: OrganizationPermission[]; claims: { kybVerified: false; walletSigningAuthorityGranted: false } };
 export type OrganizationMember = { accountId: string; role: OrganizationRole; status: 'active' | 'revoked'; version: number; joinedAt: string };

@@ -94,6 +94,8 @@ The separate Organization API provides NEP-413 testnet sign-in, persistent organ
 
 [Organization backup and recovery](docs/ORGANIZATION_BACKUPS.md) captures consistent online snapshots, discards sessions/challenges and restores into quarantine. A separately approved current-access file is required before activation into a new database; historical owners, roles and pending invitations are never automatically restored as authority.
 
+[Corporate payment approval](docs/CORPORATE_PAYMENTS.md) separates the creator from another Owner/Admin approver and freezes the payment, additive 0.15% fee and reviewed prerequisite calls. The supported wallet flow rechecks current membership and approval before reserving each exact call once. This is an organization API/SDK/app policy; the existing contracts retain permissionless fixed-destination proof execution.
+
 ## Integrated CI
 
 All three repositories call the same exact-revision pipeline: Core types/units and API/indexer recovery, rebuilt SDK versus Front vendoring, Front types/units/static build and desktop/mobile browsers, contract WASM/units, native/FT Groth16 sandboxes and a verified development release. Private siblings require `INTEGRATION_READ_TOKEN` and reusable-workflow access. [Pins, gates and GitHub setup](docs/CI.md). Local validation is separate from an observed hosted Actions run.
@@ -112,7 +114,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` overrides the default `../Contract`. Core verifies artifact manifest hashes before importing WASM/proving files. The setup is a single-machine development ceremony; replacing it requires matching verifier/artifacts and new deployments. Generated artifacts stay out of Git.
 
-Recorded validation on **2026-11-13**: Core **303 tests**, Front **148 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
+Recorded validation on **2026-11-13**: Core **320 tests**, Front **164 browser cases** plus type/build checks, and the actual FT sandbox report with **14 finalized records**. The sandbox uses a test FT, not Circle-issued USDC or public-network money. Reproduce these recorded checks with the commands above.
 
 ## Privacy, custody and recovery
 

@@ -21,6 +21,7 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 | Browser evidence | Private receipts, separate encrypted backup/reopen, explicit selected-field exports, independent-root integrity checks, root-only deposit preparation and CLI evidence compatibility | [Receipts](BROWSER_RECEIPTS.md) |
 | Lifecycle protection | Page-hide/history-cache locks; generation-bound private work, journal reads/writes and last-moment wallet dispatch guards | [Wallet](WALLET.md), [Notes](BROWSER_NOTES.md) |
 | Product shell | Landing, ten English Docs guides and separate sample KYB steps; English/Korean/Chinese repository READMEs | [Service](SERVICE.md) |
+| Corporate payment approval | Separate creator/approver accounts, immutable FT payment/costs, current-membership checks and exact one-use dispatch in the supported API/SDK/browser flow | [Corporate payments](CORPORATE_PAYMENTS.md) |
 | Organization recovery | Consistent online SQLite snapshots, pinned non-overwriting quarantine, discarded sessions/challenges, explicit current-access approval and one-use activation into a new database | [Organization backups](ORGANIZATION_BACKUPS.md) |
 | Organization access | Separate wallet-authenticated API, durable organizations/members, directed invitations, fixed roles, revocation, ownership transfer and organization-scoped audit log; reviewed backup/recovery; no payment signing or corporate identity grant | [Organizations](ORGANIZATIONS.md) |
 
@@ -28,8 +29,8 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 
 The latest recorded full implementation runs on **2026-11-13** include:
 
-- Core: `npm run check`, **303 tests** via `npm test`, browser-client build.
-- Front: type/build checks, **148 browser cases** verified (146 in the full run plus two corrected selected-unit regressions on a focused rerun), and three sample-KYB unit cases.
+- Core: `npm run check`, **320 tests** via `npm test`, browser-client build.
+- Front: type/build checks, **164 browser cases** passed in the complete run with actual proving artifacts, and three sample-KYB unit cases.
 - `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
 
 The FT is a local **TESTUSD fixture, not Circle-issued USDC**. No funded public-network wallet smoke test has been completed. These are dated results; documentation edits do not imply fresh execution of every suite. Reproduction: [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract).
@@ -87,7 +88,7 @@ These are optional service-layer additions for a persistent merchant gateway. Th
 
 | ID | Work package / owner | Completion evidence | Dependencies |
 | --- | --- | --- | --- |
-| E01 | **Access foundation delivered; payment approvals open** — organization service + Front | [Persistent organizations, members, invitations, fixed roles, wallet authentication, authorization revocation, ownership transfer and audit history](ORGANIZATIONS.md), plus [quarantined backup/recovery with explicit current-access review](ORGANIZATION_BACKUPS.md). Maker-checker payment approvals and verified signer-to-business/corporate-wallet mapping remain unimplemented; organization creation does not establish legal identity. | Auth foundation is separate from M01 merchant invoice storage; real business/signing qualification remains required |
+| E01 | **Access and account-based payment approval delivered; corporate identity mapping open** — organization service + Front | [Persistent organizations, members, invitations, fixed roles, wallet authentication, authorization revocation, ownership transfer and audit history](ORGANIZATIONS.md), plus [quarantined backup/recovery with explicit current-access review](ORGANIZATION_BACKUPS.md). [Immutable requests, independent account approval and one-use wallet dispatch](CORPORATE_PAYMENTS.md) are implemented. Verified signer-to-business/corporate-wallet mapping and contract-enforced organization approval remain open; organization creation does not establish legal identity. | Auth foundation is separate from M01 merchant invoice storage; real business/signing qualification remains required |
 | E02 | Batch worker/contractor payments — Core + Front | Validate recipient lists and classifications, isolate failures, show each note/fee/approval and reconcile per-recipient results. Specify scheduled execution authority separately; a saved schedule must not silently gain wallet signing power. | E01; U02; explicit batch/scheduling product scope |
 | E03 | Real KYB/KYC provider and credentials — Core + enterprise service | Entity/beneficial-owner cases, documents/follow-ups, authenticated callbacks, issuer trust, expiry/current revocation and explicit decisions. Version signed claims for any finer jurisdiction/scope than current US/AE credentials. Decide off-chain eligibility versus X05 circuit admission. | Provider/account selection, data controls and business review |
 | E04 | Encrypted business-document packages — enterprise service + Front | Authenticated upload/access, encryption/key rotation, integrity commitments, authorized selective export and tested retention/deletion. Never place raw identity, beneficial-owner, salary or tax files on-chain. | E01; storage/key-management/retention decisions |
@@ -150,8 +151,10 @@ Severity describes potential impact for the relevant deployment stage, not a new
 6. **E01 → E02/E03/E04 → E05 → E06:** add enterprise controls and real reviewed preparation. Use fixtures until provider/data access is deliberately configured.
 7. **S01–S06 start alongside the relevant stages and must close before production funds.** X01–X06 are optional, separately scoped/versioned work; none is a reason to silently change existing notes, groups or destinations.
 
-This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 303 Core tests, 148 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
+This backlog is not a new audit or a claim that unimplemented optional features are present. Current Core/browser counts describe the full local runs recorded above; sandbox reports and dated reviews remain prior observations. Hosted Actions, funded public-network wallets and Docker execution remain unobserved. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
 
 Organization access review and fixes: [2026-11-13 findings and validation](REVIEW-2026-11-13-ORGANIZATIONS.md).
 
 Organization backup/recovery validation on 2026-11-13: Core types and all 303 tests passed, including 14 recovery regressions; the compiled CLI/service harness exercised quarantine and reviewed activation. This addition does not complete E01 payment approvals or operational off-host/retention qualification.
+
+Corporate approval validation: the complete Core suite passes 320 tests, including 17 approval regressions. Contracts/circuits and funded public deployments were not changed. E01’s verified corporate signer mapping and contract-enforced approval remain separate scope.

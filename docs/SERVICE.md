@@ -117,7 +117,7 @@ The durable SQLite index copies configured registry records and enriches transac
 
 ## Organizations and team access
 
-The [separate Organization API](ORGANIZATIONS.md) adds NEP-413 testnet wallet authentication, durable organizations/members, targeted invitations, five fixed roles, immediate authorization revocation, versioned ownership transfer and per-organization audit history. Front's `/organization/` keeps its session in memory and clears private views on lifecycle/origin changes. Organization roles do not grant settlement signing rights, establish legal identity or issue KYB. Corporate signer mapping, payment approvals, merchant invoice storage and SSO remain separate work. Public backend hosting and real-wallet qualification are still required.
+The [separate Organization API](ORGANIZATIONS.md) adds NEP-413 testnet wallet authentication, durable organizations/members, targeted invitations, five fixed roles, immediate authorization revocation, versioned ownership transfer and per-organization audit history. Front's `/organization/` keeps its session in memory and clears private views on lifecycle/origin changes. Organization roles do not grant settlement signing rights, establish legal identity or issue KYB. [Account-based corporate payment approval](CORPORATE_PAYMENTS.md) now separates creator/approver, freezes policy/costs/calls and gates supported wallet dispatch. Verified corporate signer mapping, contract-enforced approval, merchant invoice storage and SSO remain separate work. Public backend hosting and real-wallet qualification are still required.
 
 ## Integrated CI
 
@@ -140,7 +140,7 @@ The [separate Organization API](ORGANIZATIONS.md) adds NEP-413 testnet wallet au
 
 ## Recorded validation and next work
 
-The latest recorded implementation validation on **2026-11-13** passed **303 Core tests**, **148 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
+The latest recorded implementation validation on **2026-11-13** passed **320 Core tests**, **164 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
 
 Reproduction commands and prioritized remaining work are in the [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract) and [roadmap](ROADMAP.md). Detailed review findings remain dated historical records rather than a claim that every suite was rerun for each documentation edit.
 

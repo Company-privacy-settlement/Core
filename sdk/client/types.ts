@@ -72,10 +72,11 @@ export interface Gateway {
   verify(transaction: TxRef, call: Call): Promise<Verification>;
 }
 export interface WalletPort {
+  supportsBeforeDispatch?: true;
   identity(): Promise<Identity>;
   sign(
     call: Call,
-    context: { operationId: string; attempt: number; identity: Identity; authorize?: () => void },
+    context: { operationId: string; attempt: number; identity: Identity; authorize?: () => void; beforeDispatch?: () => Promise<void> },
   ): Promise<TxRef | void>;
 }
 export type Attempt = {

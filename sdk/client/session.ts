@@ -31,6 +31,7 @@ export type Review = {
 export type SettlementGuards = {
   beforeImport?: (payment: { payment: Call; reference: Reference }, payer: string, operations: readonly Operation[]) => Promise<void>;
   beforeSubmit?: (operation: Operation, review: Review, operations: readonly Operation[]) => Promise<() => void>;
+  beforeDispatch?: (operation: Operation, review: Review) => Promise<void>;
 };
 
 export class SettlementSession {
@@ -298,6 +299,7 @@ export class SettlementSession {
         throw new Error(
           "Attempt limit reached; reconcile existing transactions",
         );
+      if (this.guards.beforeDispatch && !this.wallet.supportsBeforeDispatch) throw new Error('This wallet adapter cannot enforce corporate dispatch authorization');
       const authorize = await this.guards.beforeSubmit?.(o, review, operations);
       check();
       const a: Attempt = {
@@ -316,12 +318,18 @@ export class SettlementSession {
         o.attempts.pop(); await persist(); throw error;
       }
       try {
+        let dispatched = false;
         const tx = await this.wallet.sign(a.call, {
           operationId: id,
           attempt: o.attempts.length - 1,
           identity: { network: this.policy.network, accountId: o.payer },
           authorize: () => { check(); authorize?.(); },
+          ...(this.guards.beforeDispatch ? { beforeDispatch: async () => {
+            check(); authorize?.(); if (dispatched) throw new Error('Dispatch authorization was already used'); dispatched = true;
+            await this.guards.beforeDispatch!(o, review); check(); authorize?.();
+          } } : {}),
         });
+        if (this.guards.beforeDispatch && !dispatched) throw new Error('Wallet adapter omitted dispatch authorization');
         if (tx) {
           a.transaction = transactionRef(tx);
           if (a.transaction.signer !== o.payer)

@@ -76,6 +76,22 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
           if (req.method === 'GET') { send(200, { items: store.list(actor) }); return; }
           if (req.method === 'POST') { const value = await input(Input.create); send(201, store.create(actor, value.name)); return; }
         }
+        const payment = /^\/v1\/organizations\/([^/]+)\/payments(?:\/([^/]+)(?:\/(approve|reject|cancel|authorize))?)?$/.exec(url.pathname);
+        if (payment) {
+          const org = parse(Id,payment[1]), id = payment[2] ? parse(Id,payment[2]) : undefined, action = payment[3];
+          if (!id && req.method === 'GET') { send(200,{items:store.payments.list(org,actor)});return; }
+          if (!id && req.method === 'POST') { const content=await input(z.unknown());const result=await store.payments.create(org,actor,content,()=>{signal.throwIfAborted();store.session(token,origin);});signal.throwIfAborted();send(201,result);return; }
+          if (id && !action && req.method === 'GET') { send(200,store.payments.get(org,actor,id));return; }
+          if (id && action && req.method === 'POST') {
+            if (action==='authorize') {
+              const value=await input(z.object({contentHash:z.string().regex(/^[a-f0-9]{64}$/),kind:z.enum(['payment','prerequisite']),call:z.unknown()}).strict());
+              send(200,store.payments.authorize(org,actor,id,value.contentHash,value.kind,value.call));return;
+            }
+            const value=await input(z.object({contentHash:z.string().regex(/^[a-f0-9]{64}$/),version:z.number().int().positive().safe()}).strict());
+            send(200,store.payments.decide(org,actor,id,action as 'approve'|'reject'|'cancel',value.version,value.contentHash));return;
+          }
+          throw new OrganizationError(404,'NOT_FOUND');
+        }
         const route = /^\/v1\/organizations\/([^/]+)(?:\/(members|invitations|roles|audit|ownership)(?:\/([^/]+))?)?$/.exec(url.pathname);
         if (!route) throw new OrganizationError(404, 'NOT_FOUND');
         const id = parse(Id, route[1]), resource = route[2], target = route[3];
