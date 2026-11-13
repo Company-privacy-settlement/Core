@@ -85,3 +85,7 @@ Front browser tests use the connector's standard injected-wallet interface and m
 Primary integration references: [NEAR Connect](https://github.com/hot-dao/near-selector), [transaction RPC/finality](https://docs.near.org/api/rpc/transactions), [NEP-141](https://github.com/near/NEPs/blob/master/neps/nep-0141.md).
 
 Before preparing a payout, use the [recipient readiness check](RECIPIENTS.md) in the SDK, CLI or browser. It separates account activation and token registration at one final block and provides an inspectable registration call without signing or submitting it.
+
+## Locking during pending work
+
+Locking revokes in-progress journal accesses and prevents late reads, restores, reviews and wallet dispatch from continuing. The settlement workspace also locks on page-hide and persisted history-cache return, invalidating pending UI work. Encrypted history is preserved. A storage write or wallet request that already started cannot be undone: a durable unresolved signing intent remains blocked after reopening until the original transaction or bound finalized state is reconciled. Locking does not establish transaction failure or authorize resending. See [review details and regressions](REVIEW-2026-11-13-JOURNAL.md).

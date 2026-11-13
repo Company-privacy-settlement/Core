@@ -114,6 +114,7 @@ async function validate(input: unknown): Promise<Operation[]> {
 /** Every mutation reloads the encrypted source while holding the storage's cross-context lock. */
 export class OperationJournal {
   private password: string;
+  private generation = 0;
   constructor(
     readonly storage: JournalStorage,
     password: string,
@@ -121,55 +122,69 @@ export class OperationJournal {
     this.password = password;
   }
   lock() {
+    this.generation++;
     this.password = "";
   }
-  private async read() {
-    if (!this.password) throw new Error("Journal is locked");
+  private async access<T>(action: (password: string, check: () => void) => Promise<T>): Promise<T> {
+    const password = this.password, generation = this.generation;
+    let active = true;
+    const check = () => { if (!active || !password || !this.password || generation !== this.generation) throw new Error('Journal is locked'); };
+    try {
+      check();
+      return await this.storage.exclusive(async () => {
+        check(); const result = await action(password, check); check(); return result;
+      });
+    } finally { active = false; }
+  }
+  private async read(password: string, check: () => void) {
     const e = await this.storage.read();
+    check();
     if (e === null)
       throw new Error("Create or restore an encrypted journal first");
-    return validate(await unseal(e, this.password));
+    const decoded = await unseal(e, password); check();
+    const operations = await validate(decoded); check(); return operations;
   }
   async create() {
-    return this.storage.exclusive(async () => {
-      if ((await this.storage.read()) !== null)
+    return this.access(async (password, check) => {
+      const existing = await this.storage.read(); check();
+      if (existing !== null)
         throw new Error("A journal already exists; unlock it instead");
-      await this.storage.write(
-        await seal({ version: 1, operations: [] }, this.password),
-      );
+      const envelope = await seal({ version: 1, operations: [] }, password); check();
+      await this.storage.write(envelope); check();
     });
   }
   async list() {
-    return this.storage.exclusive(() => this.read());
+    return this.access((password, check) => this.read(password, check));
   }
   async export() {
-    return this.storage.exclusive(async () => {
-      await this.read();
-      return (await this.storage.read())!;
+    return this.access(async (password, check) => {
+      await this.read(password, check);
+      const envelope = await this.storage.read(); check(); return envelope!;
     });
   }
   async restore(envelope: string) {
-    return this.storage.exclusive(async () => {
-      if ((await this.storage.read()) !== null)
+    return this.access(async (password, check) => {
+      const existing = await this.storage.read(); check();
+      if (existing !== null)
         throw new Error(
           "Restore into an empty journal storage to preserve existing operations",
         );
-      await validate(await unseal(envelope, this.password));
-      await this.storage.write(envelope);
+      const decoded = await unseal(envelope, password); check();
+      await validate(decoded); check();
+      await this.storage.write(envelope); check();
     });
   }
   async update<T>(
-    fn: (operations: Operation[], persist: () => Promise<void>) => Promise<T>,
+    fn: (operations: Operation[], persist: () => Promise<void>, check: () => void) => Promise<T>,
   ): Promise<T> {
-    return this.storage.exclusive(async () => {
-      const operations = await this.read();
+    return this.access(async (password, check) => {
+      const operations = await this.read(password, check);
       const persist = async () => {
-        await validate({ version: 1, operations });
-        await this.storage.write(
-          await seal({ version: 1, operations }, this.password),
-        );
+        check(); await validate({ version: 1, operations }); check();
+        const envelope = await seal({ version: 1, operations }, password); check();
+        await this.storage.write(envelope); check();
       };
-      return fn(operations, persist);
+      return fn(operations, persist, check);
     });
   }
 }

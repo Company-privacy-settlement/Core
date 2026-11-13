@@ -274,7 +274,7 @@ export class SettlementSession {
     );
   }
   async submitReviewed(id: string, reviewedCallHash: string) {
-    return this.journal.update(async (operations, persist) => {
+    return this.journal.update(async (operations, persist, check) => {
       const o = this.operation(operations, id);
       await this.identity(o.payer);
       const review = await this.next(o, persist);
@@ -300,6 +300,7 @@ export class SettlementSession {
       };
       o.attempts.push(a);
       await persist(); // No wallet call until the encrypted write is durable.
+      check(); // Locking while storage or preflight was pending revokes dispatch.
       try {
         const tx = await this.wallet.sign(a.call, {
           operationId: id,

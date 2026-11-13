@@ -102,6 +102,53 @@ function fixture() {
   const session = new SettlementSession(journal, gateway, wallet, f.policy);
   return { ...f, payment, state, gateway, storage, journal, wallet, session };
 }
+function deferred() {
+  let resolve!: () => void; const promise = new Promise<void>(r => { resolve = r; });
+  return { promise, resolve };
+}
+test('locking during journal decryption prevents plaintext from being returned', async t => {
+  const f = fixture(); await f.journal.create();
+  const entered = deferred(), gate = deferred(), original = crypto.subtle.decrypt, decrypt = original.bind(crypto.subtle);
+  crypto.subtle.decrypt = async (...args: Parameters<SubtleCrypto['decrypt']>) => { entered.resolve(); await gate.promise; return decrypt(...args); };
+  t.after(() => { gate.resolve(); crypto.subtle.decrypt = original; });
+  const pending = f.journal.list(); await entered.promise; f.journal.lock(); gate.resolve();
+  await assert.rejects(pending, /locked/i);
+});
+test('locking during backup decryption prevents restoration into empty storage', async t => {
+  const f = fixture(), envelope = await seal({ version: 1, operations: [] }, password);
+  const entered = deferred(), gate = deferred(), original = crypto.subtle.decrypt, decrypt = original.bind(crypto.subtle);
+  crypto.subtle.decrypt = async (...args: Parameters<SubtleCrypto['decrypt']>) => { entered.resolve(); await gate.promise; return decrypt(...args); };
+  t.after(() => { gate.resolve(); crypto.subtle.decrypt = original; });
+  const pending = f.journal.restore(envelope); await entered.promise; f.journal.lock(); gate.resolve();
+  await assert.rejects(pending, /locked/i); assert.equal(await f.storage.read(), null);
+});
+test('locking during durable intent storage prevents a later wallet prompt and keeps recovery conservative', async () => {
+  const f = fixture(); await f.journal.create(); const op = await f.session.importPlan({ tokenCall: f.payment }), review = await f.session.review(op.id);
+  const entered = deferred(), gate = deferred(), write = f.storage.write;
+  f.storage.write = async envelope => { entered.resolve(); await gate.promise; await write(envelope); };
+  const pending = f.session.submitReviewed(op.id, review.callHash!); await entered.promise; f.journal.lock(); gate.resolve();
+  await pending.catch(() => {});
+  assert.equal(f.state.signed, 0, 'locking before wallet dispatch must prevent the prompt');
+  const reopened = new OperationJournal(f.storage, password), recovered = new SettlementSession(reopened, f.gateway, f.wallet, f.policy);
+  assert.equal((await reopened.list())[0].attempts[0].state, 'signing');
+  assert.equal((await recovered.review(op.id)).action, 'reconcile'); assert.equal(f.state.signed, 0);
+});
+test('locking an already-open wallet leaves a durable unresolved intent without automatic resend', async () => {
+  const f = fixture(); await f.journal.create(); const op = await f.session.importPlan({ tokenCall: f.payment }), review = await f.session.review(op.id);
+  const entered = deferred(), gate = deferred();
+  f.wallet.sign = async () => { f.state.signed++; entered.resolve(); await gate.promise; return tx; };
+  const pending = f.session.submitReviewed(op.id, review.callHash!); await entered.promise; f.journal.lock(); gate.resolve();
+  await assert.rejects(pending, /locked/i); assert.equal(f.state.signed, 1);
+  const reopened = new OperationJournal(f.storage, password), recovered = new SettlementSession(reopened, f.gateway, f.wallet, f.policy);
+  assert.equal((await recovered.review(op.id)).action, 'reconcile'); assert.equal(f.state.signed, 1);
+});
+test('a delayed unsigned review cannot expose a new wallet call after journal locking', async () => {
+  const f = fixture(); await f.journal.create(); const op = await f.session.importPlan({ tokenCall: f.payment });
+  const entered = deferred(), gate = deferred(), preflight = f.gateway.preflight;
+  f.gateway.preflight = async input => { entered.resolve(); await gate.promise; return preflight(input); };
+  const pending = f.session.review(op.id); await entered.promise; f.journal.lock(); gate.resolve();
+  await assert.rejects(pending, /locked/i); assert.equal(f.state.signed, 0);
+});
 test("journal encryption authenticates ciphertext and rejects wrong passwords and plaintext secrets in storage", async () => {
   const encrypted = await seal({ version: 1, operations: [] }, password);
   assert.ok(!encrypted.includes("operations"));

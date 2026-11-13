@@ -175,4 +175,4 @@ A read-only [recipient preparation check](docs/RECIPIENTS.md) separates account 
 
 The [browser notes workflow](docs/BROWSER_NOTES.md) creates FT notes locally, encrypts and re-verifies downloaded backups, and prepares public deposit plans for wallet review. Browser backups work directly with shared/group CLI spending commands. Only public deposit data reaches the API; Groth16 spend proving remains in the CLI.
 
-Review fixes lock private notes and the invoice library on browser history-cache lifecycle events, snapshot the expected backup policy before asynchronous decryption, and keep targeted vault scans explicitly partial. [Findings and regression coverage](docs/REVIEW-2026-11-13-NOTES.md).
+Private notes, the invoice library and the operation journal lock on browser history-cache lifecycle events. Journal locking also revokes pending reads/writes and prevents late wallet dispatch; already-started signing attempts stay conservatively unresolved. [Private-view review](docs/REVIEW-2026-11-13-NOTES.md) · [Journal cancellation review](docs/REVIEW-2026-11-13-JOURNAL.md).
