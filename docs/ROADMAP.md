@@ -24,7 +24,7 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 
 The latest recorded full implementation runs on **2026-11-13** include:
 
-- Core: `npm run check`, **192 tests** via `npm test`, browser-client build.
+- Core: `npm run check`, **203 tests** via `npm test`, browser-client build.
 - Front: type/build checks, **98 browser cases**, and sample-KYB unit coverage.
 - `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
 
@@ -34,7 +34,7 @@ Historical reviews: [invoice/index](REVIEW-2026-11-12.md), [selection/checkout](
 
 ## Remaining development — priority and status
 
-The backlog below contains **36 open work packages** across six areas. They are planning items, not 36 discovered vulnerabilities or equally urgent release blockers. Completed capabilities above must be reused rather than rebuilt. Ownership names refer to repositories/workstreams, not assigned people. Effort and dates remain unestimated until deployment access, provider choices and product requirements are known.
+The backlog below contains **36 work packages: R01 implemented, 35 open** across six areas. They are planning items, not 36 discovered vulnerabilities or equally urgent release blockers. Completed capabilities above must be reused rather than rebuilt. Ownership names refer to repositories/workstreams, not assigned people. Effort and dates remain unestimated until deployment access, provider choices and product requirements are known.
 
 - **P0 — public testnet demo:** required to demonstrate the existing protocol with a real funded deployment and wallets. External accounts/funding and hosting-audience decisions are dependencies, not authorization to spend funds, remove keys or change access.
 - **P1 — usable merchant flow:** removes CLI friction and adds merchant operations. These are service additions, not claims of production safety.
@@ -42,13 +42,13 @@ The backlog below contains **36 open work packages** across six areas. They are 
 - **Design — optional protocol scope:** requires an explicit requirement and version/compatibility analysis. Do not bundle these research changes into a release of the current fixed-denomination protocol.
 - **Gate — before production funds:** independent security, setup and operational/product qualification. Gate work starts in parallel; it cannot wait until after a production launch.
 
-All entries below are **open** unless explicitly labeled an existing foundation. External dependency does not mean development is blocked: prepare dry-runs, reviewable manifests, runbooks, adapters and fixtures first.
+All entries below except **R01** are **open** unless explicitly labeled an existing foundation. External dependency does not mean development is blocked: prepare dry-runs, reviewable manifests, runbooks, adapters and fixtures first.
 
 ## P0 — public testnet release (6)
 
 | ID | Work package / owner | Completion evidence | Dependencies |
 | --- | --- | --- | --- |
-| R01 | Versioned release bundle — Contract + Core | Tie source commits, build inputs, WASM/proving/verifier hashes, token/denomination/treasury, policy and API origins into one inspectable release. Verify independently distributed policies against deployment. Existing manifests and client hash checks are the foundation, not a missing feature. | Reviewed development setup and release inputs |
+| R01 | **Implemented:** versioned release tooling — Core, consuming Contract/Front | [Prepare/verify commands](RELEASES.md), clean pinned sources, rebuilt WASM/Node/browser SDKs, circuit/key linkage, policy/raw-verifier binding, closed inventory and normalized archive. Independently trusted manifest hash is mandatory for offline verification. | Development setup only; actual deployment/distribution/readiness remain R02–R06 |
 | R02 | Deployment planner and runbook — Contract + Core | Generate inspectable deploy/init/register/verify steps; run a disposable-chain rehearsal; separate any irreversible key-removal step and prove empty keys/code hashes afterward. Never silently remove keys or redeploy existing groups. | R01; funded deployer/wallet access for actual testnet execution |
 | R03 | Funded testnet wallet qualification — all three | With the independently pinned testnet token, complete actual-wallet deposit, cross-vault payout, recipient registration, uncertain-result reconciliation and allowed retries; record exact fees, final records, balances and original-group recovery. Clearly distinguish local TESTUSD tests from token/public-network tests. | R02, activated accounts, gas/storage/token balances, compatible wallets |
 | R04 | Hosted API and finalized index — Core / operations | Reachable HTTPS API, exact CORS origins, verified readyz, supervised worker/restart, persistent database and tested checkpoint restoration. Retain explicit lag, gaps and unresolved provenance. No private-note/key upload or server broadcast authority. | Deployment policy; hosting/RPC/storage configuration |
@@ -138,7 +138,7 @@ Severity describes potential impact for the relevant deployment stage, not a new
 
 ## Suggested execution order
 
-1. **R01 → R02:** make an inspectable release bundle and deployment rehearsal without needing to spend funds or change public access.
+1. **R01 delivered → R02:** use the [inspectable release bundle](RELEASES.md) to implement deployment planning and rehearsal without needing to spend funds or change public access.
 2. **R05 in parallel as ordinary project work:** wire existing checks into Front and the exact three-repository release. This does not require new protocol features.
 3. **R04 → R03 → R06:** stand up a verified testnet API/index, qualify actual funded-wallet settlement, then test the complete demo for its intended audience. Funding/access choices remain explicit dependencies.
 4. **U01 → U02**, with U03–U06: remove the proving CLI handoff and qualify user recovery/devices before promising wallet-only checkout.
@@ -146,4 +146,4 @@ Severity describes potential impact for the relevant deployment stage, not a new
 6. **E01 → E02/E03/E04 → E05 → E06:** add enterprise controls and real reviewed preparation. Use fixtures until provider/data access is deliberately configured.
 7. **S01–S06 start alongside the relevant stages and must close before production funds.** X01–X06 are optional, separately scoped/versioned work; none is a reason to silently change existing notes, groups or destinations.
 
-This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 192 Core tests, 98 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).
+This backlog is not a new audit or a claim that unimplemented optional features are present. Historical validation numbers above remain recorded results; listing development work does not rerun the 203 Core tests, 98 browser cases or sandbox suite. Detailed limits remain in [SERVICE.md](SERVICE.md), [PRIVACY.md](PRIVACY.md), [INVOICES.md](INVOICES.md) and [WALLET.md](WALLET.md).

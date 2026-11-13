@@ -106,6 +106,10 @@ The API defaults to `127.0.0.1:3001`, accepts no private notes, keys, proof-gene
 
 The durable SQLite index copies configured registry records and enriches transaction provenance through bounded all-shard scans or supplied public references. Checkpoints, discovery start/progress, unresolved provenance and coverage remain explicit. An index result is not a claim to a complete company history. [API operations](OPERATIONS.md) · [Index deployment](INDEXER.md).
 
+## Versioned release packages
+
+[Release tooling](RELEASES.md) bundles pinned Core/Contract/Front source commits, rebuilt contract WASM and Node/browser SDKs, existing proving artifacts, group policies and API origins. Offline verification requires a separately trusted manifest digest and validates the closed public-file inventory and cross-layer bindings. Packages remain explicitly development-only; preparing/verifying one does not deploy contracts, certify a ceremony or check funded/keyless chain readiness.
+
 ## Current boundaries
 
 - **Custody/privacy:** separate keyless vaults, one coordinating forest per group and direct payout from one funded vault. No A → B → C principal route. Global nullifiers prevent note reuse, but recipients, signers, amounts, timing, vault balances and references remain public. More vaults alone do not measure anonymity; RPC observations and immutable code/verifier trust still matter.
@@ -117,6 +121,6 @@ The durable SQLite index copies configured registry records and enriches transac
 
 ## Recorded validation and next work
 
-The latest recorded implementation validation on **2026-11-13** passed **192 Core tests**, **98 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
+The latest recorded implementation validation on **2026-11-13** passed **203 Core tests**, **98 Front browser cases**, Front type/build checks and an actual FT sandbox integration with **14 finalized records**. The sandbox uses a local TESTUSD fixture, not Circle-issued USDC or public money. It covers real WASM/Groth16, fee/retry behavior, API/index/journal recovery, recipient transitions, browser note/receipt backups and finalized receipt anchoring. Browser test fixtures do not substitute for a funded public-network wallet run.
 
 Reproduction commands and prioritized remaining work are in the [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract) and [roadmap](ROADMAP.md). Detailed review findings remain dated historical records rather than a claim that every suite was rerun for each documentation edit.

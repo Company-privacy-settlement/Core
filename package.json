@@ -23,6 +23,9 @@
     "vectors:ft": "tsx scripts/shared-vectors.ts --ft",
     "serve": "tsx scripts/server.ts",
     "build:client": "node scripts/build-client.mjs",
+    "build:sdk": "node scripts/build-sdk.mjs",
+    "release:prepare": "tsx scripts/release.ts prepare",
+    "release:verify": "tsx scripts/release.ts verify",
     "index": "tsx scripts/indexer.ts",
     "test:groups-proof": "tsx tests/manual/groups-proof.ts"
   },

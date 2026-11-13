@@ -257,6 +257,8 @@ test("a known incomplete journal cannot report a fully reconciled invoice", asyn
   }
 });
 test("invoice public endpoints omit business terms, enforce strict inputs and verify merchant key ownership", async (t) => {
+  // The fixture has fixed invoice dates; the HTTP status route reads Date.now().
+  t.mock.method(Date, "now", () => before);
   const f = await indexed(1);
   await f.worker.sync();
   f.source.accessKeys = async (a) =>

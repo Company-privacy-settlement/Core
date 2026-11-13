@@ -74,6 +74,10 @@ npm run serve
 
 기본 주소는 `127.0.0.1:3001`입니다. `/healthz`는 프로세스 생존, `/readyz`는 배포와 연결된 인덱스를 확인합니다. 인덱스를 연결하려면 동일한 정책·RPC·`CORE_INDEX_DB`로 별도 터미널에서 작업자를 먼저 실행하세요. [.env.example](.env.example) · [API 설정](docs/OPERATIONS.md) · [인덱스 설정](docs/INDEXER.md). 노트·지갑 키·비밀번호·업무 문서는 API에 보내지 않습니다.
 
+## 버전별 릴리스 패키지
+
+`npm run build:sdk`는 Node ESM·타입과 브라우저 클라이언트를 빌드합니다. `release:prepare`는 변경 없는 Core/Contract/Front 커밋을 고정하고 컨트랙트·proving 아티팩트·SDK·그룹 정책·API 주소를 묶습니다. `release:verify`는 별도로 받은 매니페스트 SHA-256으로 오프라인 검증합니다. 현재 릴리스는 샌드박스·테스트넷 개발용이며 배포·온체인 준비 상태를 보장하지 않습니다. [명령과 형식](docs/RELEASES.md) · [입력 템플릿](examples/release.template.json).
+
 ## 로컬 계약·증명 검증
 
 Core·Contract·Front를 형제 폴더로 체크아웃합니다. Contract 빌드에는 고정 Rust **1.99.1**, WASM target과 C/C++ 빌드 도구가 필요합니다. Core에서:
@@ -88,7 +92,7 @@ npm run demo:ft
 
 다른 경로는 `CORE_CONTRACT_REPO`로 지정합니다. Core는 WASM·증명 파일의 매니페스트 해시를 확인해 가져옵니다. 개발용 단일 머신 setup을 바꾸면 검증기·아티팩트·새 배포도 일치해야 합니다. 생성 파일은 Git에서 제외합니다.
 
-**2026-11-13 기록된 검증:** Core **192개 테스트**, Front **98개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
+**2026-11-13 기록된 검증:** Core **203개 테스트**, Front **98개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
 
 ## 프라이버시·보관·복구
 

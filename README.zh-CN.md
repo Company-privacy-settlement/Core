@@ -74,6 +74,10 @@ npm run serve
 
 默认监听 `127.0.0.1:3001`。`/healthz` 检查进程存活，`/readyz` 检查部署和配置的索引。附加索引前，在另一个终端以相同策略、RPC 和 `CORE_INDEX_DB` 启动工作进程。参见 [.env.example](.env.example)、[API 配置](docs/OPERATIONS.md)、[索引配置](docs/INDEXER.md)。勿向 API 发送票据秘密、钱包密钥、口令或业务文件。
 
+## 版本化发布包
+
+`npm run build:sdk` 构建 Node ESM/类型声明及浏览器客户端。`release:prepare` 固定干净的 Core/Contract/Front 提交，打包合约、证明材料、SDK、分组策略与 API 来源。`release:verify` 使用独立获得的清单 SHA-256 离线验证。目前仅支持沙箱/测试网开发发布，打包不执行部署或证明链上就绪。[命令与格式](docs/RELEASES.md) · [输入模板](examples/release.template.json)。
+
 ## 本地合约与证明验证
 
 将 Core、Contract、Front 放在相邻目录。Contract 需要固定 Rust **1.99.1**、WASM target 和 C/C++ 构建工具。在 Core 中：
@@ -88,7 +92,7 @@ npm run demo:ft
 
 `CORE_CONTRACT_REPO` 可覆盖默认路径。Core 导入前验证 WASM/证明产物清单哈希。当前 setup 为单机开发仪式；替换时需匹配验证器、产物和新部署。生成文件不提交到 Git。
 
-**2026-11-13 记录的验证：**Core **192 个测试**、Front **98 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
+**2026-11-13 记录的验证：**Core **203 个测试**、Front **98 个浏览器用例**及类型/构建检查、实际 FT 沙盒 **14 条最终记录**。沙盒代币不是 Circle USDC 或公开网络资金。可使用上面的命令复现这些已记录的验证。
 
 ## 隐私、保管与恢复
 
