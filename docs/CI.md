@@ -4,6 +4,8 @@
 
 All three repositories call Core's [reusable integration workflow](../.github/workflows/integration.yml). Pushes and pull requests test the changed repository's exact event SHA against two selected sibling revisions. Core also retains its service-container build and fail-closed startup check. CI does not deploy servers, submit public-network transactions, change site access, publish releases or rotate an existing group's setup.
 
+Repository-local checks also remain: Core types/units/SDK/service, Contract WASM/units and Front types/units/static build. They run independently of the integration job once GitHub can resolve the shared workflow. Observe the hosted check names before configuring any branch-protection requirement; this change does not modify repository protection settings.
+
 ## Source selection
 
 Core's [integration lock](../.github/integration-lock.json) contains full Contract and Front commit SHAs. The tested Core revision is explicit; the file cannot contain its own commit hash. Front and Contract callers pin both the reusable workflow and the tested Core baseline to the same full Core SHA, and pass their own `github.sha` as the candidate. The untouched sibling comes from that Core revision's integration lock. A pull request uses the event's merge SHA, not a moving branch name.
@@ -82,3 +84,5 @@ node scripts/integration.mjs release
 ```
 
 Local setup reuses an existing matching development setup; CI starts without one. Never force setup replacement for an existing deployment. Release output must be new; an existing `dist/integration/bundle` or archive is deliberately refused. Use a disposable checkout or retain previous evidence elsewhere before another run. Do not infer an Actions success from locally passing commands: remote checkout permissions, runner dependencies and the service Docker build still need their own observed run.
+
+If another local service occupies port 3000, set `CORE_E2E_PORT` for the Front browser command. CI deliberately refuses to reuse a pre-existing server.
