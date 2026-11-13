@@ -14,7 +14,7 @@ This backlog is based on the current code. Contract and circuit work stays in th
 - [x] Add a runnable read-only HTTP API for frontend integration, configured with one trusted policy/RPC and exact CORS origins. No keys, private notes, proof generation or broadcast endpoint.
 - [x] Exercise the operations SDK and API against actual sandbox WASM and Groth16 settlement; regression tests pass.
 
-Validation: `npm run check` and **171 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks recipient activation/registration transitions, preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
+Validation: `npm run check` and **179 tests** via `npm test` pass. The `npm run demo:ft` sandbox report includes 14 finalized settlement records and checks browser note backup and public deposit planning, recipient activation/registration transitions, preflight, HTTP API, finalized observation, wallet-session recovery, encrypted journaling, exact transaction verification, durable index restart, automatic all-shard transaction discovery, receipt correlation and activity pagination.
 
 Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `scripts/cli.ts`. Usage and limitations: [OPERATIONS.md](OPERATIONS.md).
 
@@ -41,15 +41,17 @@ Implementation: `sdk/operations.ts`, `server/api.ts`, `scripts/server.ts`, and `
 
 - [x] Read-only recipient preparation across SDK, CLI, API, invoice creation/checkout and prepared withdrawals: distinct account activation and token registration, pinned storage minimum, exact public call validation and stale-response cancellation. [Recipient guide](RECIPIENTS.md).
 
+- [x] Local browser FT note creation with pinned Poseidon parameters, encrypted single-note backups with file re-verification, direct CLI interoperability, bounded public deposit planning and explicit wallet-plan handoff. [Browser notes](BROWSER_NOTES.md).
+
 Invoice scope and next service layer: [INVOICES.md](INVOICES.md). Business terms stay client-held; merchant API persistence, signed webhooks, fiat conversion and contract-enforced invoice caps/deadlines remain future work.
 
-Integration: [WALLET.md](WALLET.md). Private note creation/proving remains in the CLI. A publicly deployed/funded testnet wallet smoke test is still outstanding.
+Integration: [WALLET.md](WALLET.md). Browser FT note creation, encrypted backups and public deposit plans are implemented; Groth16 spend proving remains in the CLI. A publicly deployed/funded testnet wallet smoke test is still outstanding.
 
 Index scope and deployment: [INDEXER.md](INDEXER.md). All configured registry records are copied; transaction provenance is enriched from bounded all-shard scans or supplied public references. Discovery start/progress and unresolved links remain explicit, with no complete business-history claim.
 
 | Task | Deliverable / acceptance condition | Dependency |
 | --- | --- | --- |
-| Browser note/prover expansion | Generate encrypted notes and new Groth16 proofs locally in the browser, with mobile memory/performance measurements and the same committed vectors. Current bundle executes prepared CLI plans. | Prover packaging and browser measurements |
+| Browser note/prover expansion | Browser FT note creation/backups and public deposit plans are implemented. Remaining: new Groth16 proofs locally in the browser, mobile memory/performance measurements and the same committed vectors. | Prover packaging and browser measurements |
 | Discovery scaling | Add indexed-provider adapters, throughput/cost controls and operational alerting for large public-network backfills. Current RPC scanner enumerates all shards/transactions with persistent offsets and explicit coverage. | Archival/indexed data provider |
 | Remaining API deployment hardening | Authentication for any future private business data, distributed/edge limits, OpenAPI/client generation and redacted operational telemetry. Process-local budgets, deadlines/cancellation and readiness probes are implemented. | Hosting/access model; current API defaults to loopback |
 | Testnet deployment workflow | Reproducible artifact/policy release, verified token registration, explicit key-removal phase and a real-wallet smoke test. | Funded deployer account and reviewed setup hashes |

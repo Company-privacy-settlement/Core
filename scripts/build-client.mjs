@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 mkdirSync("dist/client", { recursive: true });
+execFileSync(process.execPath, ['scripts/browser-poseidon.mjs', '--check'], { stdio: 'inherit' });
 await build({
   entryPoints: ["sdk/client/index.ts"],
   outfile: "dist/client/index.js",

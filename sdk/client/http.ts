@@ -3,6 +3,7 @@ import { canonical } from "./crypto.js";
 import { parseGroupCapacity } from './groups.js';
 import { parseRecipientReadiness } from './recipients.js';
 import { account } from './payment.js';
+import { parseDepositRequest, parseDepositPlan, type DepositRequest } from './deposits.js';
 import {
   verifySignedInvoice,
   invoiceProof,
@@ -104,6 +105,12 @@ export class HttpGateway implements Gateway {
     if (!trusted.tokenId || destination === trusted.registry || destination.endsWith('.' + trusted.registry)) throw new Error('Choose an external recipient and a trusted FT group');
     await this.trusted(trusted, options.signal);
     return parseRecipientReadiness(await this.request('/v1/recipients/readiness', { recipient: destination }, options.signal), trusted, destination);
+  }
+  async prepareDeposit(policy: Policy, request: DepositRequest, options: { signal?: AbortSignal } = {}) {
+    const trusted = parsePolicy(policy), input = parseDepositRequest(request);
+    if (!trusted.tokenId) throw new Error('Choose a trusted FT group');
+    await this.trusted(trusted, options.signal);
+    return parseDepositPlan(await this.request('/v1/deposits/prepare', input, options.signal), trusted, input);
   }
   async verifyInvoice(input: SignedInvoice) {
     const signed = await verifySignedInvoice(input);

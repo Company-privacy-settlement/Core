@@ -11,6 +11,7 @@ import { createNote, sha256 } from '../sdk/core.js';
 import { encryptPrivate, decryptPrivate } from '../sdk/disclosure.js';
 import { groupPool } from '../sdk/groups.js';
 import { groupFixture, groupDirectory } from './fixtures/groups.js';
+import { createPrivateNote, encryptNoteBackup } from '../sdk/client/notes.js';
 
 async function fixture(t: { after(fn: () => Promise<void>): void }) {
   const old = groupFixture('old'), next = groupFixture('next'), spare = groupFixture('spare'), fixtures = [old, next, spare];
@@ -77,6 +78,17 @@ test('CLI selects the next approved group, protects the encrypted backup and nev
   assert.ok(f.calls.filter(c => c.account).every(c => [f.next.policy.registry, f.next.vault].includes(c.account!)));
   f.next.group.depositsEnabled = false; await f.saveDirectory(); f.calls.length = 0;
   await assert.rejects(f.run('group-deposit-args', f.noteFile, 'ab'.repeat(32)), /deposits are disabled/);
+  assert.equal(f.calls.length, 0);
+});
+
+test('CLI accepts browser note backups and rejects changed approval policies before any RPC', async t => {
+  const f = await fixture(t), note = await createPrivateNote(f.next.policy);
+  await writeFile(f.noteFile, await encryptNoteBackup(f.next.policy, note, f.password));
+  const result = JSON.parse((await f.run('group-deposit-args', f.noteFile, 'ab'.repeat(32))).stdout);
+  assert.equal(JSON.parse(result.tokenCall.args.msg).commitment, note.commitment);
+  assert.ok(!JSON.stringify(result).includes(note.secret)); assert.ok(!JSON.stringify(result).includes(note.nullifier));
+  f.next.policy.feeRecipient = 'changed.test.near'; await f.saveDirectory(); f.calls.length = 0;
+  await assert.rejects(f.run('group-deposit-args', f.noteFile, 'ab'.repeat(32)), /trusted policy/);
   assert.equal(f.calls.length, 0);
 });
 

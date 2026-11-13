@@ -53,10 +53,10 @@ function bytes(value: unknown, max: number): Uint8Array<ArrayBuffer> {
   return b;
 }
 const ITERATIONS = 250_000;
-type StorageFormat = 'core-operation-journal' | 'core-invoice-library';
+type StorageFormat = 'core-operation-journal' | 'core-invoice-library' | 'core-private-note';
 function storageContext(format: StorageFormat) {
-  if (format !== 'core-operation-journal' && format !== 'core-invoice-library') throw new Error('Unsupported encrypted storage format');
-  return new TextEncoder().encode(format === 'core-operation-journal' ? 'core:operation-journal:v1' : 'core:invoice-library:v1');
+  if (format !== 'core-operation-journal' && format !== 'core-invoice-library' && format !== 'core-private-note') throw new Error('Unsupported encrypted storage format');
+  return new TextEncoder().encode(format === 'core-operation-journal' ? 'core:operation-journal:v1' : format === 'core-invoice-library' ? 'core:invoice-library:v1' : 'core:private-note:v1');
 }
 async function key(password: string, salt: Uint8Array<ArrayBuffer>) {
   if (password.length < 12 || password.length > 1024)

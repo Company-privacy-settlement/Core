@@ -35,12 +35,18 @@ function vaultFor(catalog: SharedCatalog, vault: string, operation: 'deposit' | 
 }
 export async function buildFtDeposit(catalog: SharedCatalog, vault: string, note: Note, disclosureRoot: string) {
   vaultFor(catalog, vault, 'deposit'); const pool = catalog.pool; ftPool(pool); await validateNote(pool, note);
+  return buildFtDepositCommitment(catalog, vault, note.commitment, disclosureRoot);
+}
+/** Public deposit preparation never requires a note's secret or nullifier. */
+export function buildFtDepositCommitment(catalog: SharedCatalog, vault: string, commitment: string, disclosureRoot: string) {
+  vaultFor(catalog, vault, 'deposit'); const pool = catalog.pool; ftPool(pool);
+  if (field(commitment) === 0n) throw new Error('Empty commitment');
   if (!/^[0-9a-f]{64}$/.test(disclosureRoot)) throw new Error('Invalid receipt root');
   const quote = quoteFtFees(pool.denomination);
   return { quote, storageTarget: vault, tokenCall: { contract: pool.tokenId, method: 'ft_transfer_call',
-    args: { receiver_id: vault, amount: quote.depositTransferTokens, msg: JSON.stringify({ commitment: note.commitment, disclosure_root: disclosureRoot }) },
+    args: { receiver_id: vault, amount: quote.depositTransferTokens, msg: JSON.stringify({ commitment, disclosure_root: disclosureRoot }) },
     attachedYoctoNear: '1', gas: GAS } satisfies ContractCall,
-    completion: { contract: vault, method: 'get_deposit', args: { commitment: note.commitment }, requiredState: 'Active' } };
+    completion: { contract: vault, method: 'get_deposit', args: { commitment }, requiredState: 'Active' } };
 }
 export function buildFtWithdrawal(catalog: SharedCatalog, vault: string, recipient: string, disclosureRoot: string, spend: Spend) {
   vaultFor(catalog, vault, 'withdraw'); const pool = catalog.pool; ftPool(pool);

@@ -96,6 +96,7 @@ Default bind: `127.0.0.1:3001`. `CORE_API_HOST` and `PORT` can override it. Ther
 | GET | `/v1/group/capacity` | Pinned group policy, 256-output tree counts and first-member deposit observation at one final block |
 | GET | `/v1/vaults?fromIndex=0&maxRecords=20` | Verified catalog at one final block; max 50 records per API request and explicit pagination |
 | POST | `/v1/ft/preflight` | Strict public preflight request; prerequisite calls and blockers |
+| POST | `/v1/deposits/prepare` | Public commitment/root and optional vault; bounded verified FT deposit plan; [browser notes](BROWSER_NOTES.md) |
 | POST | `/v1/recipients/readiness` | Strict `{recipient}` request; account activation, token registration, exact public registration call; [recipient guide](RECIPIENTS.md) |
 | POST | `/v1/settlements/status` | Strict settlement reference; finalized state and bound recovery calls |
 | POST | `/v1/invoices/verify` | Public invoice digest/signature; current merchant FullAccess key check |
@@ -116,7 +117,7 @@ The API accepts one configured policy/RPC, not a request-selected RPC or arbitra
 
 ## Request limits and readiness
 
-Each direct socket peer receives **120 points per 60-second fixed window** by default. `/v1/vaults`, `/v1/group/capacity` and `/readyz` cost 5 points, FT preflight and recipient preparation cost 3, settlement/TX/merchant verification costs 2, and other requests (including allowed CORS preflights) cost 1. `/healthz` is exempt and makes no chain reads. Successful admissions include `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset` (seconds until reset). Rate/concurrency rejections include `Retry-After`; clients should wait and refresh state rather than automatically retrying wallet signatures.
+Each direct socket peer receives **120 points per 60-second fixed window** by default. `/v1/vaults`, `/v1/group/capacity` and `/readyz` cost 5 points; public deposit planning also costs 5, FT preflight and recipient preparation cost 3, settlement/TX/merchant verification costs 2, and other requests (including allowed CORS preflights) cost 1. `/healthz` is exempt and makes no chain reads. Successful admissions include `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset` (seconds until reset). Rate/concurrency rejections include `Retry-After`; clients should wait and refresh state rather than automatically retrying wallet signatures.
 
 Rate state is bounded to 1,024 peers. A full, unexpired peer table returns `503 RATE_LIMIT_CAPACITY` for new peers rather than evicting active counters. Forwarded/X-Forwarded-For headers are ignored. Behind a reverse proxy, all clients sharing its socket address share a budget; configure edge limits for individual clients. Counters and concurrency limits are process-local and reset on restart; distributed enforcement and authentication are separate concerns.
 
@@ -128,6 +129,7 @@ RPC budgets cap the number of source read calls **before** they start:
 | --- | --- |
 | `/v1/vaults` | 160, including up to 50 member verifications |
 | `/v1/ft/preflight` | 40 |
+| `/v1/deposits/prepare` | 80 (5 rate points) |
 | `/v1/recipients/readiness` | 16 (3 rate points) |
 | `/v1/settlements/status` | 30 |
 | `/readyz`, `/v1/group/capacity` | 10 |

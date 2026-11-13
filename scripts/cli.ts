@@ -14,6 +14,7 @@ import { NearRpcOperationsSource, preflightFt, recipientReadiness, observeSettle
 import {verifySignedInvoice,invoiceRoot,requireOpenInvoice} from '../sdk/client/invoices.js';
 import {canonical} from '../sdk/client/crypto.js';
 import {parsePolicy} from '../sdk/client/payment.js';
+import {openNoteBackup} from '../sdk/client/notes.js';
 
 const [command, ...args] = process.argv.slice(2);
 const json = async (path: string) => JSON.parse(await readFile(path, 'utf8'));
@@ -24,8 +25,15 @@ function password(): string {
   if (!value) throw new Error('Set CORE_NOTE_PASSWORD; never pass note passwords as CLI arguments');
   return value;
 }
-async function loadNote(path: string): Promise<Note> {
-  return decryptPrivate(await readFile(path, 'utf8'), password()) as Note;
+async function loadNote(path: string, allowedPolicies?: SharedPolicy[]): Promise<Note> {
+  const envelope = await readFile(path, 'utf8');
+  if (envelope.length > 16000) throw new Error('Private note backup exceeds 16 KB');
+  if (JSON.parse(envelope).format === 'core-private-note') {
+    const backup = await openNoteBackup(envelope, password());
+    if (allowedPolicies && !allowedPolicies.some(p => canonical(parsePolicy(p)) === canonical(backup.policy))) throw new Error('Backup differs from the trusted policy');
+    return backup.note;
+  }
+  return decryptPrivate(envelope, password()) as Note;
 }
 async function sharedDepositArgs(policy: SharedPolicy, rpc: string, note: Note, root: string, vault?: string) {
   const catalog = await discoverSharedVaultGroup(new NearRpcSharedSource(policy.network, policy.registry, rpc), policy, { vault });
@@ -85,7 +93,7 @@ try {
       if (deposit ? args.length !== 4 && args.length !== 5 : args.length !== 5)
         throw new Error(deposit ? 'group-deposit-args approved-groups.json trusted-rpc-url encrypted-note.json disclosure-root [vault-account]' : 'group-spend-args approved-groups.json trusted-rpc-url encrypted-note.json action.json output.json');
       const directory: ApprovedGroups = ApprovedGroupsSchema.parse(await json(args[0]));
-      const { group, note } = await approvedGroupForNote(directory, await loadNote(args[2]));
+      const { group, note } = await approvedGroupForNote(directory, await loadNote(args[2], directory.groups.map(g => g.policy)));
       if (deposit && !group.depositsEnabled) throw new Error('New deposits are disabled for this approved group; existing notes keep their original withdrawal group');
       const result = deposit ? await sharedDepositArgs(group.policy, args[1], note, args[3], args[4])
         : await sharedSpendArgs(group.policy, args[1], note, await json(args[3]), args[4]);
@@ -132,13 +140,13 @@ try {
     case 'shared-deposit-args': {
       if (args.length !== 4 && args.length !== 5) throw new Error('shared-deposit-args trusted-policy.json trusted-rpc-url encrypted-note.json disclosure-root [vault-account]');
       const policy: SharedPolicy = await json(args[0]);
-      output(await sharedDepositArgs(policy, args[1], await loadNote(args[2]), args[3], args[4]));
+      output(await sharedDepositArgs(policy, args[1], await loadNote(args[2], [policy]), args[3], args[4]));
       break;
     }
     case 'shared-spend-args': {
       if (args.length !== 5) throw new Error('shared-spend-args trusted-policy.json trusted-rpc-url encrypted-note.json action.json output.json');
       const policy: SharedPolicy = await json(args[0]);
-      output(await sharedSpendArgs(policy, args[1], await loadNote(args[2]), await json(args[3]), args[4]));
+      output(await sharedSpendArgs(policy, args[1], await loadNote(args[2], [policy]), await json(args[3]), args[4]));
       break;
     }
     case 'quote-usdc': {

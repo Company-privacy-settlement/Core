@@ -3,7 +3,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { once } from 'node:events';
 import { NearRpcOperationsSource, preflightFt, observeSettlement } from '../sdk/operations.js';
 import { createReadOnlyApi } from '../server/api.js';
-import { HttpGateway, OperationJournal, SettlementSession, type Call } from '../sdk/client/index.js';
+import { HttpGateway, OperationJournal, SettlementSession, createPrivateNote, encryptNoteBackup, openNoteBackup, type Call } from '../sdk/client/index.js';
 import { fileJournalStorage } from '../sdk/client-node.js';
 import { IndexStore } from '../sdk/indexer/store.js';
 import { NearRpcIndexSource } from '../sdk/indexer/source.js';
@@ -95,7 +95,10 @@ try {
   }
   function receipt() { const r=createReceipt({sender:'sample sender',recipient:'sample recipient',asset:`nep141:${token.accountId}`,amount:USD.toString(),purpose:'FT cross-vault sandbox',reference:randomBytes(12).toString('hex'),occurredAt:new Date().toISOString(),credentialHash:''}); receipts.set(r.root,r); return r.root; }
   const quote=quoteFtFees(USD.toString()),pool=catalog.pool;
-  const notes=[await createNote(pool),await createNote(pool),await createNote(pool)];
+  const browserNote=await createPrivateNote(policy),browserBackup=await encryptNoteBackup(policy,browserNote,'sandbox browser note backup');
+  const reopened=await openNoteBackup(browserBackup,'sandbox browser note backup',policy);
+  assert.equal(reopened.note.commitment,browserNote.commitment);
+  const notes=[reopened.note,await createNote(pool),await createNote(pool)];
   const firstRoot=receipt(),firstMessage=JSON.stringify({commitment:notes[0].commitment,disclosure_root:firstRoot});
   const beforeAlice=await balance(token,alice);
   const missing=await send(alice,a,BigInt(quote.depositTransferTokens),firstMessage); assert.equal(missing.parseResult(),'0'); assert.equal(await balance(token,alice),beforeAlice);
@@ -107,7 +110,7 @@ try {
   for(const [i,vault,owner] of [[0,a,alice],[1,b,bob],[2,b,bob]] as const) {
     catalog=await discoverSharedVaults(source,policy); const plan=await buildFtDeposit(catalog,vault.accountId,notes[i],i===0?firstRoot:receipt());
     let tx:TransactionResult;
-    if(i===0){const signed=await walletFlow(owner,plan.tokenCall,['prerequisite','payment']);tx=signed.at(-1)!;}
+    if(i===0){const prepared=await gateway.prepareDeposit(policy,{commitment:notes[i].commitment,disclosureRoot:firstRoot,vault:vault.accountId});assert.deepEqual(prepared.plan.tokenCall,plan.tokenCall);const signed=await walletFlow(owner,prepared.plan.tokenCall,['prerequisite','payment']);tx=signed.at(-1)!;}
     else{await prepay(owner,vault);tx=await call(owner,plan.tokenCall);}
     assert.equal(tx.parseResult(),quote.depositTransferTokens,tx.summary());
     await state(vault,'get_deposit',{commitment:notes[i].commitment},'Active'); transactions.push(tx);

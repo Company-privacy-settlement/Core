@@ -2,7 +2,7 @@
 
 The browser client connects the read-only operations API to a wallet supplied by the application. The separate [Front repository](https://github.com/Company-privacy-settlement/Front) exposes this flow at `/live/`, using **NEAR Connect 0.12.0** on testnet. Its `/app/` route remains a local simulation.
 
-This milestone provides reviewed FT payment execution and recovery. Private note creation, note backups and Groth16 proving still use the local Core CLI. It does not deploy or fund a public testnet group, integrate an external KYB provider, or certify tax/legal compliance.
+This milestone provides reviewed FT payment execution and recovery. FT note creation, encrypted backups and public deposit planning are also available on [Front `/notes/`](BROWSER_NOTES.md). Groth16 spend proving still uses the local Core CLI. It does not deploy or fund a public testnet group, integrate an external KYB provider, or certify tax/legal compliance.
 
 ## Build and use
 
@@ -50,7 +50,7 @@ npm run build:client
 Use an actual deployed FT shared group and independently reviewed WASM/verifier hashes. Placeholder policies are deliberately unusable. The testnet workspace accepts only `network: testnet` with `tokenId`; the Core client also supports sandbox FT groups for integration validation.
 
 1. Start Core's API with `CORE_POLICY_FILE`, `CORE_RPC_URL` and the exact Front origin in `CORE_ALLOWED_ORIGINS`. See [OPERATIONS.md](OPERATIONS.md).
-2. Generate and retain your private note with `shared-note`; generate the public FT plan with `shared-deposit-args` or `shared-spend-args`. These commands retain local proving and bind withdrawal public inputs to the token, registry, denomination, vault, recipient and receipt root.
+2. Create and retain an encrypted FT note on `/notes/` and prepare its public deposit plan, or use `shared-note` / `shared-deposit-args` in the CLI. Use `shared-spend-args` for a public withdrawal plan; it accepts browser note backups directly. These commands retain local proving and bind withdrawal public inputs to the token, registry, denomination, vault, recipient and receipt root.
 3. On Front `/live/`, enter the API origin, import the independently trusted policy file, and verify that all policy values match. Policy equality alone is not a chain-readiness claim.
 4. Connect a NEAR testnet wallet. Create/unlock a journal with a passphrase of at least 12 characters. Import only the **public FT plan**.
 5. Review and approve each prerequisite, then the payment. Refresh until the bound contract record becomes `Active` (deposit) or `Complete` (withdrawal).

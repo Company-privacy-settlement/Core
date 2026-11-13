@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { NearRpcError } from './factory.js';
 import { NearRpcSharedSource, discoverSharedVaults, SharedPolicySchema, type SharedCatalog, type SharedChainSource, type SharedPolicy } from './shared.js';
 import { field, STORAGE_FEE } from './core.js';
-import { buildFtRegistration, buildStoragePrepayment, quoteFtFees, USDC, type ContractCall } from './ft.js';
+import { buildFtDepositCommitment, buildFtRegistration, buildStoragePrepayment, quoteFtFees, USDC, type ContractCall } from './ft.js';
 import { AccountId, Atomic, Count, Sha256 } from './validation.js';
 
 export type FinalBlock = { hash: string; height: number };
@@ -50,6 +50,23 @@ export async function groupCapacity(source: OperationsSource, policy: SharedPoli
 const Credit = z.object({ available: Atomic, in_flight: Atomic }).nullable();
 const Registration = z.object({ total: Atomic, available: Atomic }).nullable();
 export const RecipientReadinessInput = z.object({ recipient: AccountId }).strict();
+export const PrepareDepositInput = z.object({
+  commitment: z.string().max(77).regex(/^[1-9][0-9]*$/).refine(value => { try { return field(value) > 0n; } catch { return false; } }),
+  disclosureRoot: Sha256, vault: AccountId.optional(),
+}).strict();
+export async function prepareFtDeposit(source: OperationsSource, input: SharedPolicy, request: z.infer<typeof PrepareDepositInput>) {
+  const policy = SharedPolicySchema.parse(input), parsed = PrepareDepositInput.parse(request);
+  if (!policy.tokenId) throw new OperationsError('WRONG_ASSET', 'Deposit planning requires a token-bound v3 group');
+  if (source.network !== policy.network || source.factory !== policy.registry) throw new Error('Wrong deposit planning source');
+  const snapshot = parsed.vault ? await verified(source, policy, parsed.vault) : null;
+  const result = snapshot ? { catalog: snapshot.catalog, checkedAtBlock: snapshot.block } : await operationCatalog(source, policy, { maxRecords: 20 });
+  if (result.catalog.leafCount >= 256) throw new OperationsError('VAULT_NOT_READY', 'Original group tree is full; choose a different approved group before creating a new note');
+  const candidate = result.catalog.vaults.find(v => (!parsed.vault || v.accountId === parsed.vault) && v.canDeposit);
+  if (!candidate) throw new OperationsError('VAULT_NOT_READY', 'No eligible deposit vault in this bounded scan; specify a verified vault or refresh');
+  const prepared = buildFtDepositCommitment(result.catalog, candidate.accountId, parsed.commitment, parsed.disclosureRoot);
+  return { policy, checkedAtBlock: result.checkedAtBlock, plan: { tokenCall: prepared.tokenCall, checkedAtBlock: result.checkedAtBlock.hash },
+    remainingOutputs: 256 - result.catalog.leafCount, checkedVaults: result.catalog.vaults.length, vaultScanComplete: result.catalog.nextIndex === null };
+}
 /** Receiving prerequisites only; this prepares no account activation or payment. */
 export async function recipientReadiness(source: OperationsSource, input: SharedPolicy, request: z.infer<typeof RecipientReadinessInput>) {
   const policy = SharedPolicySchema.parse(input), { recipient } = RecipientReadinessInput.parse(request);

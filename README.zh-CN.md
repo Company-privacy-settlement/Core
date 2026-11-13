@@ -172,3 +172,5 @@ npm run cli -- verify-bundle bundle.json https://rpc.testnet.near.org
 可选的[加密发票库](docs/INVOICE_LIBRARY.md)按商户和网络在本地保存签名请求，支持不可变 ID 验证、搜索、重新打开以及加密备份、恢复和合并。保存需明确操作，不缓存已付款状态；结算仍通过原 API 重新验证。
 
 SDK、CLI、API 和网页提供只读的[收款账户准备检查](docs/RECIPIENTS.md)，区分账户激活、代币注册与付款审核，并核对最终区块的注册费用和调用参数。检查不会估算激活金额或发送交易。
+
+[浏览器私密票据流程](docs/BROWSER_NOTES.md)支持本地生成 FT 票据、下载并重新验证加密备份，以及准备供钱包审核的公开存款计划。备份可直接用于现有 shared/group CLI；API 只接收公开承诺，Groth16 支出证明仍在本地 CLI 生成。
