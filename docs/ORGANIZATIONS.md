@@ -4,7 +4,7 @@
 
 [English web guide](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/organizations/) · [Organization workspace](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/organization/). Both retain the existing owner-private Site audience. Web Docs also cover the separate service under SDK/API and organization-specific recovery; no deployed public Organization API is bundled.
 
-Core now has a separate authenticated organization service and an English-first `/organization/` workspace. It provides persistent organization names, wallet-account membership, targeted invitations, fixed roles, ownership transfer, immediate application authorization checks and an organization-scoped audit log. It does not turn a wallet signature into verified corporate identity or grant authority over settlement contracts.
+Money Station now has a separate authenticated organization service and an English-first `/organization/` workspace. It provides persistent organization names, wallet-account membership, targeted invitations, fixed roles, ownership transfer, immediate application authorization checks and an organization-scoped audit log. It does not turn a wallet signature into verified corporate identity or grant authority over settlement contracts.
 
 ## Identity and service boundary
 

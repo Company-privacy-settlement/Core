@@ -1,6 +1,6 @@
-# Core — hackathon guide
+# Money Station — hackathon guide
 
-Core builds private business settlement on NEAR with distributed principal, shared ZK notes and selectively disclosed evidence. The three repositories separate on-chain custody, service tooling and the English-first app.
+Money Station builds private business settlement on NEAR with distributed principal, shared ZK notes and selectively disclosed evidence. The three repositories separate on-chain custody, service tooling and the English-first app.
 
 ## Thirty-second pitch
 
@@ -10,18 +10,18 @@ Private business records need not become public transaction memos. Public transa
 
 ## Watch and inspect
 
-[![English narrated demo](assets/hackathon-demo-poster.png)](https://github.com/Company-privacy-settlement/Front/blob/main/public/media/core-hackathon-demo-en.mp4)
+[![English narrated demo](assets/hackathon-demo-poster.png)](https://github.com/Company-privacy-settlement/Front/blob/main/public/media/money-station-demo-en.mp4)
 
-[English MP4](https://github.com/Company-privacy-settlement/Front/blob/main/public/media/core-hackathon-demo-en.mp4) · [Transcript, subtitles and chapter timing](https://github.com/Company-privacy-settlement/Front/blob/main/docs/HACKATHON_DEMO.md) · [Hosted player](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/media/) · [Web Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/)
+[English MP4](https://github.com/Company-privacy-settlement/Front/blob/main/public/media/money-station-demo-en.mp4) · [Transcript, subtitles and chapter timing](https://github.com/Company-privacy-settlement/Front/blob/main/docs/HACKATHON_DEMO.md) · [Hosted player](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/media/) · [Web Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/)
 
 The Site retains owner-only access. GitHub links retain repository permissions; give judges access to Front or share the exported media bundle separately. No public accessibility is implied by these links.
 
 | Segment | What the recording establishes |
 | --- | --- |
-| Product and architecture | Current landing and documentation screens. |
+| Product introduction | Animated pain points and Money Station branding in the current black-and-green design. |
 | Invoice checkout | Actual app with a controlled wallet/API fixture; encrypted note selection, a real local Groth16 proof, fee review, two wallet approvals and fixture finality. No public USDC transfer. |
 | Tax preparation | Source-bound deterministic outline and submission for independent review in a fixture organization. No live AI call, professional approval or filing. |
-| Native testnet | Evidence cards derived from the separately recorded native NEAR CLI/software-wallet run, including actual missing-recipient recovery. These are not browser wallet transactions. |
+| Native testnet | Separate linked CLI evidence, including original-recipient recovery. This run is not shown in the new UI film. |
 | Boundaries | Public metadata, development proving setup and the remaining qualification work. |
 
 ## Repository map
@@ -89,7 +89,7 @@ The current group holds 256 total outputs. The public single-payer run reveals s
 
 [Service](SERVICE.md) · [Roadmap](ROADMAP.md) · [Deployment](DEPLOYMENT.md) · [Hosting](PRODUCTION_HOSTING.md) · [CI](CI.md)
 
-## Submission validation — 2026-11-14
+## Earlier submission validation — 2026-11-14
 
 For this documentation/media update, Front's production static export, TypeScript check and three unit tests passed. The ten existing Docs browser checks passed across desktop/mobile Chromium. The browser media check verified playback advancement, all twelve chapter controls, a seek into recovery, English VTT loading, download responses and no horizontal overflow on desktop/mobile. [Media browser report](https://github.com/Company-privacy-settlement/Front/blob/main/docs/evidence/hackathon-media-2026-11-14.json).
 
@@ -98,3 +98,9 @@ The media verifier checked four SHA-256/size entries, SRT/VTT timing, chapter co
 ## Bounded cover-traffic experiment
 
 [Runbook, reproduction and public evidence](COVER_TRAFFIC.md): four native testnet transactions, 0.35 NEAR budget ceiling, durable 60-second minimum interval and same-operator principal return. Its synthetic probe has six raw historical candidates versus three excluding artificial outputs. Zero independent participants are added; this demonstrates controlled cost/frequency and measurement, not established anonymity.
+
+## Money Station film refresh
+
+The current film uses Money Station branding, animated pain-point headlines and actual UI walkthroughs with short English captions. Its duration, chapters, transcript, asset hashes and reproduction steps are in the [current media guide](https://github.com/Company-privacy-settlement/Front/blob/main/docs/HACKATHON_DEMO.md). The native CLI run remains separate linked evidence.
+
+The refreshed film is 103.558 seconds at 1920 × 1080/24 fps, with H.264/AAC and 26 English caption cues. Its full decode, canonical hashes and legacy aliases passed validation. Desktop/mobile playback, seeking, captions, downloads and range responses passed local Nginx checks. Branding regressions passed 46 browser cases, two actual local-proof payment cases and 12 Front unit tests.

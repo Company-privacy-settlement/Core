@@ -1,4 +1,4 @@
-# Core development roadmap
+# Money Station development roadmap
 
 Current service state as of **2026-11-14**. [Service overview](SERVICE.md) describes the user flow and repository boundaries. [Contract](https://github.com/Company-privacy-settlement/Contract) owns contract/circuit changes; [Front](https://github.com/Company-privacy-settlement/Front) owns the English-first website and wallet workspaces. This roadmap separates implemented capabilities from remaining work.
 

@@ -1,4 +1,4 @@
-# Core v1 wire protocol
+# Money Station v1 wire protocol
 
 This is the retained **v1 independent-pool** wire format. Current shared native NEAR v2 and FT v3 use the [shared specification](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/SHARED.md) and [FT specification](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/USDC.md). See the [service overview](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) for user workflows. Contract source paths and Poseidon regeneration commands below are relative to the **Contract repository**, not Core.
 

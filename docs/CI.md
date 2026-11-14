@@ -1,4 +1,4 @@
-# Core, Contract and Front integration CI
+# Money Station integration CI — Core, Contract and Front
 
 [Service overview](SERVICE.md) · [Release packages](RELEASES.md) · [Server hosting](HOSTING.md) · [Roadmap](ROADMAP.md)
 

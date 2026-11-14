@@ -1,4 +1,4 @@
-# Core API and indexer hosting
+# Money Station API and indexer hosting
 
 [Service overview](SERVICE.md) · [Testnet deployment](DEPLOYMENT.md) · [Indexer](INDEXER.md) · [API operations](OPERATIONS.md)
 

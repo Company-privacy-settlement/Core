@@ -1,6 +1,6 @@
-# Core service overview
+# Money Station service overview
 
-Core is a development protocol for private business-to-business payments and business-to-worker transfers on NEAR. The service combines independently held vault balances, shared zero-knowledge notes, recipient-signed invoices and selective payment evidence. English is the default website/documentation language; the three repository READMEs also provide Korean and Simplified Chinese.
+Money Station is a development protocol for private business-to-business payments and business-to-worker transfers on NEAR. The service combines independently held vault balances, shared zero-knowledge notes, recipient-signed invoices and selective payment evidence. English is the default website/documentation language; the three repository READMEs also provide Korean and Simplified Chinese.
 
 This document describes implemented behavior as of **2026-11-14**. It is not a claim of production readiness, live KYB review or tax/legal approval.
 
