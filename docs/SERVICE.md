@@ -167,3 +167,7 @@ Standalone browser FT withdrawal proving, artifact integrity checks, cancellatio
 [Organization → Verification](VERIFICATION.md) now integrates Sumsub company/UBO review, secure supplementation, expiring encrypted status and local/provider-event revocation. Activation and actual provider review require the operator’s account/levels/HTTPS callback; development used local provider fixtures. The `/kyb/` sample flow still submits nothing.
 
 [US/Abu Dhabi rule engine](RULES.md) adds seven source-checked component candidates, strict date/jurisdiction/relationship selection, deterministic minor-unit arithmetic and independently pinned reviewer signatures. Front Rules and the local CLI keep calculations separate from payment execution, complete tax liability and filing. No professional approval is bundled.
+
+## Source-bound tax preparation drafts
+
+[AI tax and procedure drafts](TAX_DRAFTS.md) connect verified rule reports and exact selected-receipt bindings to cited English preparation, encrypted organization storage and independent versioned review. AI only arranges verified statement IDs; deterministic outlines are labelled separately. Source/policy/membership expiry suspends internal approval. Restore invalidates all draft reviews and abandons pending generations. No statutory filing or payment is authorized. See the guide for permissions, API, provider configuration and independently pinned reviewer policy.

@@ -23,10 +23,12 @@ Receipts commit to declared fields and allow selected integrity proofs. Separate
 5. Keep supporting documents encrypted off-chain, with access controls and retention/deletion rules; disclose selected evidence to an authorized reviewer.
 6. Route drafts through appropriate review and a separately implemented filing/payment process. Preparation is not approval or submission.
 
-Full tax liability/payroll withholding, treaty analysis, AI legal drafts, statutory filing and fiat conversion remain outside the component engine. No rates or legal outcomes are inferred from the current UI.
+Full tax liability/payroll withholding, treaty analysis, autonomous legal advice/full-document AI drafting, statutory filing and fiat conversion remain outside the component engine. No rates or legal outcomes are inferred from the current UI.
 
 Do not put legal names, beneficial-owner documents, salary details or raw tax forms on-chain. Detailed payment/evidence boundaries: [privacy](../docs/PRIVACY.md), [browser receipts](../docs/BROWSER_RECEIPTS.md), [invoices](../docs/INVOICES.md).
 
 The separate [Sumsub connector](../docs/VERIFICATION.md) now supports company/beneficial-owner review, secure supplementation, encrypted minimal snapshots and expiry/revocation. A contracted account, reviewed levels and live-provider qualification are still required. The sample intake above remains unsubmitted; no on-chain eligibility credential is issued.
 
-[US/Abu Dhabi rule components](../docs/RULES.md) now support exact date/jurisdiction/relationship selection, source-linked arithmetic and signed reviewer approval. Bundled rules are source-checked candidates; unapproved previews remain explicit. Full liability, wider jurisdictions, professional qualification, AI drafts and filing remain separate.
+[US/Abu Dhabi rule components](../docs/RULES.md) now support exact date/jurisdiction/relationship selection, source-linked arithmetic and signed reviewer approval. Bundled rules are source-checked candidates; unapproved previews remain explicit. Full liability, wider jurisdictions, professional qualification, autonomous legal advice and filing remain separate.
+
+[Source-bound AI tax/procedure drafts](../docs/TAX_DRAFTS.md) are implemented separately in Organization → Tax drafts. Verified component reports and literal selected-receipt bindings produce cited English preparation with encrypted storage and independent versioned review. AI only arranges verified statement IDs without financial data; explicit deterministic outlines remain available. Operator credentials and independently trusted signed rule review are required for live AI and accepted internal review. Professional legal advice, full liability and filing/payment execution remain separate.

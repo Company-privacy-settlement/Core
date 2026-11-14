@@ -40,6 +40,9 @@ const columns: Record<string, string[]> = {
   organization_verifications: ['id','org','created','version','dirty','revoked','expires','checked','key_id','nonce','ciphertext','tag','external_hash','next_attempt'],
   organization_verification_subjects: ['case_id','applicant_hash'],
   organization_verification_events: ['digest','created'],
+  organization_tax_drafts: ['id','org','family_id','creator','creator_version','created','state','version','approver','approver_version','approved','approval_expires','key_id','sealed','payload_hash'],
+  organization_tax_draft_heads: ['family_id','org','current_id'],
+  organization_tax_draft_requests: ['org','request_hash','payload_hash','creator','state','version','draft_id','created','request_id'],
   organization_payout_rows: ['batch_id','ordinal','intent_id','payment_id'],
 };
 type Recovery = { state: 'ready' | 'quarantined'; recovery_id: string | null };
@@ -67,9 +70,10 @@ function inspect(path: string, audience: string) {
     if (db.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok' || db.prepare('PRAGMA foreign_key_check').get()) throw new Error('Organization SQLite integrity check failed');
     const objects = db.prepare("SELECT name,type FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
     const tables = objects.filter(o => o.type === 'table').map(o => String(o.name));
-    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches','organization_invoices','organization_invoice_requests','organization_invoice_key_checks','organization_webhook_endpoints','organization_webhook_requests','organization_webhook_events','organization_webhook_deliveries','organization_webhook_attempts','organization_payout_intents','organization_payout_batches','organization_payout_rows','organization_verifications','organization_verification_subjects','organization_verification_events'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
+    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches','organization_invoices','organization_invoice_requests','organization_invoice_key_checks','organization_webhook_endpoints','organization_webhook_requests','organization_webhook_events','organization_webhook_deliveries','organization_webhook_attempts','organization_payout_intents','organization_payout_batches','organization_payout_rows','organization_verifications','organization_verification_subjects','organization_verification_events','organization_tax_drafts','organization_tax_draft_heads','organization_tax_draft_requests'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
     if (["organization_invoices","organization_invoice_requests","organization_invoice_key_checks"].filter(n => tables.includes(n)).length % 3 !== 0) throw new Error('Incomplete invoice schema');
     if (['organization_webhook_endpoints','organization_webhook_requests','organization_webhook_events','organization_webhook_deliveries','organization_webhook_attempts'].filter(n=>tables.includes(n)).length % 5 !== 0) throw new Error('Incomplete webhook schema');
+    if(['organization_tax_drafts','organization_tax_draft_heads','organization_tax_draft_requests'].filter(n=>tables.includes(n)).length%3!==0)throw new Error('Incomplete tax draft schema');
     if(['organization_verifications','organization_verification_subjects','organization_verification_events'].filter(n=>tables.includes(n)).length%3!==0)throw new Error('Incomplete verification schema');
     if(['organization_payout_intents','organization_payout_batches','organization_payout_rows'].filter(n=>tables.includes(n)).length%3!==0)throw new Error('Incomplete payout schema');
     for (const name of tables) {
@@ -105,6 +109,7 @@ function quarantine(path: string) {
     // rather than ignoring the newer optional recovery-state table.
     db.exec('UPDATE organization_meta SET version=2 WHERE id=1');
     if (db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name='organization_payments'").get()) db.exec("UPDATE organization_payments SET state='invalidated',version=version+1 WHERE state IN ('pending','approved','dispatched')");
+    if(db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='organization_tax_drafts'").get())db.exec("UPDATE organization_tax_drafts SET state='invalidated',version=version+1; UPDATE organization_tax_draft_requests SET state='abandoned',version=version+1 WHERE state='generating'");
     if(db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='organization_verifications'").get())db.exec('UPDATE organization_verifications SET revoked=1,dirty=1,version=version+1');
     if(db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='organization_webhook_endpoints'").get()){
       db.exec("UPDATE organization_webhook_endpoints SET state='paused',version=version+1; UPDATE organization_webhook_deliveries SET state='held',version=version+1,lease=NULL,lease_until=NULL,last_error='RECOVERY_HOLD' WHERE state IN ('pending','sending')");

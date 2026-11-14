@@ -1,3 +1,4 @@
+import { OpenAiDraftPlanner,loadDraftAiConfig,draftRulePolicyLoader } from '../server/organizations/draft-ai.js';
 import { SumsubProvider, loadSumsubConfig } from '../server/organizations/sumsub.js';
 import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync } from 'node:fs';
@@ -34,6 +35,9 @@ if(enabled){
 }
 const verificationProvider=process.env.CORE_SUMSUB_CONFIG_FILE?new SumsubProvider(loadSumsubConfig(process.env.CORE_SUMSUB_CONFIG_FILE)):undefined;
 if(verificationProvider&&!keys)throw new Error('Sumsub requires organization encryption keys');
+if(!!process.env.CORE_DRAFT_RULE_POLICY_FILE!==!!process.env.CORE_DRAFT_RULE_POLICY_SHA256)throw new Error('Configure the draft rule policy file and independent digest together');
+const draftServices={planner:process.env.CORE_AI_DRAFT_CONFIG_FILE?new OpenAiDraftPlanner(loadDraftAiConfig(process.env.CORE_AI_DRAFT_CONFIG_FILE)):undefined,rulePolicy:process.env.CORE_DRAFT_RULE_POLICY_FILE?draftRulePolicyLoader(process.env.CORE_DRAFT_RULE_POLICY_FILE,process.env.CORE_DRAFT_RULE_POLICY_SHA256!):undefined};
+if(draftServices.planner&&!keys)throw new Error('AI drafts require encrypted organization storage');
 let store:OrganizationStore;
 try{store=new OrganizationStore(filename,audience,Date.now,keys,destinations);}catch(error){index?.close();throw error;}
 const controller=new AbortController();let tick:Promise<void>|undefined;
@@ -43,7 +47,7 @@ const interval=worker?setInterval(poll,5000):undefined;if(interval){interval.unr
 let verificationTick:Promise<void>|undefined;
 const verificationPoll=()=>{if(verificationProvider&&!verificationTick)verificationTick=store.verifications.tick(verificationProvider,controller.signal).catch(()=>{if(!controller.signal.aborted)console.error(JSON.stringify({event:'verification_worker_failed'}));}).finally(()=>{verificationTick=undefined;});};
 const verificationInterval=verificationProvider?setInterval(verificationPoll,30000):undefined;if(verificationInterval){verificationInterval.unref();verificationPoll();}
-const server = createOrganizationApi({ store, identity, allowedOrigins: origins,verificationProvider });
+const server = createOrganizationApi({ store, identity, allowedOrigins: origins,verificationProvider,draftServices });
 server.listen(port, process.env.CORE_ORGANIZATION_HOST ?? '127.0.0.1', () => console.log(JSON.stringify({ event: 'organization_service_started', network: 'testnet', port })));
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { controller.abort();if(interval)clearInterval(interval);if(verificationInterval)clearInterval(verificationInterval);server.close(); setTimeout(() => server.closeAllConnections(), 5000).unref(); });
 server.once('close', () => {controller.abort();if(interval)clearInterval(interval);if(verificationInterval)clearInterval(verificationInterval);void Promise.allSettled([tick,verificationTick]).finally(()=>{index?.close();store.close();});});

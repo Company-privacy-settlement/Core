@@ -1,3 +1,4 @@
+import { OrganizationTaxDrafts,taxDraftSchema } from './tax-drafts.js';
 import { OrganizationVerifications, verificationSchema } from './verification.js';
 import { DatabaseSync } from 'node:sqlite';
 import { closeSync, lstatSync, mkdirSync, openSync } from 'node:fs';
@@ -27,6 +28,7 @@ export class OrganizationStore {
   readonly webhooks: OrganizationWebhooks;
   readonly payoutBatches: OrganizationPayoutBatches;
   readonly verifications: OrganizationVerifications;
+  readonly taxDrafts: OrganizationTaxDrafts;
   constructor(filename: string, readonly audience: string, readonly now: () => number = Date.now, invoiceKeys?: InvoiceKeys, webhookOrigins: readonly string[] = []) {
     if (filename !== ':memory:') {
       filename = resolve(filename); mkdirSync(dirname(filename), { recursive: true, mode: 0o700 });
@@ -64,11 +66,13 @@ export class OrganizationStore {
       this.db.exec(webhookSchema);
       this.db.exec(payoutBatchesSchema);
       this.db.exec(verificationSchema);
+      this.db.exec(taxDraftSchema);
       this.run("INSERT OR IGNORE INTO organization_recovery VALUES(1,1,'ready',NULL,?,NULL)", this.now());
       this.db.exec('COMMIT');
       this.payments = new OrganizationPayments({db:this.db,now:this.now,atomic:action=>this.atomic(action),authorize:(...args)=>this.authorize(...args),member:(...args)=>this.member(...args),audit:(...args)=>this.audit(...args)});
       this.invoices = new OrganizationInvoices({db:this.db,audience,now:this.now,keys:invoiceKeys,atomic:action=>this.atomic(action),authorize:(...args)=>this.authorize(...args),audit:(...args)=>this.audit(...args)});
       this.webhooks = new OrganizationWebhooks({db:this.db,audience,keys:invoiceKeys,now:this.now,allowed:new Set(webhookOrigins),atomic:action=>this.atomic(action),authorize:(...args)=>this.authorize(...args),audit:(...args)=>this.audit(...args)});
+      this.taxDrafts = new OrganizationTaxDrafts({db:this.db,audience,now:this.now,keys:invoiceKeys,authorize:(...args)=>this.authorize(...args),member:(...args)=>this.member(...args),atomic:action=>this.atomic(action),audit:(...args)=>this.audit(...args)});
       this.verifications = new OrganizationVerifications({db:this.db,audience,now:this.now,keys:invoiceKeys,authorize:(...args)=>this.authorize(...args),atomic:action=>this.atomic(action),audit:(...args)=>this.audit(...args)});
       this.payoutBatches = new OrganizationPayoutBatches({db:this.db,now:this.now,payments:this.payments,authorize:(...args)=>this.authorize(...args),member:(...args)=>this.member(...args),atomic:action=>this.atomic(action),audit:(...args)=>this.audit(...args)});
     } catch (e) { this.db.close(); throw e; }

@@ -155,3 +155,7 @@ The Organization API uses a separate database and [dedicated backup/recovery com
 [Signed payment webhooks](WEBHOOKS.md) provide an encrypted durable outbox, stable event IDs, HMAC signatures, bounded retries/dead letters and receiver-side atomic deduplication. The optional worker consumes a pinned local finalized index and only approved HTTPS callback origins. Organization → Webhooks manages callback pause/rotation and failure history. Recovery pauses callbacks and holds outstanding deliveries until current-admin review.
 
 [Sumsub business/beneficial-owner verification](VERIFICATION.md) adds provider-hosted company/owner review, supplementation, authenticated invalidation, fixed review-date expiry and irreversible local reliance revocation. Restored cases are revoked and need new review; organization roles and permissionless contract execution remain separate.
+
+## Source-bound tax preparation drafts
+
+[AI tax and procedure drafts](TAX_DRAFTS.md) connect verified rule reports and exact selected-receipt bindings to cited English preparation, encrypted organization storage and independent versioned review. AI only arranges verified statement IDs; deterministic outlines are labelled separately. Source/policy/membership expiry suspends internal approval. Restore invalidates all draft reviews and abandons pending generations. No statutory filing or payment is authorized. See the guide for permissions, API, provider configuration and independently pinned reviewer policy.

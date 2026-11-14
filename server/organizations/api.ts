@@ -1,3 +1,4 @@
+import type { DraftServices } from './tax-drafts.js';
 import type { SumsubProvider } from './sumsub.js';
 import { createServer, type IncomingMessage } from 'node:http';
 import { z } from 'zod';
@@ -20,8 +21,8 @@ async function rawBody(req: IncomingMessage, signal: AbortSignal, maximum=8192):
     req.on('data', data); req.on('end', end); req.on('error', fail); req.on('aborted', aborted); signal.addEventListener('abort', aborted, { once: true }); if (signal.aborted) aborted();
   });
 }
-async function body(req:IncomingMessage,signal:AbortSignal):Promise<unknown>{const bytes=await rawBody(req,signal);try{return JSON.parse(bytes.toString('utf8'));}catch{throw new OrganizationError(400,'INVALID_JSON');}}
-export function createOrganizationApi(options: { store: OrganizationStore; identity: OrganizationIdentitySource; allowedOrigins: string[]; timeoutMs?: number; maxConcurrent?: number; ratePoints?: number; verificationProvider?:SumsubProvider }) {
+async function body(req:IncomingMessage,signal:AbortSignal,maximum=8192):Promise<unknown>{const bytes=await rawBody(req,signal,maximum);try{return JSON.parse(bytes.toString('utf8'));}catch{throw new OrganizationError(400,'INVALID_JSON');}}
+export function createOrganizationApi(options: { store: OrganizationStore; identity: OrganizationIdentitySource; allowedOrigins: string[]; timeoutMs?: number; maxConcurrent?: number; ratePoints?: number; verificationProvider?:SumsubProvider; draftServices?:DraftServices }) {
   const origins = new Set(options.allowedOrigins.map(organizationOrigin));
   if (!origins.size) throw new Error('Organization API needs an exact frontend origin allowlist');
   organizationOrigin(options.store.audience);
@@ -49,17 +50,17 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
         if (headers.some(h => !['content-type', 'authorization'].includes(h))) throw new OrganizationError(403, 'HEADER_DENIED');
         res.writeHead(204, { 'access-control-allow-methods': 'GET, POST, PATCH, DELETE', 'access-control-allow-headers': 'content-type, authorization', 'cache-control': 'no-store' }); res.end(); return;
       }
-      limiter.take(req.socket.remoteAddress ?? 'unknown', req.url?.startsWith('/v1/auth/') ? 5 : 1);
+      limiter.take(req.socket.remoteAddress ?? 'unknown', req.url?.startsWith('/v1/auth/')||req.method==='POST'&&req.url?.includes('/tax-drafts') ? 5 : 1);
       if (active >= maximum) throw new OrganizationError(503, 'SERVICE_BUSY');
       active++; controller = new AbortController(); const current = controller;
-      timeout = setTimeout(() => { current.abort(); send(504, { error: 'REQUEST_TIMEOUT' }); }, timeoutMs);
+      timeout = setTimeout(() => { current.abort(); send(504, { error: 'REQUEST_TIMEOUT' }); }, req.url?.includes('/tax-drafts')?Math.max(timeoutMs,25000):timeoutMs);
       const closed = () => { if (!res.writableEnded) current.abort(); }; res.once('close', closed);
       try {
         const url = new URL(req.url ?? '/', 'http://organization.invalid');
         const signal = current.signal;
         if(isVerificationHook){if(!options.verificationProvider)throw new OrganizationError(503,'VERIFICATION_PROVIDER_DISABLED');const bytes=await rawBody(req,signal,65536);signal.throwIfAborted();send(200,store.verifications.receive(options.verificationProvider,bytes,req.headers['x-payload-digest'],req.headers['x-payload-digest-alg']));return;}
         let validatedToken: string | undefined;
-        const input = async <S extends z.ZodType>(schema: S) => { const value = parse(schema, await body(req, signal)); signal.throwIfAborted(); if (validatedToken) store.session(validatedToken, origin); return value; };
+        const input = async <S extends z.ZodType>(schema: S,maximum=8192) => { const value = parse(schema, await body(req, signal,maximum)); signal.throwIfAborted(); if (validatedToken) store.session(validatedToken, origin); return value; };
         if (url.search && !(req.method === 'GET' && /^\/v1\/organizations\/[a-f0-9-]+\/(audit|invoices|webhooks\/deliveries)$/.test(url.pathname))) throw new OrganizationError(400, 'QUERY_DENIED');
         if (req.method === 'POST' && url.pathname === '/v1/auth/challenge') {
           const value = await input(z.object({ accountId: OrganizationAccount }).strict()); send(200, store.challenge(value.accountId, origin)); return;
@@ -80,6 +81,15 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
           if (req.method === 'GET') { send(200, { items: store.list(actor) }); return; }
           if (req.method === 'POST') { const value = await input(Input.create); send(201, store.create(actor, value.name)); return; }
         }
+        const draft=/^\/v1\/organizations\/([^/]+)\/tax-drafts(?:\/([^/]+)(?:\/([^/]+)(?:\/(abandon))?)?)?$/.exec(url.pathname);
+        if(draft){if(draft[4]&&draft[2]!=='requests')throw new OrganizationError(404,'NOT_FOUND');const org=parse(Id,draft[1]),id=draft[2],action=draft[3],services=options.draftServices??{},check=()=>{signal.throwIfAborted();store.session(token,origin);};
+          if(!id&&req.method==='GET'){send(200,await store.taxDrafts.list(org,actor,services,signal,check));return;}
+          if(!id&&req.method==='POST'){store.taxDrafts.authorizeCreate(org,actor);const v=await input(z.unknown(),131072);send(200,await store.taxDrafts.create(org,actor,v,services,signal,check));return;}
+          if(id==='requests'&&action){if(!draft[4]&&req.method==='GET'){send(200,store.taxDrafts.generation(org,actor,parse(Id,action)));return;}if(draft[4]&&req.method==='POST'){const v=await input(Input.version);send(200,store.taxDrafts.abandon(org,actor,parse(Id,action),v.version));return;}}
+          if(id&&!action&&req.method==='GET'){send(200,await store.taxDrafts.get(org,actor,parse(Id,id),services,signal,check));return;}
+          if(id&&action==='revise'&&req.method==='POST'){store.taxDrafts.authorizeCreate(org,actor);const v=await input(z.unknown(),131072);send(200,await store.taxDrafts.create(org,actor,v,services,signal,check,parse(Id,id)));return;}
+          if(id&&['submit','approve','changes_requested','reject','withdraw'].includes(action??'')&&req.method==='POST'){const v=await input(z.unknown());send(200,await store.taxDrafts.decide(org,actor,parse(Id,id),action as 'submit'|'approve'|'changes_requested'|'reject'|'withdraw',v,services,signal,check));return;}
+          throw new OrganizationError(404,'NOT_FOUND');}
         const verification=/^\/v1\/organizations\/([^/]+)\/verification(?:\/(refresh|link|revoke))?$/.exec(url.pathname);
         if(verification){const org=parse(Id,verification[1]),action=verification[2],provider=options.verificationProvider;
           if(!action&&req.method==='GET'){send(200,store.verifications.get(org,actor,provider));return;}

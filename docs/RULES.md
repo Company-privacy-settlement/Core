@@ -85,3 +85,7 @@ The Node/browser SDK exports `ruleCatalog`, `ruleCatalogHash`, `ruleInputExample
 Official source links and locators are embedded in each result. Core [compliance scope](../compliance/README.md), [service boundaries](SERVICE.md) and [roadmap](ROADMAP.md) distinguish this component engine from future AI drafts, statutory filing and real-world qualification.
 
 Validation on **2026-11-14**: 31 focused rule-engine cases in 459 passing Core tests, 16 Rules desktop/mobile cases in 240 passing browser cases, SDK/static builds, compiled CLI preview/export/reverification and service recovery checks. Browser mobile cases emulate Chromium, not qualified real mobile devices. Source consistency and synthetic signatures validate implementation behavior, not professional rule approval or tax filing.
+
+## Source-bound tax preparation drafts
+
+[AI tax and procedure drafts](TAX_DRAFTS.md) connect verified rule reports and exact selected-receipt bindings to cited English preparation, encrypted organization storage and independent versioned review. AI only arranges verified statement IDs; deterministic outlines are labelled separately. Source/policy/membership expiry suspends internal approval. Restore invalidates all draft reviews and abandons pending generations. No statutory filing or payment is authorized. See the guide for permissions, API, provider configuration and independently pinned reviewer policy.

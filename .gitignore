@@ -22,3 +22,5 @@ commitments.json
 *.invoice-keys.json
 
 *.sumsub-config.json
+
+*.ai-draft-config.json

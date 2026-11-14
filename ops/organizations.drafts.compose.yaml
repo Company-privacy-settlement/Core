@@ -1,0 +1,20 @@
+# Apply after organizations.compose.yaml and organizations.invoices.compose.yaml.
+services:
+  organization-api:
+    environment:
+      CORE_AI_DRAFT_CONFIG_FILE: /run/core-secrets/ai-draft-config.json
+      CORE_DRAFT_RULE_POLICY_FILE: /run/core-secrets/rule-trust.json
+      CORE_DRAFT_RULE_POLICY_SHA256: ${CORE_DRAFT_RULE_POLICY_SHA256:?Set the independent canonical reviewer-policy digest}
+    volumes:
+      - type: bind
+        source: ${CORE_AI_DRAFT_CONFIG_PATH:?Set the absolute owner-only AI configuration file}
+        target: /run/core-secrets/ai-draft-config.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${CORE_DRAFT_RULE_POLICY_PATH:?Set the absolute owner-only rule policy file}
+        target: /run/core-secrets/rule-trust.json
+        read_only: true
+        bind:
+          create_host_path: false

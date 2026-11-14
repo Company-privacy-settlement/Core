@@ -121,3 +121,7 @@ The compiled runtime harness executes the real launcher/CLI through backup, bad-
 [Payout batches](PAYOUT_BATCHES.md) group independently approved public requests with resumable/idempotent staging, per-recipient additive fee review, one encrypted journal, individual fixed-destination recovery and observational CSV/JSON settlement reports. Existing corporate note/dispatch reservations and reviewed restore invalidation remain in force; there is no implicit whole-run replay or contract custody.
 
 [Sumsub business/beneficial-owner verification](VERIFICATION.md) adds provider-hosted company/owner review, supplementation, authenticated invalidation, fixed review-date expiry and irreversible local reliance revocation. Restored cases are revoked and need new review; organization roles and permissionless contract execution remain separate.
+
+## Source-bound tax preparation drafts
+
+[AI tax and procedure drafts](TAX_DRAFTS.md) connect verified rule reports and exact selected-receipt bindings to cited English preparation, encrypted organization storage and independent versioned review. AI only arranges verified statement IDs; deterministic outlines are labelled separately. Source/policy/membership expiry suspends internal approval. Restore invalidates all draft reviews and abandons pending generations. No statutory filing or payment is authorized. See the guide for permissions, API, provider configuration and independently pinned reviewer policy.

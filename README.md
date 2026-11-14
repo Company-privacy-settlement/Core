@@ -130,7 +130,7 @@ Principal does not traverse A → B → C hops. One group's shared tree hides in
 
 Browser notes and full receipts stay in memory and encrypted downloaded files. Journal and optional invoice-library data persist encrypted in separate browser namespaces. Locking/history-cache handling invalidates pending work. An already-open wallet request cannot be cancelled by locking; its durable signing intent stays blocked for explicit reconciliation. The service cannot recover lost note secrets or passphrases.
 
-The US / Abu Dhabi scope is a planned preparation layer, with US state and ADGM/mainland distinctions required. AI tax drafts, full jurisdiction tax coverage, live KYB qualification, statutory filing, fiat conversion and production deployment are not implemented. See [compliance scope](compliance/README.md).
+The US / Abu Dhabi scope is a planned preparation layer, with US state and ADGM/mainland distinctions required. Autonomous full-scope legal advice, full jurisdiction tax coverage, live KYB qualification, statutory filing, fiat conversion and production deployment are not implemented. See [compliance scope](compliance/README.md).
 
 ## Guides
 
@@ -153,3 +153,7 @@ KYB/KYC connector validation on **2026-11-14**: **428 Core tests** and **224 des
 [US/Abu Dhabi rules](docs/RULES.md) provide seven source-checked component candidates selected by jurisdiction, employee/contractor/B2B relationship and applicable date. The local browser/CLI engine records exact arithmetic and official sources; reviewed use requires an independently pinned Ed25519 reviewer approval. No professional approval, complete tax liability, automatic withholding or filing is bundled.
 
 Rule-engine validation on **2026-11-14**: **459 Core tests** and **240 desktop/mobile browser cases** passed, including 31 new Core and 16 rule-workspace browser cases. Types, Node/browser SDK and static Front builds, compiled CLI export/reverification, service restart/backup/recovery and source/documentation checks passed. Reviewer keys are test fixtures; no professional tax/legal rule approval, taxpayer assessment, automatic withholding or filing was performed.
+
+[AI tax/procedure preparation](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) is available in Organization → Tax drafts: source-cited verified rule calculations and exact selected-receipt bindings, encrypted organization storage, independent review, immutable revisions, withdrawal and JSON/Markdown exports. Optional AI only arranges verified statement IDs without sending figures or evidence to the model; deterministic outlines are explicitly separate. Real AI activation needs a private provider key/model; accepted review needs the operator-pinned signed rule policy. No professional rule approval, autonomous legal advice, statutory filing or payment authorization is bundled.
+
+Draft-focused verification on **2026-11-14** passed **488 Core tests** (29 new draft cases), **16 desktop/mobile draft browser cases**, three Front unit tests, type checks, Node/browser SDK and static builds, compiled service/backup/recovery checks and documentation/source-inventory checks. AI transport and reviewer signatures use controlled fixtures; no live model request, professional rule approval or statutory filing was performed.

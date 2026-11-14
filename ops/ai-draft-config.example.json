@@ -1,0 +1,6 @@
+{
+  "format": "core-ai-draft-config-v1",
+  "apiKey": "REPLACE_WITH_YOUR_PRIVATE_PROVIDER_API_KEY",
+  "model": "REPLACE_WITH_AN_ACCOUNT_SUPPORTED_STRUCTURED_OUTPUT_MODEL",
+  "maxOutputTokens": 4096
+}
