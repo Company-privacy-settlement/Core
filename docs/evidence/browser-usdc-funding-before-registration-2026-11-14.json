@@ -1,0 +1,58 @@
+{
+  "format": "core-usdc-funding-preflight-v1",
+  "checkedAt": "2026-11-14T07:22:06.032Z",
+  "network": "testnet",
+  "fundingReady": false,
+  "rpcUrl": "https://test.rpc.fastnear.com",
+  "snapshot": {
+    "height": 277625620,
+    "hash": "6t3Tb12NqDRYdXVaxtdK5rmruxRvseixPdwZTk9axPYZ",
+    "timestampNanosec": "1794640923872214701"
+  },
+  "token": {
+    "accountId": "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af",
+    "source": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+    "metadata": {
+      "spec": "ft-1.0.0",
+      "name": "USDC",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    "observedCodeSha256": "ccfb5ad61c10b5a364d405eb404926f31b37bf636897ab9c7cfc3e74ffbf12ab",
+    "codeReviewMatched": false
+  },
+  "payer": {
+    "accountId": "core14-0574c4-ebed76bb2c.testnet",
+    "usdcAtomic": "0",
+    "nearGrossYoctoNear": "2129386565819758199999997",
+    "storageStakeYoctoNear": "1820000000000000000000",
+    "nearSpendableYoctoNear": "2127566565819758199999997",
+    "storage": null
+  },
+  "requirement": {
+    "notes": 2,
+    "principalPerNoteAtomic": "1000000",
+    "depositPerNoteAtomic": "1001500",
+    "withdrawalFeePerNoteAtomic": "1500",
+    "totalUsdcAtomic": "2006000",
+    "minimumTokenRegistrationYoctoNear": "1250000000000000000000",
+    "nearReserveYoctoNear": "100000000000000000000000"
+  },
+  "blockers": [
+    "TOKEN_CODE_REVIEW_REQUIRED",
+    "PAYER_USDC_REGISTRATION_REQUIRED",
+    "PAYER_USDC_FUNDING_REQUIRED"
+  ],
+  "inputSha256": "53d6960946886d7cbba69f690d6aea77b3c9d61cf6586798e06a28deb2220d6d",
+  "claims": {
+    "readOnly": true,
+    "browserWalletVerified": false,
+    "depositsVerified": false,
+    "proofVerified": false,
+    "invoicePaymentVerified": false,
+    "withdrawalVerified": false,
+    "recoveryVerified": false,
+    "usdcSettlementVerified": false
+  },
+  "assurance": "Funding preflight only. All reads target one fresh FINAL testnet snapshot; provider responses are not light-client proofs. The NEAR reserve excludes current account storage stake, but does not establish funding for new group deployment, registration or other provisioning costs. Independently reviewed deployed FT policy, API/indexer, proving files and actual browser-wallet execution remain separate gates."
+}

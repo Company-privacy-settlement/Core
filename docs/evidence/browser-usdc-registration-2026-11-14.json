@@ -1,0 +1,29 @@
+{
+  "format": "core-usdc-registration-provisioning-v1",
+  "checkedAt": "2026-11-14T07:24:30.117Z",
+  "network": "testnet",
+  "tokenId": "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af",
+  "payer": "core14-0574c4-ebed76bb2c.testnet",
+  "signerKind": "local-ed25519-software-wallet",
+  "before": null,
+  "after": {
+    "total": "1250000000000000000000",
+    "available": "0"
+  },
+  "attachedYoctoNear": "1250000000000000000000",
+  "transaction": {
+    "hash": "5qiSCayqf2D4bS1huUjDozqAfocsdC4jACGKym3rh7wo",
+    "signer": "core14-0574c4-ebed76bb2c.testnet",
+    "receiver": "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af",
+    "method": "storage_deposit",
+    "finalExecutionStatus": "FINAL",
+    "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+    "nonce": "277611285000013",
+    "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4TS8Hanz8AABAAAAAM2UyMjEwZTExODRiNDViNjRjOGE0MzRjMGE3ZTdiMjNjYzA0ZWE3ZWI3YTZjM2MzMjUyMGQwM2Q0YWZjYjhhZjMFZfxK/2GH8JyfABeKV+MLdbaXEwPTUoJsCUWoPOMKAQAAAAIPAAAAc3RvcmFnZV9kZXBvc2l0SgAAAHsiYWNjb3VudF9pZCI6ImNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0IiwicmVnaXN0cmF0aW9uX29ubHkiOnRydWV9AMBuMdkQAQAAAEhWNxk8w0MAAAAAAAAA"
+  },
+  "claims": {
+    "registrationObserved": true,
+    "browserWalletVerified": false,
+    "usdcSettlementVerified": false
+  }
+}

@@ -2,7 +2,7 @@
 
 The browser client connects the read-only operations API to a wallet supplied by the application. The separate [Front repository](https://github.com/Company-privacy-settlement/Front) exposes this flow at `/live/`, using **NEAR Connect 0.12.0** on testnet. Legacy `/app/` routes redirect to the corresponding English Docs guide; the simulation dashboard has been removed. See the [service overview](SERVICE.md) for all current workspaces.
 
-This milestone provides reviewed FT payment execution and recovery. FT note creation, encrypted backups and public deposit planning are also available on [Front `/notes/`](BROWSER_NOTES.md). Groth16 spend proving still uses the local Core CLI. It does not deploy or fund a public testnet group, integrate an external KYB provider, or certify tax/legal compliance.
+This milestone provides reviewed FT payment execution and recovery. FT note creation, encrypted backups and public deposit planning are also available on [Front `/notes/`](BROWSER_NOTES.md). Groth16 spend proving is available locally in the browser and through the Core CLI; see [Browser proofs](BROWSER_PROVER.md). It does not deploy or fund a public testnet group, integrate an external KYB provider, or certify tax/legal compliance.
 
 ## Build and use
 
@@ -101,3 +101,5 @@ Locking revokes in-progress journal accesses and prevents late reads, restores, 
 ## Recorded native testnet software-wallet run
 
 [Native NEAR public-testnet qualification](TESTNET_WALLET.md) records fourteen FINAL transactions, two deposits, cross-vault payout selection, a real missing-recipient failure and fixed-destination recovery with no second protocol fee. This validates the CLI/local-key native path. The Front FT wallet/NEAR Connect path and USDC are still unqualified on the public network.
+
+The [browser USDC qualification runbook](BROWSER_USDC_TESTNET.md) records the actual funding blockers and provides the read-only `testnet:preflight-usdc` command. It does not count native CLI receipts or browser fixtures as live USDC wallet acceptance.

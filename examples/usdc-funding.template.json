@@ -1,0 +1,8 @@
+{
+  "format": "core-usdc-funding-input-v1",
+  "rpcUrl": "https://test.rpc.fastnear.com",
+  "payer": "replace-with-owned-account.testnet",
+  "denomination": "1000000",
+  "depositCount": 2,
+  "gasReserveYoctoNear": "100000000000000000000000"
+}

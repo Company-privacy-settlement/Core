@@ -1,0 +1,29 @@
+{
+  "format": "core-browser-usdc-prerequisite-observations-v1",
+  "network": "testnet",
+  "faucet": {
+    "observedAt": "2026-11-14T07:12:56.178Z",
+    "origin": "https://faucet.circle.com",
+    "asset": "USDC",
+    "networkLabel": "Near Testnet",
+    "requestedAccount": "core14-0574c4-ebed76bb2c.testnet",
+    "result": "HUMAN_BOT_VERIFICATION_REQUIRED",
+    "interactiveCaptchaObserved": true,
+    "grantObserved": false
+  },
+  "walletPicker": {
+    "observedAt": "2026-11-14T07:19:17.443Z",
+    "frontend": "local export of Company-privacy-settlement/Front c0161aa59623279576ffeb61d7cc30c14054f3c3",
+    "connector": "@hot-labs/near-connect 0.12.0",
+    "route": "/invoices/",
+    "fixtureRoutesInstalled": false,
+    "providerVisible": "Meteor Wallet",
+    "authenticated": false,
+    "signed": false
+  },
+  "claims": {
+    "browserWalletVerified": false,
+    "usdcSettlementVerified": false
+  },
+  "note": "Public prerequisite observations only, not wallet connection or payment evidence. No private keys, challenge tokens or wallet storage are included."
+}
