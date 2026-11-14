@@ -20,6 +20,12 @@ type Context = {
   audit(org:string,actor:string,action:string,target:string,detail:Record<string,unknown>):void;
 };
 const hash=(value:unknown)=>createHash('sha256').update(canonical(value)).digest('hex');
+// Code/verifier/treasury pins are approval terms, not new on-chain spend domains.
+// Match the v3 domain components so metadata aliases cannot reserve one note twice.
+function protocolSpendKey(content:CorporateContent) {
+  const p=content.policy,nullifier=JSON.parse(content.payment.args.msg as string).public_inputs[0];
+  return hash({network:p.network,registry:p.registry,tokenId:p.tokenId,denomination:p.denomination,nullifier});
+}
 export class OrganizationPayments {
   constructor(private c:Context) {}
   private row(org:string,id:string):Row {
@@ -33,7 +39,15 @@ export class OrganizationPayments {
     if(!account||version===null)return false;
     const m=this.c.member(row.org,account);return !!m&&m.status==='active'&&m.version===version&&ORGANIZATION_ROLE_PERMISSIONS[m.role].includes(permission);
   }
-  private valid(row:Row) { return row.state==='approved'&&row.expires>this.c.now()&&row.approver!==row.maker&&this.active(row,row.maker,row.creator_version,'payments.create')&&this.active(row,row.approver,row.approver_version,'payments.approve'); }
+  private reserved(org:string,key:string,except?:string) {
+    // Read bounded legacy payloads too: their stored spend_key used the whole
+    // policy. Never discard an old claim or rewrite previously approved bytes.
+    return this.c.db.prepare("SELECT id FROM organization_payments WHERE org=? AND state IN ('pending','approved','dispatched','invalidated')").all(org).some(r=>String(r.id)!==except&&protocolSpendKey(JSON.parse(this.row(org,String(r.id)).payload).content)===key);
+  }
+  private uncontested(row:Row) {
+    if(this.reserved(row.org,protocolSpendKey(JSON.parse(row.payload).content),row.id))throw new OrganizationError(409,'PAYMENT_NOTE_CONFLICT');
+  }
+  private valid(row:Row) { return row.state==='approved'&&row.expires>this.c.now()&&row.approver!==row.maker&&this.active(row,row.maker,row.creator_version,'payments.create')&&this.active(row,row.approver,row.approver_version,'payments.approve')&&!this.reserved(row.org,protocolSpendKey(JSON.parse(row.payload).content),row.id); }
   private view(row:Row):CorporatePayment {
     return {payload:JSON.parse(row.payload),contentHash:row.content_hash,state:row.state,version:row.version,approvedBy:row.approver,approverMembershipVersion:row.approver_version,approvedAt:row.approved===null?null:new Date(row.approved).toISOString(),approvalValid:this.valid(row),
       dispatches:this.c.db.prepare('SELECT call_hash,kind,created FROM organization_payment_dispatches WHERE payment_id=? ORDER BY created,call_hash').all(row.id).map(d=>({callHash:String(d.call_hash),kind:d.kind as 'payment'|'prerequisite',createdAt:new Date(Number(d.created)).toISOString()}))};
@@ -50,13 +64,13 @@ export class OrganizationPayments {
     if(content.payer!==actor)throw new OrganizationError(403,'PAYMENT_PAYER_MISMATCH');
     const prepared=await preparedPayment({tokenCall:content.payment},content.policy,actor);
     if(prepared.reference.kind!=='withdrawal')throw new OrganizationError(400,'INVALID_PAYMENT_CONTENT');
-    const spendKey=hash({policy:content.policy,nullifier:prepared.reference.nullifier});
+    const spendKey=protocolSpendKey(content);
     return this.c.atomic(()=>{
       check();
       this.c.authorize(org,actor,'payments.create');
       const existing=hooks?.lookup(content);if(existing)return existing;
       if(Number(this.c.db.prepare('SELECT COUNT(*) n FROM organization_payments WHERE org=?').get(org)!.n)>=100)throw new OrganizationError(409,'PAYMENT_LIMIT');
-      if(this.c.db.prepare("SELECT id FROM organization_payments WHERE org=? AND spend_key=? AND state IN ('pending','approved','dispatched','invalidated')").get(org,spendKey))throw new OrganizationError(409,'PAYMENT_NOTE_RESERVED');
+      if(this.reserved(org,spendKey))throw new OrganizationError(409,'PAYMENT_NOTE_RESERVED');
       const id=randomUUID(),now=this.c.now(),member=this.c.member(org,actor)!;
       const payload:CorporatePayload={format:'core-corporate-approval-v1',organizationId:org,paymentId:id,creatorAccount:actor,creatorMembershipVersion:member.version,expiresAt:new Date(now+86400_000).toISOString(),content};
       const digest=hash(payload);
@@ -77,7 +91,7 @@ export class OrganizationPayments {
         if(actor===row.maker)throw new OrganizationError(403,'PAYMENT_SELF_APPROVAL_DENIED');
         if(row.state!=='pending'||row.expires<=this.c.now()||!this.active(row,row.maker,row.creator_version,'payments.create'))throw new OrganizationError(409,'PAYMENT_AUTHORITY_CHANGED');
       }
-      if(action==='approve')this.c.db.prepare("UPDATE organization_payments SET state='approved',version=version+1,approver=?,approver_version=?,approved=? WHERE id=?").run(actor,this.c.member(org,actor)!.version,this.c.now(),id);
+      if(action==='approve'){this.uncontested(row);this.c.db.prepare("UPDATE organization_payments SET state='approved',version=version+1,approver=?,approver_version=?,approved=? WHERE id=?").run(actor,this.c.member(org,actor)!.version,this.c.now(),id);}
       else this.c.db.prepare('UPDATE organization_payments SET state=?,version=version+1 WHERE id=?').run(action==='cancel'?'cancelled':'rejected',id);
       this.c.audit(org,actor,`payment.${action==='approve'?'approved':action==='cancel'?'cancelled':'rejected'}`,id,{contentHash});
       return this.view(this.row(org,id));
@@ -89,6 +103,7 @@ export class OrganizationPayments {
       this.c.authorize(org,actor,'payments.execute');const row=this.row(org,id),p=JSON.parse(row.payload) as CorporatePayload;
       if(actor!==row.maker)throw new OrganizationError(403,'PAYMENT_EXECUTOR_MISMATCH');
       if(contentHash!==row.content_hash)throw new OrganizationError(409,'PAYMENT_CONTENT_CHANGED');
+      this.uncontested(row);
       if(!this.valid(row))throw new OrganizationError(409,'PAYMENT_AUTHORITY_CHANGED');
       const allowed=kind==='payment'?[p.content.payment]:p.content.prerequisites;
       if(!allowed.some(c=>canonical(c)===canonical(call)))throw new OrganizationError(409,'PAYMENT_CALL_CHANGED');

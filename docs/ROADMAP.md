@@ -186,3 +186,7 @@ The [baseline CLI and public native report](PRIVACY_BASELINE.md) now separate ob
 ## Cover-traffic experiment — delivered
 
 [Operator runbook and public evidence](COVER_TRAFFIC.md): testnet-native-only signing, persistent budget/count/frequency/expiry limits, same-operator principal return and conservative uncertain-result reconciliation. Four public transactions finalized, consumed three of the 256 total output slots, and left zero outstanding notes. The synthetic probe had six historical candidates, three excluding artificial outputs; independent participants added: zero. The before snapshot was archivally reconstructed at the canonical block before the first transaction after an initial collector error. These results do not close S01 privacy/security review, prove customer benefit or establish effective anonymity.
+
+## Contract and corporate payment security review — delivered
+
+[2026-11-14 findings, acceptance matrix and reproduction](REVIEW-2026-11-14-PAYMENT-SECURITY.md) cover double-spend/liquidity contention, failed payout/refund/fee accounting, immutable approvals and current membership revocation. A metadata-alias reservation gap is fixed without rewriting old approved payloads or releasing historic claims. Core 582 tests and Contract 63 tests pass. This focused review does not close S01's independent production audit, reviewed setup or a future contract-enforced corporate authorization policy.

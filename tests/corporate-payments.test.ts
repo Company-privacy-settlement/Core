@@ -15,6 +15,9 @@ import type { Gateway, WalletPort, JournalStorage } from '../sdk/client/types.js
 import { backupOrganizations, restoreOrganizations, organizationReviewTemplate, activateOrganizations } from '../scripts/lib/organization-backup.js';
 import { fileDigest } from '../scripts/lib/index-backup.js';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
+import { createHash, randomUUID } from 'node:crypto';
+import { spawn } from 'node:child_process';
 
 const audience='https://organization-api.example',origin='https://front.example',maker='maker.testnet',approver='approver.testnet',owner='owner.testnet';
 const policy={network:'testnet' as const,registry:'forest.testnet',denomination:'1000000',tokenId:'usdc.testnet',feeRecipient:'treasury.testnet',registryWasmSha256:'aa'.repeat(32),vaultWasmSha256:'bb'.repeat(32),verifierSha256:'cc'.repeat(32)};
@@ -30,6 +33,70 @@ function fixture(t:{after(fn:()=>void):void},file=':memory:') {
   const approve=(p:CorporatePayment)=>store.payments.decide(org.id,approver,p.payload.paymentId,'approve',p.version,p.contentHash);
   return{store,org,create,approve,advance:(ms:number)=>{now+=ms;}};
 }
+test('one protocol nullifier cannot be reserved again by changing policy metadata',async t=>{
+  for(const change of [{feeRecipient:'different.testnet'},{registryWasmSha256:'ee'.repeat(32)},{vaultWasmSha256:'ff'.repeat(32)},{verifierSha256:'11'.repeat(32)}]){
+    const f=fixture(t);await f.create();const alias=await content();Object.assign(alias.policy,change);
+    await assert.rejects(f.store.payments.create(f.org.id,maker,alias),/NOTE_RESERVED/);
+    assert.equal(f.store.payments.list(f.org.id,maker).length,1);
+  }
+});
+test('concurrent creation through separate connections shares the same protocol reservation',async t=>{
+  const dir=mkdtempSync(resolve(tmpdir(),'corporate-race-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const file=resolve(dir,'organization.sqlite'),f=fixture(t,file),other=new OrganizationStore(file,audience);t.after(()=>other.close());
+  const a=await content(),b=structuredClone(a);b.policy.verifierSha256='ee'.repeat(32);
+  const results=await Promise.allSettled([f.store.payments.create(f.org.id,maker,a),other.payments.create(f.org.id,maker,b)]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);assert.equal(results.filter(r=>r.status==='rejected').length,1);
+  assert.equal(f.store.payments.list(f.org.id,maker).length,1);
+});
+function injectLegacyAlias(file:string,p:CorporatePayment){
+  const payload=structuredClone(p.payload);payload.paymentId=randomUUID();payload.content.policy.verifierSha256='ee'.repeat(32);
+  const digest=(v:unknown)=>createHash('sha256').update(canonical(v)).digest('hex'),msg=JSON.parse(payload.content.payment.args.msg as string),key=digest({policy:payload.content.policy,nullifier:msg.public_inputs[0]}),db=new DatabaseSync(file);
+  try{db.prepare("INSERT INTO organization_payments SELECT ?,org,?,?,maker,creator_version,'pending',1,expires,NULL,NULL,NULL,created,? FROM organization_payments WHERE id=?").run(payload.paymentId,canonical(payload),digest(payload),key,p.payload.paymentId);}finally{db.close();}
+  return{payload,contentHash:digest(payload)};
+}
+test('pre-upgrade alias reservations block approval and dispatch until an unexecuted conflict is cancelled',async t=>{
+  const dir=mkdtempSync(resolve(tmpdir(),'corporate-legacy-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const file=resolve(dir,'organization.sqlite'),f=fixture(t,file),p=await f.create();
+  const alias=injectLegacyAlias(file,p);
+  assert.throws(()=>f.approve(p),/NOTE_CONFLICT/);
+  const oldAlias=f.store.payments.get(f.org.id,maker,alias.payload.paymentId);f.store.payments.decide(f.org.id,maker,alias.payload.paymentId,'cancel',oldAlias.version,alias.contentHash);
+  const approved=f.approve(p);assert.equal(approved.approvalValid,true);
+  const second=injectLegacyAlias(file,approved);
+  assert.throws(()=>f.store.payments.authorize(f.org.id,maker,p.payload.paymentId,p.contentHash,'payment',p.payload.content.payment),/NOTE_CONFLICT/);
+  assert.equal(f.store.payments.get(f.org.id,maker,p.payload.paymentId).dispatches.length,0);
+  assert.equal(f.store.payments.get(f.org.id,maker,second.payload.paymentId).state,'pending');
+});
+test('revocation on another connection and later role restoration never revive the old approval',async t=>{
+  for(const person of [maker,approver]){
+    const dir=mkdtempSync(resolve(tmpdir(),'corporate-revoke-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const file=resolve(dir,'organization.sqlite'),f=fixture(t,file),p=f.approve(await f.create()),other=new OrganizationStore(file,audience);t.after(()=>other.close());
+    other.changeRole(f.org.id,owner,person,'viewer',1);
+    assert.throws(()=>f.store.payments.authorize(f.org.id,maker,p.payload.paymentId,p.contentHash,'payment',p.payload.content.payment),/AUTHORITY_CHANGED|PERMISSION_DENIED/);
+    other.changeRole(f.org.id,owner,person,person===maker?'operator':'admin',2);
+    assert.throws(()=>f.store.payments.authorize(f.org.id,maker,p.payload.paymentId,p.contentHash,'payment',p.payload.content.payment),/AUTHORITY_CHANGED/);
+    assert.equal(f.store.payments.get(f.org.id,maker,p.payload.paymentId).dispatches.length,0);
+  }
+});
+test('approved payload changes on disk fail closed without a new dispatch or success audit',async t=>{
+  const dir=mkdtempSync(resolve(tmpdir(),'corporate-tamper-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const file=resolve(dir,'organization.sqlite'),f=fixture(t,file),p=f.approve(await f.create()),db=new DatabaseSync(file);
+  const changed=structuredClone(p.payload);changed.content.title='Substituted approved content';db.prepare('UPDATE organization_payments SET payload=? WHERE id=?').run(canonical(changed),p.payload.paymentId);db.close();
+  const count=f.store.auditPage(f.org.id,owner).items.length;
+  assert.throws(()=>f.store.payments.authorize(f.org.id,maker,p.payload.paymentId,p.contentHash,'payment',p.payload.content.payment),/CONTENT_CHANGED/);
+  assert.equal(f.store.auditPage(f.org.id,owner).items.length,count);
+});
+test('independent processes racing one dispatch reserve exactly one call and audit entry',{timeout:20000},async t=>{
+  const dir=mkdtempSync(resolve(tmpdir(),'corporate-process-race-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const file=resolve(dir,'organization.sqlite'),f=fixture(t,file),p=f.approve(await f.create());
+  const before=f.store.auditPage(f.org.id,owner).items.filter(e=>e.action==='payment.dispatch_reserved').length;
+  const program=`import {OrganizationStore} from ${JSON.stringify(new URL('../server/organizations/store.ts',import.meta.url).href)};
+    const store=new OrganizationStore(${JSON.stringify(file)},${JSON.stringify(audience)});
+    process.once('message',()=>{try{const permit=store.payments.authorize(${JSON.stringify(f.org.id)},${JSON.stringify(maker)},${JSON.stringify(p.payload.paymentId)},${JSON.stringify(p.contentHash)},'payment',${JSON.stringify(p.payload.content.payment)});process.send({ok:true,permit});}catch(e){process.send({ok:false,code:e.code??e.message});}finally{store.close();process.disconnect();}});process.send({ready:true});`;
+  const children=Array.from({length:2},()=>spawn(process.execPath,['--import','tsx','--input-type=module','-e',program],{stdio:['ignore','ignore','pipe','ipc']}));
+  t.after(()=>{for(const child of children)if(child.exitCode===null)child.kill();});
+  const jobs=children.map(child=>{let ready!:()=>void,done!:(v:any)=>void,reject!:(e:Error)=>void;const readyPromise=new Promise<void>(r=>ready=r),result=new Promise<any>((r,j)=>{done=r;reject=j;});let errors='';child.stderr!.on('data',b=>errors+=b);child.on('message',(v:any)=>v.ready?ready():done(v));child.on('error',reject);child.on('exit',code=>{if(code)reject(Error(errors));});return{ready:readyPromise,result};});
+  await Promise.race([Promise.all(jobs.map(j=>j.ready)),new Promise((_,reject)=>{const timer=setTimeout(()=>reject(Error('Dispatch racers did not initialize')),15000);timer.unref();})]);
+  for(const child of children)child.send('dispatch');
+  const results=await Promise.all(jobs.map(j=>j.result));assert.equal(results.filter(r=>r.ok).length,1);assert.equal(results.filter(r=>!r.ok&&r.code==='PAYMENT_AUTHORITY_CHANGED').length,1);
+  assert.equal(f.store.payments.get(f.org.id,maker,p.payload.paymentId).dispatches.length,1);
+  assert.equal(f.store.auditPage(f.org.id,owner).items.filter(e=>e.action==='payment.dispatch_reserved').length,before+1);
+});
 test('creator and approver are separate wallet principals, including owner/admin self-approval',async t=>{
   const f=fixture(t);for(const account of [owner,approver,maker]){
     const p=await f.create(account,String([owner,approver,maker].indexOf(account)+42));

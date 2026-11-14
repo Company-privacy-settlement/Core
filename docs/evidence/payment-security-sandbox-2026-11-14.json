@@ -1,0 +1,145 @@
+{
+  "format": "core-payment-security-validation-v1",
+  "checkedAt": "2026-11-14T11:16:35.196Z",
+  "passed": true,
+  "network": "sandbox",
+  "publicNetworkExecuted": false,
+  "productionAudit": false,
+  "results": [
+    {
+      "asset": "NEAR",
+      "policy": {
+        "network": "sandbox",
+        "registry": "native-security.test.near",
+        "denomination": "1000000000000000000000000",
+        "feeRecipient": "native-treasury.test.near",
+        "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+        "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+        "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45"
+      },
+      "realWasm": true,
+      "realGroth16": true,
+      "proofsPreparedSequentially": true,
+      "keylessRegistryAndVaults": true,
+      "sameNoteConcurrentDestinations": {
+        "hashes": [
+          "8b7nnRC3QeywEfpjQRSCYghGXLuToQiEsXLjmGDB3DJ4",
+          "71972sCc1JpHRmcm6ingt4icEGCUqe7f2do6NnMdyNtp"
+        ],
+        "payouts": 1,
+        "fullPrincipal": true
+      },
+      "distinctNotesCompetingForOneLiquidSlot": {
+        "hashes": [
+          "DB17tRHM8RykzRfzWD733kLRabrV3HkesNWexYdjYUgt",
+          "4AL181K7Fajif9m2VpoYQ6CBJ2XKjBRXsRBZAabDCCMs"
+        ],
+        "payouts": 1,
+        "loserNullifierUnspent": true
+      },
+      "failure": {
+        "hash": "8ZrL4ugHbAQzK71cnBGVwLZ6QDv478EyJpw9XbVUWA6h",
+        "nullifierReserved": true,
+        "liquidityReserved": true,
+        "feePendingNotEarned": true,
+        "ftRejectedCallsRefunded": false,
+        "ftRejectedStorageDebitRolledBack": false
+      },
+      "mutationAndBypass": {
+        "recipientRejected": true,
+        "directVaultRejected": true,
+        "forgedCallbackRejected": true
+      },
+      "recovery": {
+        "hash": "FRgspLAPvDMreKU4ESa86bgFqp7jLB7NQ6o2CLeaRmzS",
+        "originalRecipient": "native-missing.test.near",
+        "fullPrincipal": true,
+        "noSecondProtocolFee": true,
+        "noReplayPayout": true
+      },
+      "remainingUnspentNotes": 1,
+      "limits": "Remaining note intentionally retained only in the disposable sandbox. No public-network writes."
+    },
+    {
+      "asset": "local TESTUSD fixture, NOT Circle-issued USDC",
+      "policy": {
+        "network": "sandbox",
+        "registry": "ft-security.test.near",
+        "denomination": "1000000",
+        "feeRecipient": "ft-treasury.test.near",
+        "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+        "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+        "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45",
+        "tokenId": "security-token.test.near"
+      },
+      "realWasm": true,
+      "realGroth16": true,
+      "proofsPreparedSequentially": true,
+      "keylessRegistryAndVaults": true,
+      "sameNoteConcurrentDestinations": {
+        "hashes": [
+          "7ERPvxmLLKZB6bjGcgm7rfBkhiKFWdwREQ9mAoTmvQEK",
+          "8qHvf6RPac5LBMkMrn12dd5cdTu74AhNu9UvioDnM3Hc"
+        ],
+        "payouts": 1,
+        "fullPrincipal": true
+      },
+      "distinctNotesCompetingForOneLiquidSlot": {
+        "hashes": [
+          "5PchRfJeUfiHo6kk81TiaucMsDd4Rk8EyCvWbHq7dUHZ",
+          "6Hh7QgqhX8VYtDNFF5KdbHxZXveeZY5fmk62x64K5mpo"
+        ],
+        "payouts": 1,
+        "loserNullifierUnspent": true
+      },
+      "failure": {
+        "hash": "CCad6s2jJXUKgu4VAqYwShGEd6pD7Nnv8rWJRTDtUoXx",
+        "nullifierReserved": true,
+        "liquidityReserved": true,
+        "feePendingNotEarned": true,
+        "ftRejectedCallsRefunded": true,
+        "ftRejectedStorageDebitRolledBack": true
+      },
+      "mutationAndBypass": {
+        "recipientRejected": true,
+        "directVaultRejected": true,
+        "forgedCallbackRejected": true
+      },
+      "recovery": {
+        "hash": "7Q5bvDHS1Ro5k9pKsTtqRmhfjAA5Aj5TyhSuXpnyGFCA",
+        "originalRecipient": "ft-missing.test.near",
+        "fullPrincipal": true,
+        "noSecondProtocolFee": true,
+        "noReplayPayout": true
+      },
+      "remainingUnspentNotes": 1,
+      "limits": "Remaining note intentionally retained only in the disposable sandbox. No public-network writes."
+    }
+  ],
+  "validation": {
+    "coreTests": 582,
+    "corporatePaymentTests": 23,
+    "contractTests": {
+      "pool": 16,
+      "factory": 8,
+      "sharedVault": 22,
+      "forest": 17,
+      "total": 63
+    },
+    "newCorporateCases": 6,
+    "newVaultCases": 6,
+    "regressionsFailedBeforeFix": 3,
+    "typesPassed": true,
+    "compiledServicesAndRecoveryPassed": true,
+    "browserSdkInventoryUnchanged": true,
+    "productionForestAndVaultBytesUnchanged": true,
+    "sandboxCommandExitedNormally": true
+  },
+  "sourceFilesSha256": {
+    "Core/server/organizations/payments.ts": "65c9db21b20826591e19e677d39c7db6e8d729cc927261682194f03a27a4b7b4",
+    "Core/tests/corporate-payments.test.ts": "d76fd91dabd3fd2b6a2a4b8e18d0b539837195e1086a311ede9dfbfa180ec6d4",
+    "Core/tests/manual/payment-security-sandbox.ts": "c2715193f15e94db9339da748de2180f2134b641f5871788e2eadc83481c4a15",
+    "Contract/contracts/shared-vault/src/tests.rs": "ef68dd364f0677eaedd4754cb54f4e2e37fb9a7249a25c882f08f1587a3218e9"
+  },
+  "assurance": "Local test results and controlled sandbox RPC observations. Source fingerprints identify reviewed implementation/test files; no independent audit, chain light-client proof or hosted CI success is asserted. FT-specific flags apply only to the TESTUSD fixture."
+}
