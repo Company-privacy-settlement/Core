@@ -79,3 +79,7 @@ OpenAI transport is exercised against a controlled response fixture; no producti
 Local verification on **2026-11-14** passed **488 Core tests** (29 draft-specific), **256 desktop/mobile browser cases** (16 draft-specific), three Front unit tests, types, SDK/static builds, compiled service recovery and documentation/source-inventory checks. Provider/reviewer behavior used controlled fixtures.
 
 The full browser gate completed as separate desktop (128/128) and mobile (128/128) runs, both exit 0. An earlier combined run was interrupted before its final report and is not counted as a passing run.
+
+## Actual provider and reviewer qualification
+
+[Provider qualification](PROVIDER_QUALIFICATION.md) rechecks source bytes and externally signed rule reviews using an independently pinned policy, current dates, author exclusion and supplied revocations. It does not create professional approval or a filing-provider integration. The dated run has no external reviewer-policy pin or signed reviews, so actual tax-provider acceptance remains blocked even though local draft/review tests pass.

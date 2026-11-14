@@ -64,7 +64,9 @@
     "cover:traffic": "tsx scripts/cover-traffic.ts",
     "cover:measure": "tsx scripts/cover-effect.ts",
     "cover:traffic:compiled": "node dist/service/scripts/cover-traffic.js",
-    "test:payment-security-sandbox": "tsx tests/manual/payment-security-sandbox.ts"
+    "test:payment-security-sandbox": "tsx tests/manual/payment-security-sandbox.ts",
+    "providers:qualify": "tsx scripts/qualify-providers.ts",
+    "providers:qualify:compiled": "node dist/service/scripts/qualify-providers.js"
   },
   "dependencies": {
     "bs58": "^6.0.0",

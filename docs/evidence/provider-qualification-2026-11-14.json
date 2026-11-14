@@ -1,0 +1,196 @@
+{
+  "format": "core-provider-qualification-v1",
+  "checkedAt": "2026-11-14T11:33:20.862Z",
+  "status": "blocked",
+  "blockers": [
+    "SUMSUB_CREDENTIALS_AND_AUTHORIZED_CASES_REQUIRED",
+    "INDEPENDENT_RULE_POLICY_AND_SIGNED_REVIEWS_REQUIRED",
+    "RULE_SOURCE_BYTES_REQUIRE_REVIEW",
+    "RULE_INDEPENDENT_REVIEW_COVERAGE_INCOMPLETE"
+  ],
+  "kyb": {
+    "configured": false,
+    "providerCallsAttempted": false,
+    "environment": null,
+    "observations": [],
+    "passed": false
+  },
+  "ruleSources": {
+    "format": "core-rule-source-qualification-v1",
+    "checkedAt": "2026-11-14T11:33:20.859Z",
+    "catalogHash": "a84f91cd44bab6d648bf28e60ce2b18c2d7944c19dd064eeb81343803719bfca",
+    "captures": [
+      {
+        "id": "irs-p15-2025",
+        "url": "https://www.irs.gov/pub/irs-prior/p15--2025.pdf",
+        "finalUrl": "https://www.irs.gov/pub/irs-prior/p15--2025.pdf",
+        "httpStatus": 200,
+        "checkedAt": "2026-11-14T11:33:05.523Z",
+        "expectedSha256": "168837bd5f666d8c0a7cd59a1309512c0429974b5b7b982ae781a3b9f925b7a0",
+        "observedSha256": "168837bd5f666d8c0a7cd59a1309512c0429974b5b7b982ae781a3b9f925b7a0",
+        "bytes": 1638723,
+        "status": "match",
+        "reason": null
+      },
+      {
+        "id": "irs-p15-2026",
+        "url": "https://www.irs.gov/pub/irs-pdf/p15.pdf",
+        "finalUrl": "https://www.irs.gov/pub/irs-pdf/p15.pdf",
+        "httpStatus": 200,
+        "checkedAt": "2026-11-14T11:33:05.566Z",
+        "expectedSha256": "b46c3622439d8521e3a0faca4cd5b5ece3451b526f65f06a5e38d5c9f804c88b",
+        "observedSha256": "b46c3622439d8521e3a0faca4cd5b5ece3451b526f65f06a5e38d5c9f804c88b",
+        "bytes": 1713916,
+        "status": "match",
+        "reason": null
+      },
+      {
+        "id": "uae-vat",
+        "url": "https://tax.gov.ae/en/faq.aspx?keyword=Does+VAT+apply+to+all+goods+and+services",
+        "finalUrl": null,
+        "httpStatus": null,
+        "checkedAt": "2026-11-14T11:33:08.237Z",
+        "expectedSha256": "88919ac9a07df0fdf4ed9675aec58526b171a0f9ec3bc757ec0f67eadbb51e48",
+        "observedSha256": null,
+        "bytes": null,
+        "status": "unavailable",
+        "reason": "SOURCE_FETCH_UNAVAILABLE"
+      },
+      {
+        "id": "uae-vat-introduction",
+        "url": "https://mof.gov.ae/en/public-finance/tax/",
+        "finalUrl": "https://mof.gov.ae/en/public-finance/tax/",
+        "httpStatus": 200,
+        "checkedAt": "2026-11-14T11:33:08.240Z",
+        "expectedSha256": "2ce535e7206c335d01fe7c9fd5fc82e3fc9db5ef58f871e48e20f6a0e14b0159",
+        "observedSha256": "2ce535e7206c335d01fe7c9fd5fc82e3fc9db5ef58f871e48e20f6a0e14b0159",
+        "bytes": 256098,
+        "status": "match",
+        "reason": null
+      },
+      {
+        "id": "uae-labour-current",
+        "url": "https://www.uaelegislation.gov.ae/en/legislations/1541/download",
+        "finalUrl": "https://www.uaelegislation.gov.ae/en/legislations/1541/download",
+        "httpStatus": 403,
+        "checkedAt": "2026-11-14T11:33:20.239Z",
+        "expectedSha256": null,
+        "observedSha256": null,
+        "bytes": null,
+        "status": "unavailable",
+        "reason": "SOURCE_HTTP_UNAVAILABLE"
+      },
+      {
+        "id": "adgm-employment",
+        "url": "https://assets.adgm.com/download/assets/ADGM%20EAO%20-%20FAQs%20-%20ER%202024%20%28Feb%202025%29.pdf/eed10768edbe11ef9eaee2d468ad6a26",
+        "finalUrl": "https://assets.adgm.com/download/assets/ADGM%20EAO%20-%20FAQs%20-%20ER%202024%20%28Feb%202025%29.pdf/eed10768edbe11ef9eaee2d468ad6a26",
+        "httpStatus": 200,
+        "checkedAt": "2026-11-14T11:33:20.242Z",
+        "expectedSha256": "90fe70d6ec89b0365355c9b0c815c47370e4efadc01b88ffd18f87fcfddb8099",
+        "observedSha256": "90fe70d6ec89b0365355c9b0c815c47370e4efadc01b88ffd18f87fcfddb8099",
+        "bytes": 422963,
+        "status": "match",
+        "reason": null
+      }
+    ],
+    "allPinnedSourcesMatched": false,
+    "legalApplicabilityVerified": false,
+    "interpretation": "A changed byte hash can reflect layout or dynamic content. It does not itself establish a legal change. No catalog pin, rate or approval is rewritten."
+  },
+  "rules": [
+    {
+      "ruleId": "us-fica-2025-v1",
+      "sourcesMatched": true,
+      "independentTrustedReviewValid": false,
+      "reviewerId": null,
+      "reviewHash": null,
+      "validThrough": null
+    },
+    {
+      "ruleId": "us-nec-2025-v1",
+      "sourcesMatched": true,
+      "independentTrustedReviewValid": false,
+      "reviewerId": null,
+      "reviewHash": null,
+      "validThrough": null
+    },
+    {
+      "ruleId": "us-fica-2026-v1",
+      "sourcesMatched": true,
+      "independentTrustedReviewValid": false,
+      "reviewerId": null,
+      "reviewHash": null,
+      "validThrough": null
+    },
+    {
+      "ruleId": "us-nec-2026-v1",
+      "sourcesMatched": true,
+      "independentTrustedReviewValid": false,
+      "reviewerId": null,
+      "reviewHash": null,
+      "validThrough": null
+    },
+    {
+      "ruleId": "ae-vat-standard-v1",
+      "sourcesMatched": false,
+      "independentTrustedReviewValid": false,
+      "reviewerId": null,
+      "reviewHash": null,
+      "validThrough": null
+    },
+    {
+      "ruleId": "ae-mainland-gratuity-v1",
+      "sourcesMatched": false,
+      "independentTrustedReviewValid": false,
+      "reviewerId": null,
+      "reviewHash": null,
+      "validThrough": null
+    },
+    {
+      "ruleId": "ae-adgm-gratuity-v2024",
+      "sourcesMatched": true,
+      "independentTrustedReviewValid": false,
+      "reviewerId": null,
+      "reviewHash": null,
+      "validThrough": null
+    }
+  ],
+  "claims": {
+    "liveKybLifecycleQualified": false,
+    "ruleSourcesAndIndependentKeysQualified": false,
+    "providerIdentityDeclarations": "Configuration identifies the provider account; reviewer authority and author-ID independence require an operator policy distributed out of band.",
+    "professionalQualificationsAutomaticallyVerified": false,
+    "filingProviderIntegrated": false,
+    "productionQualified": false
+  },
+  "limits": [
+    "Only authenticated GET requests are made to Sumsub; no applicant creation, approval, rejection, deactivation or document upload.",
+    "State coverage uses operator-authorized existing cases, not proof of transitions on one real business. Expiry derives from the configured local validity policy.",
+    "Signed review validation binds catalog/rules, authority dates and current supplied revocations. It does not verify professional licensing or fresh external revocation lists.",
+    "Missing credentials, inaccessible/changed/unpinned sources or absent/expired/revoked/self-author reviews never count as a pass."
+  ],
+  "taskAcceptance": {
+    "status": "incomplete",
+    "actualSumsubAccountConfigured": false,
+    "authorizedLiveCasesProvided": false,
+    "liveWebhookJourneyObserved": false,
+    "externalTaxProviderSpecified": false,
+    "independentlySuppliedReviewerPolicyPresent": false,
+    "externalSignedReviewsPresent": false
+  },
+  "localValidation": {
+    "coreTestsPassed": 595,
+    "focusedProviderTestsPassed": 40,
+    "latestQualificationTestsPassed": 7,
+    "newLifecycleRegressions": 6,
+    "originalFailedLifecycleRegressionsBeforeFix": 4,
+    "controlledFixturesAreActualProviderEvidence": false
+  },
+  "sourceFilesSha256": {
+    "server/organizations/sumsub.ts": "d502cdf3a376b87348d45e677a83b4aa2f44b2be75edc17c88f98128f9db75ce",
+    "scripts/lib/provider-qualification.ts": "f87714688287d78d527511c42e87ab75f9d7607fccf3e03ca973ae37a2a49ef5",
+    "scripts/qualify-providers.ts": "213403e7d6447a57cd0a6b503ddd5dd572308e585c8744017e5a8e49fdd748a4",
+    "tests/verification.test.ts": "78d819769b194da191001c296d984b71baf94307c4ea9e0b84c4af7c91ade713",
+    "tests/provider-qualification.test.ts": "a17cd806d5506c54a3bee3a7f15b5fec967107be31440bbe2c04f2cfcd1d69f6"
+  }
+}

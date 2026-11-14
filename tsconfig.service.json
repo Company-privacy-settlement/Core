@@ -19,6 +19,7 @@
     "scripts/testnet-wallet-verify.ts",
     "scripts/relay-server.ts",
     "scripts/cover-traffic.ts",
-    "scripts/cover-effect.ts"
+    "scripts/cover-effect.ts",
+    "scripts/qualify-providers.ts"
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "format": "core-sumsub-qualification-cases-v1",
+  "cases": [
+    {"reference":"us-under-review","externalUserId":"REPLACE_WITH_AUTHORIZED_EXISTING_CASE","country":"USA","expectedState":"in_review"},
+    {"reference":"us-needs-information","externalUserId":"REPLACE_WITH_SECOND_CASE","country":"USA","expectedState":"needs_information"},
+    {"reference":"ae-approved","externalUserId":"REPLACE_WITH_THIRD_CASE","country":"ARE","expectedState":"approved"},
+    {"reference":"ae-expired","externalUserId":"REPLACE_WITH_FOURTH_CASE","country":"ARE","expectedState":"expired"},
+    {"reference":"ae-revoked","externalUserId":"REPLACE_WITH_FIFTH_CASE","country":"ARE","expectedState":"revoked"}
+  ]
+}

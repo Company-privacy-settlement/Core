@@ -190,3 +190,7 @@ The [baseline CLI and public native report](PRIVACY_BASELINE.md) now separate ob
 ## Contract and corporate payment security review — delivered
 
 [2026-11-14 findings, acceptance matrix and reproduction](REVIEW-2026-11-14-PAYMENT-SECURITY.md) cover double-spend/liquidity contention, failed payout/refund/fee accounting, immutable approvals and current membership revocation. A metadata-alias reservation gap is fixed without rewriting old approved payloads or releasing historic claims. Core 582 tests and Contract 63 tests pass. This focused review does not close S01's independent production audit, reviewed setup or a future contract-enforced corporate authorization policy.
+
+## Actual KYB / tax-provider qualification — open
+
+[Provider qualification runbook](PROVIDER_QUALIFICATION.md): profile deactivation, structure-change handling and TLS boundaries are corrected; a read-only qualification CLI records current source bytes, provider state coverage and independently trusted review checks. The dated run matched four official source hashes and recorded two retrieval failures. No actual Sumsub account/case list, external tax-provider configuration, reviewer-policy pin or signed professional review was supplied. **E03/E05/E06 remain unqualified for actual-provider acceptance.** Controlled lifecycle tests and a blocked report do not close this item.

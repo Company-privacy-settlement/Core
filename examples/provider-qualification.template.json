@@ -1,0 +1,9 @@
+{
+  "format": "core-provider-qualification-config-v1",
+  "sumsubConfigFile": null,
+  "casesFile": null,
+  "ruleTrustFile": null,
+  "trustedRulePolicySha256": null,
+  "ruleReviewFiles": [],
+  "ruleAuthorIds": ["heon-1", "codex"]
+}

@@ -46,3 +46,34 @@ test('encrypted verification snapshots reject ciphertext tampering',async t=>{co
 test('authenticated HTTP verification lifecycle rejects client decisions and preserves private access',async t=>{const f=await started(t),server=createOrganizationApi({store:f.store,identity:{currentFullAccessKey:async()=>true},allowedOrigins:[origin],verificationProvider:f.provider});server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>{server.closeAllConnections();server.close();});const base=`http://127.0.0.1:${(server.address() as any).port}/v1/organizations/${f.org.id}/verification`,challenge=f.store.challenge(owner,origin),session=f.store.issueSession(challenge.id,origin,'fixture'),headers={origin,authorization:`Bearer ${session.token}`,'content-type':'application/json'},get=await fetch(base,{headers});assert.equal(get.status,200);assert.equal(get.headers.get('cache-control'),'no-store');assert.equal((await fetch(base,{method:'POST',headers,body:JSON.stringify({requestId:randomUUID(),jurisdiction:'US',acknowledged:true,state:'approved'})})).status,400);f.approve();const checked=await fetch(base+'/refresh',{method:'POST',headers,body:JSON.stringify({version:f.get().case!.version})});assert.equal(checked.status,200);assert.equal((await checked.json()).case.state,'approved');assert.equal((await fetch(base+'/revoke',{method:'POST',headers,body:JSON.stringify({version:f.get().case!.version})})).status,200);assert.equal(f.get().case!.state,'revoked');});
 
 test('old or absent provider review dates cannot gain a fresh validity period by polling',async t=>{const f=await started(t);f.approve();delete f.statuses.get(person).reviewDate;await f.refresh();assert.equal(f.get().case!.state,'review_required');f.approve();f.statuses.get(person).reviewDate=new Date(Date.now()-31*86400000).toISOString();await f.refresh();assert.equal(f.get().case!.state,'expired');});
+
+test('provider deleted flag revokes a GREEN company without trusting an obsolete approval',async t=>{
+ const f=await started(t);f.approve();await f.refresh();f.profiles.get(company).deleted=true;
+ await f.refresh();assert.equal(f.get().case!.state,'revoked');
+ delete f.profiles.get(company).deleted;await assert.rejects(f.refresh(),/CLOSED/);
+});
+test('a deleted beneficial owner revokes the whole company even with GREEN review results',async t=>{
+ const f=await started(t);f.approve();f.profiles.get(person).deleted=true;
+ await f.refresh();assert.equal(f.get().case!.state,'revoked');assert.equal(f.get().case!.subjects.find(s=>s.kind==='individual')!.state,'revoked');
+});
+test('signed company structure changes immediately invalidate approval and fence old owners',async t=>{
+ const f=await started(t);f.approve();await f.refresh();const version=f.get().case!.version,e=f.event({applicantId:company,type:'companyStructureChanged'});
+ assert.deepEqual(f.store.verifications.receive(f.provider,e.bytes,e.digest,'HMAC_SHA256_HEX'),{accepted:true,duplicate:false});
+ assert.equal(f.get().case!.state,'stale');assert.equal(f.get().case!.version,version+1);
+ assert.equal(f.store.verifications.receive(f.provider,e.bytes,e.digest,'HMAC_SHA256_HEX').duplicate,true);
+ f.statuses.get(person).reviewStatus='pending';await f.refresh();assert.equal(f.get().case!.state,'in_review');
+});
+test('Sumsub refuses globally disabled TLS before sending credentials',async t=>{
+ let sent=0;const existing=new SumsubProvider(config,async()=>{sent++;throw Error('No transport allowed');});
+ const old=process.env.NODE_TLS_REJECT_UNAUTHORIZED;process.env.NODE_TLS_REJECT_UNAUTHORIZED='0';t.after(()=>{if(old===undefined)delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;else process.env.NODE_TLS_REJECT_UNAUTHORIZED=old;});
+ assert.throws(()=>new SumsubProvider(config),/TLS/);await assert.rejects(existing.snapshot('authorized-case','USA',new AbortController().signal),/PROVIDER_UNAVAILABLE/);assert.equal(sent,0);
+});
+test('deactivation during graph traversal fences the late GREEN snapshot',async t=>{
+ const f=await started(t);f.approve();
+ Object.defineProperty(f.statuses.get(company),'reviewStatus',{get(){f.profiles.get(company).deleted=true;return 'completed';}});
+ await assert.rejects(f.refresh(),/STRUCTURE_CHANGED/);assert.equal(f.get().case!.state,'stale');
+});
+test('malformed provider deactivation flags cannot leave a GREEN owner approved',async t=>{
+ const f=await started(t);f.approve();f.profiles.get(person).deleted='true';
+ await assert.rejects(f.refresh(),/PROVIDER_BINDING/);assert.equal(f.get().case!.state,'stale');
+});

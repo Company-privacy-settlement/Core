@@ -89,3 +89,7 @@ Validation on **2026-11-14**: 31 focused rule-engine cases in 459 passing Core t
 ## Source-bound tax preparation drafts
 
 [AI tax and procedure drafts](TAX_DRAFTS.md) connect verified rule reports and exact selected-receipt bindings to cited English preparation, encrypted organization storage and independent versioned review. AI only arranges verified statement IDs; deterministic outlines are labelled separately. Source/policy/membership expiry suspends internal approval. Restore invalidates all draft reviews and abandons pending generations. No statutory filing or payment is authorized. See the guide for permissions, API, provider configuration and independently pinned reviewer policy.
+
+## Provider qualification and fresh source checks
+
+The [provider qualification CLI](PROVIDER_QUALIFICATION.md) re-fetches exact official source bytes and checks independently pinned reviewer policy, signed catalog/rule coverage, author exclusion, current dates and supplied revocations. It never creates an independent reviewer or rewrites a catalog pin/rate. Four of six unique catalog source hashes matched in the dated run; two sources were unavailable and no external review artifacts were configured. Those rules remain candidates; source-byte matches do not establish current legal applicability or professional approval.
