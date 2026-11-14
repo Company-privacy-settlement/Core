@@ -6,6 +6,7 @@ Current service state as of **2026-11-14**. [Service overview](SERVICE.md) descr
 
 | Area | Delivered behavior | Guide |
 | --- | --- | --- |
+| Scheduled delivery | Opt-in sampled execution windows, durable queue/cancellation/expiry, bounded separate-transaction batches and original-request recovery; actual WASM/Groth16 sandbox and desktop/mobile UX checks | [Scheduling](SCHEDULED_DELIVERY.md) |
 | Settlement | Native NEAR v2 and immutable-token FT v3 shared groups; separate keyless principal vaults, global nullifiers, fixed-destination retries and additive 15 bps fees | [Privacy](PRIVACY.md) |
 | Operations | Independent deployment-policy checks, same-final-block balances/registrations, exact storage calls, selected-member verification and bounded cancellable observation | [Operations](OPERATIONS.md) |
 | Read-only API | Policy-pinned endpoints, exact-origin CORS, peer admission/RPC budgets, deadlines/cancellation and liveness/deployment/index readiness | [Operations](OPERATIONS.md#request-limits-and-readiness) |
@@ -176,7 +177,7 @@ Privacy follow-up for the participation/cover-traffic question: measure realisti
 
 ## Privacy baseline — delivered measurement tooling
 
-The [baseline CLI and public native report](PRIVACY_BASELINE.md) now separate observed signers, operator-declared controllers, unknown independent identities, principal-weighted direct/upstream source concentration and time/amount/same-signer heuristics. All eight original native journal records are receipt-anchored; the two deposits have one payer and direct-source HHI 1. Retries count as one original withdrawal. These measurements do not establish effective anonymity. [Proof-based withdrawal/recovery relaying](RELAY.md) is implemented and has native public-testnet evidence. Opt-in delay/batching, cover-traffic experiments and broader independent participation remain future work.
+The [baseline CLI and public native report](PRIVACY_BASELINE.md) now separate observed signers, operator-declared controllers, unknown independent identities, principal-weighted direct/upstream source concentration and time/amount/same-signer heuristics. All eight original native journal records are receipt-anchored; the two deposits have one payer and direct-source HHI 1. Retries count as one original withdrawal. These measurements do not establish effective anonymity. [Proof-based withdrawal/recovery relaying](RELAY.md) is implemented and has native public-testnet evidence. Opt-in delay/batching is delivered in the optional relay with waiting, expiry and receipt-based recovery; see [Scheduled delivery](SCHEDULED_DELIVERY.md). Cover-traffic experiments and broader independent participation remain future work.
 
 ## Noncustodial proof relay — delivered
 

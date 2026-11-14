@@ -9,6 +9,7 @@ import{RelayStore}from'../server/relay/store.js';
 import{NearRelaySigner,RelayRpcSource}from'../server/relay/signer.js';
 import{ProofRelay}from'../server/relay/service.js';
 import{createRelayApi}from'../server/relay/http.js';
+import{startRelayWorker}from'../server/relay/worker.js';
 function file(path:string,limit:number,secret=false){const st=lstatSync(path);if(!st.isFile()||st.isSymbolicLink()||st.size>limit||(secret&&((st.mode&0o077)||st.uid!==(process.getuid?.()??st.uid))))throw Error('RELAY_FILE_REJECTED');return readFileSync(path);}
 const Config=z.object({format:z.literal('core-proof-relay-config-v1'),policyFile:z.string(),policySha256:z.string().regex(/^[a-f0-9]{64}$/),verificationKeyFile:z.string(),sponsorKeyFile:z.string(),journalFile:z.string(),rpcUrl:z.string().max(1024),host:z.literal('127.0.0.1').default('127.0.0.1'),port:z.number().int().min(1).max(65535).default(3003),allowedOrigins:z.array(z.string()).max(20).default([]),limits:RelayLimits}).strict();
 const [configFile,...extra]=process.argv.slice(2);
@@ -25,6 +26,7 @@ try{
  store=new RelayStore(journal,{policyHash:relayPolicyHash(policy),sponsor:signer.accountId,publicKey:signer.publicKey},c.limits);
  const relay=new ProofRelay(policy,source,signer,store,verify),server=createRelayApi(relay,c.allowedOrigins);
  await new Promise<void>((yes,no)=>{server.once('error',no);server.listen(c.port,c.host,yes);});
+ const stopWorker=startRelayWorker(relay);
  console.log(JSON.stringify({service:'core-proof-relay',host:c.host,port:c.port,network:policy.network,sponsor:signer.accountId,policyHash:relayPolicyHash(policy)}));
- let stopping=false;const close=()=>{if(stopping)return;stopping=true;server.close(()=>{store?.close();void shutdownProver().then(()=>process.exit(0));});server.closeIdleConnections();};process.on('SIGINT',close);process.on('SIGTERM',close);
+ let stopping=false;const close=()=>{if(stopping)return;stopping=true;const stopped=stopWorker();server.close(()=>{void stopped.then(()=>{store?.close();return shutdownProver();}).then(()=>process.exit(0));});server.closeIdleConnections();};process.on('SIGINT',close);process.on('SIGTERM',close);
 }catch{store?.close();await shutdownProver();console.error('Relay startup failed. Check pinned policy/verifier, protected dedicated sponsor key, journal and configured test network. No user signing key is accepted.');process.exitCode=1;}

@@ -1,0 +1,51 @@
+{
+  "format": "core-scheduling-ux-validation-v1",
+  "checkedAt": "2026-11-14",
+  "coreTests": 565,
+  "frontUnitTests": 8,
+  "browserTests": {
+    "passed": 34,
+    "failed": 0,
+    "skipped": 0,
+    "projects": [
+      "desktop",
+      "mobile"
+    ],
+    "specs": [
+      "relay.spec.ts",
+      "docs.spec.ts",
+      "prover.spec.ts"
+    ],
+    "relayApiResponses": "fixtures; not a live browser/relay qualification",
+    "actualBrowserGroth16": true,
+    "scenarios": [
+      "timing selection and fee review",
+      "receipt saved before confirmation",
+      "waiting and read-only status",
+      "cancel and same-request reschedule",
+      "deadline and blocked preflight",
+      "lost response and reload without resubmission",
+      "uncertain original hash reconciliation",
+      "explicit original payout retry",
+      "immediate submission",
+      "edited proof rejection",
+      "explicit not-found recovery",
+      "no document overscroll"
+    ]
+  },
+  "screenshots": [
+    {
+      "device": "desktop",
+      "file": "docs/assets/scheduled-delivery-desktop.png",
+      "sha256": "773f87843edc42b27a3f511598c4d212e28eb84f05262c423b10b7b91b489a25"
+    },
+    {
+      "device": "mobile",
+      "file": "docs/assets/scheduled-delivery-mobile.png",
+      "sha256": "56bc0a21f14c3f7c37b346d6787643ebc2877a5814c41231fedcdc6883e07d99"
+    }
+  ],
+  "sandboxEvidence": "scheduling-sandbox-2026-11-14.json",
+  "publicSchedulingDeployed": false,
+  "productionQualified": false
+}

@@ -1,0 +1,58 @@
+{
+  "format": "core-relay-validation-v1",
+  "passed": true,
+  "checkedAt": "2026-11-14T08:54:23.144Z",
+  "publicNetworkDeployed": false,
+  "productionQualified": false,
+  "results": [
+    {
+      "asset": "NEAR",
+      "network": "sandbox",
+      "sponsor": "native-sponsor.test.near",
+      "user": "native-user.test.near",
+      "principal": "1000000000000000000000000",
+      "gasPaidBySponsor": true,
+      "userBalanceUnchangedDuringWithdrawal": true,
+      "recipientReceivedFullPrincipal": true,
+      "txHash": "34Fx8vfzTs4igXRCm1nHUTxhkYbJppukF82tQbYT9HtZ",
+      "duplicateDispatchPrevented": true,
+      "recipientAndAmountMutationRejected": true,
+      "realGroth16": true,
+      "realWasm": true,
+      "scheduling": {
+        "randomizedTimePersistedAcrossRestart": true,
+        "cancelBeforeSigning": true,
+        "expiredWithoutSigning": true,
+        "explicitRescheduleSameRequest": true,
+        "historicalRootAfterNewDeposit": true,
+        "deadlineClock": "injected test clock; real WASM and Groth16 transactions"
+      },
+      "onChainReplayRejected": true,
+      "failedPayoutRecoveredWithoutSecondProtocolFee": true
+    },
+    {
+      "asset": "local TESTUSD fixture, NOT Circle-issued USDC",
+      "network": "sandbox",
+      "sponsor": "ft-sponsor.test.near",
+      "user": "ft-user.test.near",
+      "principal": "1000000",
+      "gasPaidBySponsor": true,
+      "userBalanceUnchangedDuringWithdrawal": true,
+      "recipientReceivedFullPrincipal": true,
+      "txHash": "HuauxhtxuC5PL1rZfkYK9WPxtVVXNGKBnm821LMvzJkr",
+      "duplicateDispatchPrevented": true,
+      "recipientAndAmountMutationRejected": true,
+      "realGroth16": true,
+      "realWasm": true,
+      "scheduling": {
+        "randomizedTimePersistedAcrossRestart": true,
+        "cancelBeforeSigning": true,
+        "expiredWithoutSigning": true,
+        "explicitRescheduleSameRequest": true,
+        "historicalRootAfterNewDeposit": true,
+        "deadlineClock": "injected test clock; real WASM and Groth16 transactions"
+      },
+      "sponsorFeeTokens": "1500"
+    }
+  ]
+}

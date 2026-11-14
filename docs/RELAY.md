@@ -21,6 +21,10 @@ The native preparation and sponsored withdrawal are three real FINAL transaction
 
 The sandbox also verified an actual failed native transfer and explicit recovery to its original destination, with storage only and no second protocol fee. Native contract calls bypassing the service rejected replay and changed-recipient proofs. Both native and FT recipients received full principal while the user balance stayed unchanged during withdrawal.
 
+## Optional delayed delivery
+
+The relay also supports user-selected randomized execution windows, durable waiting/cancellation/expiry, bounded batches of separate transactions and explicit recovery. See [Scheduled delivery](SCHEDULED_DELIVERY.md) for the browser flow, HTTP controls and limits. Genuine historical append roots are accepted after verification against the complete FINAL tree; a new deposit does not require recreating a waiting proof.
+
 ## Trust, fees and scope
 
 The relay's only secret is its own dedicated sponsor key. It cannot generate a spend for somebody else's note or change a valid proof's destination/value. Amount is derived from the independently pinned fixed-denomination policy; requests have no editable amount, contract, method, gas or attachment fields. Proofs are verified locally against a verification key whose encoded bytes match the trusted policy before any sponsor nonce is allocated.
@@ -71,7 +75,7 @@ curl --fail-with-body http://127.0.0.1:3003/v1/relay/requests \
 
 `core-relay-withdrawal-v1` includes the canonical `policyHash`, vault, recipient, disclosure root and five public inputs/256-byte proof. Unknown/private fields are rejected. The request helper creates a mode-0600 file exclusively and never overwrites an existing backup. The server verifies the proof and trusted group/vault/code/key bindings, unspent nullifier, liquidity and FT prerequisites.
 
-For bounded admission this version requires the proof's root to match the **current reconstructed tree**. If another output is appended before admission, regenerate the proof from current public context. A failed preflight does not reserve or spend the note. The underlying contract's root-history behavior is unchanged.
+Admission accepts the current root or a historical append root reconstructed from the complete commitment list verified against the current FINAL tree. A queued proof can survive new deposits. Arbitrary roots are rejected. A failed preflight does not spend the note; queued reservations retain the original payload for explicit recovery. The underlying contract's root-history behavior is unchanged.
 
 | Endpoint | Behavior |
 | --- | --- |
