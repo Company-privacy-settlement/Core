@@ -1,6 +1,6 @@
 # Core development roadmap
 
-Current service state as of **2026-11-13**. [Service overview](SERVICE.md) describes the user flow and repository boundaries. [Contract](https://github.com/Company-privacy-settlement/Contract) owns contract/circuit changes; [Front](https://github.com/Company-privacy-settlement/Front) owns the English-first website and wallet workspaces. This roadmap separates implemented capabilities from remaining work.
+Current service state as of **2026-11-14**. [Service overview](SERVICE.md) describes the user flow and repository boundaries. [Contract](https://github.com/Company-privacy-settlement/Contract) owns contract/circuit changes; [Front](https://github.com/Company-privacy-settlement/Front) owns the English-first website and wallet workspaces. This roadmap separates implemented capabilities from remaining work.
 
 ## Implemented
 
@@ -20,6 +20,7 @@ Current service state as of **2026-11-13**. [Service overview](SERVICE.md) descr
 | Browser notes | Local FT note creation, encrypted file backup/reopen, CLI interoperability and bounded public deposit plans | [Notes](BROWSER_NOTES.md) |
 | Browser evidence | Private receipts, separate encrypted backup/reopen, explicit selected-field exports, independent-root integrity checks, root-only deposit preparation and CLI evidence compatibility | [Receipts](BROWSER_RECEIPTS.md) |
 | Lifecycle protection | Page-hide/history-cache locks; generation-bound private work, journal reads/writes and last-moment wallet dispatch guards | [Wallet](WALLET.md), [Notes](BROWSER_NOTES.md) |
+| Worker/contractor payouts | Immutable 1–20-row public manifests, independent approval and additive fee review, one encrypted journal with individual dispatch/recovery and observational CSV/JSON settlement | [Payout batches](PAYOUT_BATCHES.md) |
 | Product shell | Landing, ten English Docs guides and separate sample KYB steps; English/Korean/Chinese repository READMEs | [Service](SERVICE.md) |
 | Corporate payment approval | Separate creator/approver accounts, immutable FT payment/costs, current-membership checks and exact one-use dispatch in the supported API/SDK/browser flow | [Corporate payments](CORPORATE_PAYMENTS.md) |
 | Organization recovery | Consistent online SQLite snapshots, pinned non-overwriting quarantine, discarded sessions/challenges, explicit current-access approval and one-use activation into a new database | [Organization backups](ORGANIZATION_BACKUPS.md) |
@@ -33,13 +34,15 @@ The latest recorded full implementation runs on **2026-11-13** include:
 - Front: type/build checks, **164 browser cases** passed in the complete run with actual proving artifacts, and three sample-KYB unit cases.
 - `npm run demo:ft`: actual sandbox WASM and Groth16, **14 finalized records** covering fee/recovery paths, recipient activation/registration, API/index/journal restart and transaction discovery, browser note backup/deposit preparation, receipt backup/disclosure and finalized evidence anchoring.
 
+Latest service validation on **2026-11-14**: **401 Core tests**, **210 desktop/mobile Chromium browser cases**, SDK/static builds and compiled service/organization recovery checks passed. This includes worker/contractor payout staging, independent approval, fixed-destination individual recovery and observed settlement exports.
+
 The FT is a local **TESTUSD fixture, not Circle-issued USDC**. No funded public-network wallet smoke test has been completed. These are dated results; documentation edits do not imply fresh execution of every suite. Reproduction: [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract).
 
 Historical reviews: [invoice/index](REVIEW-2026-11-12.md), [selection/checkout](REVIEW-2026-11-13.md), [notes/library](REVIEW-2026-11-13-NOTES.md), [journal lifecycle](REVIEW-2026-11-13-JOURNAL.md).
 
 ## Remaining development — priority and status
 
-The backlog below contains **36 work packages: R01/R02/U01/U02 tooling implemented, 32 open** across six areas. They are planning items, not 36 discovered vulnerabilities or equally urgent release blockers. Completed capabilities above must be reused rather than rebuilt. Ownership names refer to repositories/workstreams, not assigned people. Effort and dates remain unestimated until deployment access, provider choices and product requirements are known.
+The backlog below contains **36 work packages: eight delivered (R01/R02/U01/U02 tooling, M01/M02/M03 and E02), 28 open including partial foundations** across six areas. They are planning items, not 36 discovered vulnerabilities or equally urgent release blockers. Completed capabilities above must be reused rather than rebuilt. Ownership names refer to repositories/workstreams, not assigned people. Effort and dates remain unestimated until deployment access, provider choices and product requirements are known.
 
 - **P0 — public testnet demo:** required to demonstrate the existing protocol with a real funded deployment and wallets. External accounts/funding and hosting-audience decisions are dependencies, not authorization to spend funds, remove keys or change access.
 - **P1 — usable merchant flow:** removes CLI friction and adds merchant operations. These are service additions, not claims of production safety.
@@ -47,7 +50,7 @@ The backlog below contains **36 work packages: R01/R02/U01/U02 tooling implement
 - **Design — optional protocol scope:** requires an explicit requirement and version/compatibility analysis. Do not bundle these research changes into a release of the current fixed-denomination protocol.
 - **Gate — before production funds:** independent security, setup and operational/product qualification. Gate work starts in parallel; it cannot wait until after a production launch.
 
-All entries below except **R01/R02/U01/U02 tooling** are **open** unless explicitly labeled an existing foundation. External dependency does not mean development is blocked: prepare dry-runs, reviewable manifests, runbooks, adapters and fixtures first.
+Entries other than **R01/R02/U01/U02 tooling, M01/M02/M03 and E02** remain **open**, including explicitly labeled partial foundations. External dependency does not mean development is blocked: prepare dry-runs, reviewable manifests, runbooks, adapters and fixtures first.
 
 ## P0 — public testnet release (6)
 
@@ -89,7 +92,7 @@ These are optional service-layer additions for a persistent merchant gateway. Th
 | ID | Work package / owner | Completion evidence | Dependencies |
 | --- | --- | --- | --- |
 | E01 | **Access and account-based payment approval delivered; corporate identity mapping open** — organization service + Front | [Persistent organizations, members, invitations, fixed roles, wallet authentication, authorization revocation, ownership transfer and audit history](ORGANIZATIONS.md), plus [quarantined backup/recovery with explicit current-access review](ORGANIZATION_BACKUPS.md). [Immutable requests, independent account approval and one-use wallet dispatch](CORPORATE_PAYMENTS.md) are implemented. Verified signer-to-business/corporate-wallet mapping and contract-enforced organization approval remain open; organization creation does not establish legal identity. | Auth foundation is separate from M01 merchant invoice storage; real business/signing qualification remains required |
-| E02 | Batch worker/contractor payments — Core + Front | Validate recipient lists and classifications, isolate failures, show each note/fee/approval and reconcile per-recipient results. Specify scheduled execution authority separately; a saved schedule must not silently gain wallet signing power. | E01; U02; explicit batch/scheduling product scope |
+| E02 | **Worker/contractor payout batches delivered** — Core + Front | Validate recipient lists and classifications, isolate failures, show each note/fee/approval and reconcile per-recipient results. Specify scheduled execution authority separately; a saved schedule must not silently gain wallet signing power. | [Independent approvals, per-row recovery and settlement](PAYOUT_BATCHES.md); scheduled execution authority remains separate |
 | E03 | Real KYB/KYC provider and credentials — Core + enterprise service | Entity/beneficial-owner cases, documents/follow-ups, authenticated callbacks, issuer trust, expiry/current revocation and explicit decisions. Version signed claims for any finer jurisdiction/scope than current US/AE credentials. Decide off-chain eligibility versus X05 circuit admission. | Provider/account selection, data controls and business review |
 | E04 | Encrypted business-document packages — enterprise service + Front | Authenticated upload/access, encryption/key rotation, integrity commitments, authorized selective export and tested retention/deletion. Never place raw identity, beneficial-owner, salary or tax files on-chain. | E01; storage/key-management/retention decisions |
 | E05 | Versioned US / Abu Dhabi rule engine — Core / compliance preparation | Resolve US state/federal scope, ADGM/mainland status, B2B/employee/contractor classification and effective date. Store cited official rule versions, deterministic calculations, source/input provenance and reviewed fixtures. No invented rates. | Jurisdiction/product facts and qualified rule review |

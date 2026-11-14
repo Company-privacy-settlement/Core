@@ -76,6 +76,15 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
           if (req.method === 'GET') { send(200, { items: store.list(actor) }); return; }
           if (req.method === 'POST') { const value = await input(Input.create); send(201, store.create(actor, value.name)); return; }
         }
+        const batch = /^\/v1\/organizations\/([^/]+)\/payout-batches(?:\/([^/]+))?$/.exec(url.pathname);
+        if(batch){
+          const org=parse(Id,batch[1]),id=batch[2];
+          if(!id&&req.method==='GET'){send(200,{items:store.payoutBatches.list(org,actor)});return;}
+          if(!id&&req.method==='POST'){const value=await input(z.unknown());send(200,store.payoutBatches.create(org,actor,value));return;}
+          if(id==='stage'&&req.method==='POST'){const value=await input(z.unknown());const result=await store.payoutBatches.stage(org,actor,value,()=>{signal.throwIfAborted();store.session(token,origin);});signal.throwIfAborted();send(200,result);return;}
+          if(id&&id!=='stage'&&req.method==='GET'){send(200,store.payoutBatches.get(org,actor,parse(Id,id)));return;}
+          throw new OrganizationError(404,'NOT_FOUND');
+        }
         const webhook = /^\/v1\/organizations\/([^/]+)\/webhooks(?:\/([^/]+)(?:\/([^/]+)(?:\/(retry))?)?)?$/.exec(url.pathname);
         if(webhook){
           const org=parse(Id,webhook[1]),resource=webhook[2],target=webhook[3],action=webhook[4];

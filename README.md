@@ -14,6 +14,8 @@ This repository contains the SDK, local browser prover and proving CLI, read-onl
 
 [Signed payment webhooks](docs/WEBHOOKS.md) add encrypted callbacks/events, a durable finalized-index outbox, stable IDs, HMAC signatures, retries/dead letters, failure history and atomic receiver deduplication. Owners/Admins manage callbacks and redrives in Organization → Webhooks. A pinned local index, approved HTTPS destinations and protected key ring are required.
 
+[Worker/contractor payout batches](docs/PAYOUT_BATCHES.md) group 1–20 independently approved public withdrawal requests, with idempotent/resumable preparation, per-recipient additive fees, a shared encrypted journal, fixed-destination individual recovery and CSV/JSON settlement. Successful/uncertain rows are never replayed as a whole batch.
+
 ## Repositories
 
 | Repository | Responsibility |
@@ -141,3 +143,5 @@ Validated on **2026-11-14** for organization invoice storage: **342 Core tests**
 Payment dashboard validation on **2026-11-14**: **355 Core tests** and **182 desktop/mobile browser cases** passed, including 13 new Core and 18 browser dashboard cases; type checks, Node/browser SDK builds and the static Front build passed. Browser service/wallet fixtures do not establish a live public-network deployment.
 
 Signed webhook validation on **2026-11-14**: **379 Core tests** and **194 desktop/mobile browser cases** passed, including 24 new Core and 12 browser webhook cases. Node/browser SDK, static build and compiled service/recovery checks passed. Tests use local index/wallet/transport fixtures; no real merchant callback or public backend deployment was performed.
+
+Worker/contractor payout validation on **2026-11-14**: **401 Core tests** and **210 desktop/mobile browser cases** passed, including 22 new Core and 16 browser payout cases. Type checks, Node/browser SDK and static Front builds, compiled service restart/backup/recovery and documentation checks passed. Browser wallets, RPC and organization services are local fixtures; these results do not qualify funded public-network payroll or real mobile wallets.

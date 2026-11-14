@@ -35,6 +35,9 @@ const columns: Record<string, string[]> = {
   organization_webhook_events: ['id','org','invoice_id','identity_hash','key_id','sealed','created'],
   organization_webhook_deliveries: ['id','org','sequence','event_id','endpoint_id','state','version','attempts','cycle_attempts','redrives','due','lease','lease_until','last_error','created'],
   organization_webhook_attempts: ['delivery_id','number','lease','started','finished','outcome','http_status','error'],
+  organization_payout_intents: ['org','intent_id','creator','payment_id','content_hash','category','created'],
+  organization_payout_batches: ['id','org','request_id','creator','payload','content_hash','request_hash','created'],
+  organization_payout_rows: ['batch_id','ordinal','intent_id','payment_id'],
 };
 type Recovery = { state: 'ready' | 'quarantined'; recovery_id: string | null };
 
@@ -61,9 +64,10 @@ function inspect(path: string, audience: string) {
     if (db.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok' || db.prepare('PRAGMA foreign_key_check').get()) throw new Error('Organization SQLite integrity check failed');
     const objects = db.prepare("SELECT name,type FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
     const tables = objects.filter(o => o.type === 'table').map(o => String(o.name));
-    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches','organization_invoices','organization_invoice_requests','organization_invoice_key_checks','organization_webhook_endpoints','organization_webhook_requests','organization_webhook_events','organization_webhook_deliveries','organization_webhook_attempts'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
+    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches','organization_invoices','organization_invoice_requests','organization_invoice_key_checks','organization_webhook_endpoints','organization_webhook_requests','organization_webhook_events','organization_webhook_deliveries','organization_webhook_attempts','organization_payout_intents','organization_payout_batches','organization_payout_rows'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
     if (["organization_invoices","organization_invoice_requests","organization_invoice_key_checks"].filter(n => tables.includes(n)).length % 3 !== 0) throw new Error('Incomplete invoice schema');
     if (['organization_webhook_endpoints','organization_webhook_requests','organization_webhook_events','organization_webhook_deliveries','organization_webhook_attempts'].filter(n=>tables.includes(n)).length % 5 !== 0) throw new Error('Incomplete webhook schema');
+    if(['organization_payout_intents','organization_payout_batches','organization_payout_rows'].filter(n=>tables.includes(n)).length%3!==0)throw new Error('Incomplete payout schema');
     for (const name of tables) {
       const actual = db.prepare(`PRAGMA table_info(${name})`).all().map(c => String(c.name)); // name is from the closed inventory above.
       if (JSON.stringify(actual) !== JSON.stringify(columns[name])) throw new Error('Unexpected organization columns');

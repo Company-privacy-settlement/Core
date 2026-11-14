@@ -66,7 +66,9 @@ try {
     const hook=s.webhooks.create(o.id,'owner.testnet',{requestId:randomUUID(),url:'https://merchant.example/payments',secret:randomBytes(32).toString('base64url')});
     s.webhooks.enqueue(invoice.invoice,{invoiceHash:await invoiceHash(terms),settlementRoot:(await invoicePaymentRoots(terms))[0],state:'paid',expectedTokens:'1000000',paidTokens:'1000000',remainingTokens:'0',overpaidTokens:'0',lateTokens:'0',confirmedPayments:1,coverageLimited:false,checkedAt:{height:100,hash:'B'.repeat(44),updatedAt:new Date().toISOString()},chainFreshnessChecked:false,confirmations:[{recordIndex:1,nullifier:'42',blockHeight:90,late:false,transaction:{hash:'C'.repeat(44),signer:'payer.testnet'}}]});
     if(!s.webhooks.claim())throw new Error('Compiled outbox claim failed');
-    s.close();console.log(JSON.stringify({id:o.id,paymentId:payment.payload.paymentId,invoiceId:invoice.invoice.id,endpointId:hook.endpoint.id}));
+    const batchIntent=randomUUID();await s.payoutBatches.stage(o.id,'owner.testnet',{intentId:batchIntent,category:'contractor',content:{...payment.payload.content,title:'Runtime batch row',payment:{...payment.payload.content.payment,args:{...payment.payload.content.payment.args,msg:JSON.stringify({...JSON.parse(payment.payload.content.payment.args.msg),public_inputs:['43','1','1',context,domain]})}}}});
+    const batch=s.payoutBatches.create(o.id,'owner.testnet',{requestId:randomUUID(),title:'Runtime payout batch',intentIds:[batchIntent]});
+    s.close();console.log(JSON.stringify({id:o.id,paymentId:payment.payload.paymentId,invoiceId:invoice.invoice.id,endpointId:hook.endpoint.id,batchId:batch.payload.batchId}));
   `], { env: { ...env, CORE_ORGANIZATION_DB: live, CORE_ORGANIZATION_ORIGIN: origin }, encoding: 'utf8' });
   assert.equal(seed.status, 0, seed.stderr); const org = JSON.parse(seed.stdout);
   const maintenance = (mode: string, db: string, args: string[]) => spawnSync(process.execPath, ['scripts/organization-maintenance.mjs', mode, ...args], { env: { ...env, CORE_ORGANIZATION_DB: db, CORE_ORGANIZATION_ORIGIN: origin }, encoding: 'utf8' });
@@ -86,6 +88,7 @@ try {
     import { loadInvoiceKeys } from './dist/service/server/organizations/invoice-keys.js';
     const s=new OrganizationStore(process.env.CORE_ORGANIZATION_DB,process.env.CORE_ORGANIZATION_ORIGIN,Date.now,loadInvoiceKeys(process.env.CORE_ORGANIZATION_INVOICE_KEYS_FILE),['https://merchant.example']);
     if(s.webhooks.endpoints('${org.id}','owner.testnet')[0].state!=='paused'||s.webhooks.deliveries('${org.id}','owner.testnet').items[0].state!=='held'||s.webhooks.claim()!==null)throw new Error('Recovered webhook was not quarantined');
+    const batch=s.payoutBatches.get('${org.id}','owner.testnet','${org.batchId}');if(batch.payments.length!==1||batch.payments[0].state!=='invalidated')throw new Error('Recovered payout batch approval was revived');
     const list=s.invoices.list('${org.id}','owner.testnet');
     if(list.items.length!==1||list.items[0].id!=='${org.invoiceId}'||list.items[0].invoice.invoice.reference!=='CONFIDENTIAL-RUNTIME-REFERENCE')throw new Error('Encrypted invoice recovery failed');
     let denied=false;try{s.invoices.list('${org.id}','old-admin.testnet');}catch{denied=true;}if(!denied)throw new Error('Recovered revoked member read invoice');s.close();
@@ -103,5 +106,5 @@ try {
   child = spawn(process.execPath,['dist/service/scripts/organization-server.js'],{env:{...env,PORT:String(port),CORE_ORGANIZATION_HOST:'127.0.0.1',CORE_ORGANIZATION_DB:active,CORE_ORGANIZATION_ORIGIN:origin,CORE_ORGANIZATION_ALLOWED_ORIGINS:'http://localhost:3000'},stdio:['ignore','pipe','pipe']});
   let ready=false;for(let i=0;i<100;i++){if(child.exitCode!==null)throw new Error('Activated service failed');try{if((await fetch(origin+'/healthz',{signal:AbortSignal.timeout(500)})).status===200){ready=true;break;}}catch{}await delay(30);}assert.equal(ready,true);
   const exited=once(child,'exit');child.kill('SIGTERM');await Promise.race([exited,delay(7000).then(()=>{throw new Error('Recovered service shutdown timeout');})]);child=undefined;
-  console.log('Compiled organization service passed: startup/restart, online backup, digest-pinned quarantined restore, denied startup, explicit current-access activation, session/challenge disposal, old-role/invitation denial and one-use recovery, protected invoice key provisioning, encrypted invoice restoration and paused webhook/outbox recovery. No public chain call or live deployment.');
+  console.log('Compiled organization service passed: startup/restart, online backup, digest-pinned quarantined restore, denied startup, explicit current-access activation, session/challenge disposal, old-role/invitation denial and one-use recovery, protected invoice key provisioning, encrypted invoice restoration and paused webhook/outbox recovery and immutable payout-batch linkage. No public chain call or live deployment.');
 } finally { child?.kill('SIGKILL'); rmSync(directory, { recursive: true, force: true }); }

@@ -43,7 +43,7 @@ export class OrganizationPayments {
     return this.c.db.prepare('SELECT id FROM organization_payments WHERE org=? ORDER BY created DESC,id LIMIT 100').all(org).map(r=>this.view(this.row(org,String(r.id))));
   }
   get(org:string,actor:string,id:string) { this.c.authorize(org,actor,'payments.read');return this.view(this.row(org,id)); }
-  async create(org:string,actor:string,input:unknown,check:()=>void=()=>{}) {
+  async create(org:string,actor:string,input:unknown,check:()=>void=()=>{},hooks?:{lookup(content:CorporateContent):CorporatePayment|undefined;inserted(payment:CorporatePayment):void}) {
     this.c.authorize(org,actor,'payments.create');
     let content:CorporateContent;
     try {content=await corporateContent(input);}catch{throw new OrganizationError(400,'INVALID_PAYMENT_CONTENT');}
@@ -54,13 +54,14 @@ export class OrganizationPayments {
     return this.c.atomic(()=>{
       check();
       this.c.authorize(org,actor,'payments.create');
+      const existing=hooks?.lookup(content);if(existing)return existing;
       if(Number(this.c.db.prepare('SELECT COUNT(*) n FROM organization_payments WHERE org=?').get(org)!.n)>=100)throw new OrganizationError(409,'PAYMENT_LIMIT');
       if(this.c.db.prepare("SELECT id FROM organization_payments WHERE org=? AND spend_key=? AND state IN ('pending','approved','dispatched','invalidated')").get(org,spendKey))throw new OrganizationError(409,'PAYMENT_NOTE_RESERVED');
       const id=randomUUID(),now=this.c.now(),member=this.c.member(org,actor)!;
       const payload:CorporatePayload={format:'core-corporate-approval-v1',organizationId:org,paymentId:id,creatorAccount:actor,creatorMembershipVersion:member.version,expiresAt:new Date(now+86400_000).toISOString(),content};
       const digest=hash(payload);
       this.c.db.prepare("INSERT INTO organization_payments VALUES(?,?,?,?,?,?,'pending',1,?,NULL,NULL,NULL,?,?)").run(id,org,canonical(payload),digest,actor,member.version,Date.parse(payload.expiresAt),now,spendKey);
-      this.c.audit(org,actor,'payment.created',id,{contentHash:digest});return this.view(this.row(org,id));
+      this.c.audit(org,actor,'payment.created',id,{contentHash:digest});const created=this.view(this.row(org,id));hooks?.inserted(created);return created;
     });
   }
   decide(org:string,actor:string,id:string,action:'approve'|'reject'|'cancel',version:number,contentHash:string) {

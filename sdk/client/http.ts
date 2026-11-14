@@ -87,8 +87,8 @@ export class HttpGateway implements Gateway {
   preflight(request: Parameters<Gateway["preflight"]>[0]): Promise<Preflight> {
     return this.request("/v1/ft/preflight", request);
   }
-  observe(reference: Reference): Promise<Observation> {
-    return this.request("/v1/settlements/status", reference);
+  observe(reference: Reference, options: {signal?:AbortSignal} = {}): Promise<Observation> {
+    return this.request("/v1/settlements/status", reference, options.signal);
   }
   verify(transaction: TxRef, call: Call): Promise<Verification> {
     return this.request("/v1/transactions/verify", { transaction, call });
