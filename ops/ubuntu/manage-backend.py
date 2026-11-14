@@ -194,7 +194,9 @@ def main():
     if args.command=='start':
         if not pid:
             for port in [c['apiPort'],c['organizationPort']]:
-                with socket.socket() as listener:listener.bind(('127.0.0.1',port))
+                with socket.socket() as listener:
+                    listener.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+                    listener.bind(('127.0.0.1',port))
             with (root/'logs/manager.log').open('ab') as log:
                 p=subprocess.Popen([sys.executable,str(root/'control.py'),'run','--root',str(root)],
                     stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,close_fds=True)
