@@ -76,4 +76,6 @@ Local tests cover source/value integrity, AI request minimization, structured-re
 
 OpenAI transport is exercised against a controlled response fixture; no production API key or live model call was supplied. Operator credentials, model availability, independently qualified rule review and backend deployment remain external activation requirements. No filing connector, withholding execution or professional tax opinion is supplied. Implementation follows [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) and the [Responses API](https://developers.openai.com/api/reference/resources/responses/methods/create).
 
-Local verification on **2026-11-14** passed **488 Core tests** (29 draft-specific), **16 desktop/mobile draft browser cases**, three Front unit tests, types, SDK/static builds, compiled service recovery and documentation/source-inventory checks. Provider/reviewer behavior used controlled fixtures.
+Local verification on **2026-11-14** passed **488 Core tests** (29 draft-specific), **256 desktop/mobile browser cases** (16 draft-specific), three Front unit tests, types, SDK/static builds, compiled service recovery and documentation/source-inventory checks. Provider/reviewer behavior used controlled fixtures.
+
+The full browser gate completed as separate desktop (128/128) and mobile (128/128) runs, both exit 0. An earlier combined run was interrupted before its final report and is not counted as a passing run.
