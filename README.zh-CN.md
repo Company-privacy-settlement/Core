@@ -8,6 +8,8 @@ Core 是面向企业间付款和企业→员工转账的开发协议。独立 va
 
 [服务概览](docs/SERVICE.md) · [网页 Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [开发路线](docs/ROADMAP.md)
 
+[企业发票 API](docs/ORGANIZATION_INVOICES.md) 支持按组织保存和查询不可变签名发票、防止重复创建，并使用 AES-256-GCM 加密敏感内容。必须单独配置仅所有者可读的密钥文件；未配置时拒绝发票存储。现有本地发票与结账流程独立运行。
+
 ## 仓库
 
 | 仓库 | 职责 |
@@ -129,3 +131,5 @@ npm run demo:ft
 [钱包/恢复](docs/WALLET.md) · [浏览器票据](docs/BROWSER_NOTES.md) · [收款准备](docs/RECIPIENTS.md) · [发票](docs/INVOICES.md) · [发票库](docs/INVOICE_LIBRARY.md) · [收据](docs/BROWSER_RECEIPTS.md) · [组](docs/GROUPS.md) · [隐私](docs/PRIVACY.md) · [索引](docs/INDEXER.md) · [路线](docs/ROADMAP.md)
 
 当前托管仅限所有者；外部客户结账需要相应访问设置和独立部署/注资的组。不包含已注资公开部署。可变金额、私密跨组迁移、真实合规集成、独立安全审查及已审核多方 setup 仍待完成。
+
+**2026-11-14 企业发票验证：**包含 22 项新增 API、加密、幂等和恢复用例的 **342 项 Core 测试**通过，编译服务重启与 CLI 恢复验证也通过。

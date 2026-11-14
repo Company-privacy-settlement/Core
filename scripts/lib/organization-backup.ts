@@ -27,6 +27,9 @@ const columns: Record<string, string[]> = {
   organization_recovery: ['id','version','state','recovery_id','created','review_sha256'],
   organization_payments: ['id','org','payload','content_hash','maker','creator_version','state','version','expires','approver','approver_version','approved','created','spend_key'],
   organization_payment_dispatches: ['payment_id','call_hash','kind','actor','created'],
+  organization_invoices: ['id','org','sequence','created','key_id','nonce','ciphertext','tag','natural_hash','payload_hash'],
+  organization_invoice_requests: ['org','request_hash','invoice_id','payload_hash'],
+  organization_invoice_key_checks: ['purpose','key_id','check_value'],
 };
 type Recovery = { state: 'ready' | 'quarantined'; recovery_id: string | null };
 
@@ -53,7 +56,8 @@ function inspect(path: string, audience: string) {
     if (db.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok' || db.prepare('PRAGMA foreign_key_check').get()) throw new Error('Organization SQLite integrity check failed');
     const objects = db.prepare("SELECT name,type FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
     const tables = objects.filter(o => o.type === 'table').map(o => String(o.name));
-    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
+    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches','organization_invoices','organization_invoice_requests','organization_invoice_key_checks'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
+    if (["organization_invoices","organization_invoice_requests","organization_invoice_key_checks"].filter(n => tables.includes(n)).length % 3 !== 0) throw new Error('Incomplete invoice schema');
     for (const name of tables) {
       const actual = db.prepare(`PRAGMA table_info(${name})`).all().map(c => String(c.name)); // name is from the closed inventory above.
       if (JSON.stringify(actual) !== JSON.stringify(columns[name])) throw new Error('Unexpected organization columns');

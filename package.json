@@ -47,7 +47,8 @@
     "test:service-runtime": "npm run build:service && tsx tests/manual/service-runtime.ts && tsx tests/manual/organization-runtime.ts",
     "index": "tsx scripts/indexer.ts",
     "test:groups-proof": "tsx tests/manual/groups-proof.ts",
-    "test:browser-prover": "tsx tests/manual/browser-prover.ts"
+    "test:browser-prover": "tsx tests/manual/browser-prover.ts",
+    "organizations:invoice-keys": "node scripts/organization-invoice-keys.mjs"
   },
   "dependencies": {
     "bs58": "^6.0.0",

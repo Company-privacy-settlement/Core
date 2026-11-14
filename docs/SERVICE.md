@@ -147,3 +147,7 @@ Reproduction commands and prioritized remaining work are in the [Core README](..
 Organization access review and fixes: [2026-11-13 findings and validation](REVIEW-2026-11-13-ORGANIZATIONS.md).
 
 Standalone browser FT withdrawal proving, artifact integrity checks, cancellation and proof-file verification are implemented in [Local proofs](BROWSER_PROVER.md). Witnesses remain local; the API exposes only a verified public group snapshot. [Connected invoice checkout](INVOICE_PAYMENTS.md) now handles note selection → local proof → amount/fee review → individual wallet approvals → bound finalized confirmation, with per-unit progress and conservative recovery.
+
+## Organization invoice storage
+
+[Organization invoice API](ORGANIZATION_INVOICES.md) adds authenticated organization-owned immutable signed invoices, idempotent creation and AES-256-GCM encryption at rest. Set `CORE_ORGANIZATION_INVOICE_KEYS_FILE` to a separately protected key ring; absent keys disable invoice storage. Database backups preserve ciphertext and retry indexes, never keys. Reviewed recovery and fresh sessions remain required. Existing organization metadata is outside this invoice encryption boundary.

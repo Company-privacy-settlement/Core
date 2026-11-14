@@ -130,3 +130,7 @@ Initial organization-access validation on 2026-11-13: Core **256 tests**, includ
 Subsequent [organization recovery validation](ORGANIZATION_BACKUPS.md) passed all **303 Core tests**, the compiled maintenance/service harness, SDK builds and **32 targeted desktop/mobile Docs and organization cases** with Front type/static-build checks. Recovery tests are local and do not establish a live deployment or Docker execution.
 
 Corporate payment validation: all 320 Core tests passed, including 17 approval regressions. The compiled service rehearsal also approves/reserves a payment and verifies that recovery invalidates its approval while preserving the reservation. Browser validation and the exact authority boundary are recorded in [Corporate payments](CORPORATE_PAYMENTS.md).
+
+## Organization invoice storage
+
+[Organization invoice API](ORGANIZATION_INVOICES.md) adds authenticated organization-owned immutable signed invoices, idempotent creation and AES-256-GCM encryption at rest. Set `CORE_ORGANIZATION_INVOICE_KEYS_FILE` to a separately protected key ring; absent keys disable invoice storage. Database backups preserve ciphertext and retry indexes, never keys. Reviewed recovery and fresh sessions remain required. Existing organization metadata is outside this invoice encryption boundary.

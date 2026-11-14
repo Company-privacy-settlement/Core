@@ -56,7 +56,7 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
         const signal = current.signal;
         let validatedToken: string | undefined;
         const input = async <S extends z.ZodType>(schema: S) => { const value = parse(schema, await body(req, signal)); signal.throwIfAborted(); if (validatedToken) store.session(validatedToken, origin); return value; };
-        if (url.search && !(req.method === 'GET' && /^\/v1\/organizations\/[a-f0-9-]+\/audit$/.test(url.pathname))) throw new OrganizationError(400, 'QUERY_DENIED');
+        if (url.search && !(req.method === 'GET' && /^\/v1\/organizations\/[a-f0-9-]+\/(audit|invoices)$/.test(url.pathname))) throw new OrganizationError(400, 'QUERY_DENIED');
         if (req.method === 'POST' && url.pathname === '/v1/auth/challenge') {
           const value = await input(z.object({ accountId: OrganizationAccount }).strict()); send(200, store.challenge(value.accountId, origin)); return;
         }
@@ -75,6 +75,22 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
         if (url.pathname === '/v1/organizations') {
           if (req.method === 'GET') { send(200, { items: store.list(actor) }); return; }
           if (req.method === 'POST') { const value = await input(Input.create); send(201, store.create(actor, value.name)); return; }
+        }
+        const invoice = /^\/v1\/organizations\/([^/]+)\/invoices(?:\/([^/]+))?$/.exec(url.pathname);
+        if (invoice) {
+          const org = parse(Id, invoice[1]), id = invoice[2] ? parse(Id, invoice[2]) : undefined;
+          if (!id && req.method === 'GET') {
+            const cursor = url.searchParams.get('before');
+            if ([...url.searchParams.keys()].some(k => k !== 'before') || url.searchParams.getAll('before').length > 1 || (cursor !== null && (!/^[1-9][0-9]{0,15}$/.test(cursor) || !Number.isSafeInteger(Number(cursor))))) throw new OrganizationError(400, 'INVALID_CURSOR');
+            send(200, store.invoices.list(org, actor, cursor === null ? undefined : Number(cursor))); return;
+          }
+          if (!id && req.method === 'POST') {
+            const value = await input(z.unknown());
+            const result = await store.invoices.create(org, actor, value, options.identity, signal, () => { signal.throwIfAborted(); store.session(token, origin); });
+            signal.throwIfAborted(); send(result.replayed ? 200 : 201, result); return;
+          }
+          if (id && req.method === 'GET') { send(200, store.invoices.get(org, actor, id)); return; }
+          throw new OrganizationError(404, 'NOT_FOUND');
         }
         const payment = /^\/v1\/organizations\/([^/]+)\/payments(?:\/([^/]+)(?:\/(approve|reject|cancel|authorize))?)?$/.exec(url.pathname);
         if (payment) {

@@ -8,6 +8,8 @@ Core는 기업 간 결제와 기업→근로자 송금을 위한 개발용 프�
 
 [서비스 개요](docs/SERVICE.md) · [웹 Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [개발 현황](docs/ROADMAP.md)
 
+[기업용 인보이스 API](docs/ORGANIZATION_INVOICES.md)는 조직별 서명 인보이스 저장·조회, 중복 생성 방지, AES-256-GCM 민감정보 암호화를 지원합니다. 별도 소유자 전용 키 파일이 필요하며 미설정 시 저장을 거부합니다. 기존 로컬 인보이스·체크아웃은 독립적으로 유지됩니다.
+
 ## 저장소
 
 | 저장소 | 역할 |
@@ -129,3 +131,5 @@ npm run demo:ft
 [지갑·복구](docs/WALLET.md) · [브라우저 노트](docs/BROWSER_NOTES.md) · [수취 준비](docs/RECIPIENTS.md) · [인보이스](docs/INVOICES.md) · [보관함](docs/INVOICE_LIBRARY.md) · [영수증](docs/BROWSER_RECEIPTS.md) · [그룹](docs/GROUPS.md) · [프라이버시](docs/PRIVACY.md) · [인덱스](docs/INDEXER.md) · [로드맵](docs/ROADMAP.md)
 
 현재 호스팅은 소유자 비공개입니다. 외부 고객 결제에는 알맞은 접근 권한과 별도 배포·자금 공급된 그룹이 필요합니다. 공개 자금 배포는 포함하지 않습니다. 가변 금액·프라이빗 그룹 이전·실제 컴플라이언스 연동·독립 보안 감사·검토된 다자 setup은 후속 작업입니다.
+
+**2026-11-14 기업 인보이스 검증:** 신규 API·암호화·중복 방지·복구 22개를 포함한 **Core 342개 테스트**와 컴파일된 서비스 재시작·CLI 복구 검증을 통과했습니다.

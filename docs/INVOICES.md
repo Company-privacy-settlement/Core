@@ -29,7 +29,7 @@ sequenceDiagram
     A-->>M: Partial / paid / late / overpaid as of checkpoint
 ```
 
-The protocol holds no invoice-operator signing key and collects no principal in a central merchant wallet. Existing keyless vault settlement, global nullifiers and fixed-destination recovery keep their behavior. Invoice business terms are not saved by the Core API.
+The protocol holds no invoice-operator signing key and collects no principal in a central merchant wallet. Existing keyless vault settlement, global nullifiers and fixed-destination recovery keep their behavior. Invoice business terms are not saved by the public settlement API. The separate [Organization invoice API](ORGANIZATION_INVOICES.md) can persist signed terms with tenant authorization, idempotency and encryption at rest.
 
 ## Implemented flow
 

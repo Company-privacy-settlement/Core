@@ -145,3 +145,7 @@ Recorded on 2026-11-13: Core type checking and **223 tests** passed; Node/browse
 ## Organization data recovery
 
 The Organization API uses a separate database and [dedicated backup/recovery commands](ORGANIZATION_BACKUPS.md). Its snapshots are quarantined and cannot start a service until independently reviewed current access is applied to a new active file. Sessions/challenges and prior pending invitation authority are discarded; historical owners/members are not automatically reauthorized. Use the organization Compose healthcheck and [new-volume recovery override](../ops/organizations.restore.compose.yaml); settlement-index restore commands do not accept this schema.
+
+## Organization invoice storage
+
+[Organization invoice API](ORGANIZATION_INVOICES.md) adds authenticated organization-owned immutable signed invoices, idempotent creation and AES-256-GCM encryption at rest. Set `CORE_ORGANIZATION_INVOICE_KEYS_FILE` to a separately protected key ring; absent keys disable invoice storage. Database backups preserve ciphertext and retry indexes, never keys. Reviewed recovery and fresh sessions remain required. Existing organization metadata is outside this invoice encryption boundary.

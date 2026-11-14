@@ -18,3 +18,5 @@ demo-output/
 private-receipt*.json
 withdrawal-args.json
 commitments.json
+
+*.invoice-keys.json

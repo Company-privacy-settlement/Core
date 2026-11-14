@@ -1,0 +1,12 @@
+# Overlay: docker compose -f ops/organizations.compose.yaml -f ops/organizations.invoices.compose.yaml ...
+services:
+  organization-api:
+    environment:
+      CORE_ORGANIZATION_INVOICE_KEYS_FILE: /run/core-secrets/invoice-keys.json
+    volumes:
+      - type: bind
+        source: ${CORE_ORGANIZATION_INVOICE_KEYS_PATH:?Set an absolute owner-only invoice key file path}
+        target: /run/core-secrets/invoice-keys.json
+        read_only: true
+        bind:
+          create_host_path: false

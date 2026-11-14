@@ -8,6 +8,8 @@ This repository contains the SDK, local browser prover and proving CLI, read-onl
 
 [Service overview](docs/SERVICE.md) · [Web Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [Roadmap](docs/ROADMAP.md)
 
+[Organization invoice API](docs/ORGANIZATION_INVOICES.md) stores and retrieves immutable signed invoices per organization, prevents duplicate creation and encrypts sensitive terms with AES-256-GCM. Configure a separate owner-only key ring; the API refuses invoice storage without it. Existing local invoice creation/checkout remains independent.
+
 ## Repositories
 
 | Repository | Responsibility |
@@ -129,3 +131,5 @@ The US / Abu Dhabi scope is a planned preparation layer, with US state and ADGM/
 [Wallet/recovery](docs/WALLET.md) · [Browser notes](docs/BROWSER_NOTES.md) · [Recipients](docs/RECIPIENTS.md) · [Invoices](docs/INVOICES.md) · [Invoice library](docs/INVOICE_LIBRARY.md) · [Browser receipts](docs/BROWSER_RECEIPTS.md) · [Groups](docs/GROUPS.md) · [Privacy](docs/PRIVACY.md) · [Indexer](docs/INDEXER.md) · [Roadmap](docs/ROADMAP.md)
 
 The hosted development workspace is owner-private; external customer checkout requires suitable access configuration and an independently deployed/funded group. No funded public deployment is bundled. Variable amounts, private group migration, real compliance integrations, independent security review and a reviewed multi-party setup remain outstanding.
+
+Validated on **2026-11-14** for organization invoice storage: **342 Core tests** passed, including 22 new invoice API/encryption/idempotency/recovery cases, plus the compiled service startup/restart and CLI recovery harness.
