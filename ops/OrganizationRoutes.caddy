@@ -1,0 +1,35 @@
+(organization_proxy) {
+    reverse_proxy organization-api:3002 {
+        header_up -X-Forwarded-For
+        header_up -X-Real-IP
+    }
+}
+
+(organization_routes) {
+    @draft_write {
+        method POST
+        path_regexp draft_write ^/v1/organizations/[a-f0-9-]+/tax-drafts(?:/[a-f0-9-]+/revise)?$
+    }
+    handle @draft_write {
+        request_body {
+            max_size 131072
+        }
+        import organization_proxy
+    }
+    @provider_hook {
+        method POST
+        path /v1/providers/sumsub/webhook
+    }
+    handle @provider_hook {
+        request_body {
+            max_size 65536
+        }
+        import organization_proxy
+    }
+    handle {
+        request_body {
+            max_size 8192
+        }
+        import organization_proxy
+    }
+}

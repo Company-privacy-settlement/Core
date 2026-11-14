@@ -158,3 +158,7 @@ The optional [finalized journal index](INDEXER.md) runs as a separate worker. Se
 References: [NEAR FT integration](https://docs.near.org/integrations/fungible-tokens), [NEAR RPC query errors](https://docs.near.org/api/rpc/contracts), [Contract settlement behavior](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/USDC.md).
 
 Recipient-issued invoice architecture, privacy boundary and checkout limitations: [INVOICES.md](INVOICES.md). Invoice routes are public read-only queries; full business terms are rejected.
+
+## Live server acceptance
+
+[Production hosting and HTTPS acceptance](PRODUCTION_HOSTING.md) documents the combined API/indexer/organization stack and external verification command. Organization `/readyz` checks fresh testnet RPC and current storage recovery state without exposing business records; `/healthz` remains liveness only. Infrastructure account, domains and independently verified deployed policy are required. Configuration/local tests are not a live deployment.

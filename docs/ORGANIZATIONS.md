@@ -154,3 +154,7 @@ Corporate payment validation: all 320 Core tests passed, including 17 approval r
 ## Source-bound tax preparation drafts
 
 [AI tax and procedure drafts](TAX_DRAFTS.md) connect verified rule reports and exact selected-receipt bindings to cited English preparation, encrypted organization storage and independent versioned review. AI only arranges verified statement IDs; deterministic outlines are labelled separately. Source/policy/membership expiry suspends internal approval. Restore invalidates all draft reviews and abandons pending generations. No statutory filing or payment is authorized. See the guide for permissions, API, provider configuration and independently pinned reviewer policy.
+
+## Live server acceptance
+
+[Production hosting and HTTPS acceptance](PRODUCTION_HOSTING.md) documents the combined API/indexer/organization stack and external verification command. Organization `/readyz` checks fresh testnet RPC and current storage recovery state without exposing business records; `/healthz` remains liveness only. Infrastructure account, domains and independently verified deployed policy are required. Configuration/local tests are not a live deployment.

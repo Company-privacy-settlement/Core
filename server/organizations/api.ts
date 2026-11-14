@@ -40,17 +40,18 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
     try {
       res.setHeader('vary', 'Origin');
       if (req.url === '/healthz' && req.method === 'GET') { send(200, { live: true, service: 'core-organizations' }); return; }
+      const isReadiness = req.method === 'GET' && req.url === '/readyz';
       const isVerificationHook=req.method==='POST'&&req.url==='/v1/providers/sumsub/webhook';
       const origin = req.headers.origin ?? '';
-      if (!isVerificationHook&&(!origin || !origins.has(origin))) throw new OrganizationError(403, 'ORIGIN_DENIED');
-      if(!isVerificationHook)res.setHeader('access-control-allow-origin', origin);
+      if (!isVerificationHook&&!(isReadiness&&!origin)&&(!origin || !origins.has(origin))) throw new OrganizationError(403, 'ORIGIN_DENIED');
+      if(!isVerificationHook&&origin)res.setHeader('access-control-allow-origin', origin);
       if (req.method === 'OPTIONS') {
         if (!['GET', 'POST', 'PATCH', 'DELETE'].includes(req.headers['access-control-request-method'] ?? '')) throw new OrganizationError(403, 'METHOD_DENIED');
         const headers = (req.headers['access-control-request-headers'] ?? '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
         if (headers.some(h => !['content-type', 'authorization'].includes(h))) throw new OrganizationError(403, 'HEADER_DENIED');
         res.writeHead(204, { 'access-control-allow-methods': 'GET, POST, PATCH, DELETE', 'access-control-allow-headers': 'content-type, authorization', 'cache-control': 'no-store' }); res.end(); return;
       }
-      limiter.take(req.socket.remoteAddress ?? 'unknown', req.url?.startsWith('/v1/auth/')||req.method==='POST'&&req.url?.includes('/tax-drafts') ? 5 : 1);
+      limiter.take(req.socket.remoteAddress ?? 'unknown', isReadiness||req.url?.startsWith('/v1/auth/')||req.method==='POST'&&req.url?.includes('/tax-drafts') ? 5 : 1);
       if (active >= maximum) throw new OrganizationError(503, 'SERVICE_BUSY');
       active++; controller = new AbortController(); const current = controller;
       timeout = setTimeout(() => { current.abort(); send(504, { error: 'REQUEST_TIMEOUT' }); }, req.url?.includes('/tax-drafts')?Math.max(timeoutMs,25000):timeoutMs);
@@ -58,6 +59,11 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
       try {
         const url = new URL(req.url ?? '/', 'http://organization.invalid');
         const signal = current.signal;
+        if(isReadiness){
+          if(!options.identity.readiness)throw new OrganizationError(503,'IDENTITY_READINESS_UNAVAILABLE');
+          const chain=await options.identity.readiness(signal);signal.throwIfAborted();
+          send(200,{ready:true,service:'core-organizations',...chain,...store.readiness(),checkedAt:new Date().toISOString(),identityClaimsVerified:false});return;
+        }
         if(isVerificationHook){if(!options.verificationProvider)throw new OrganizationError(503,'VERIFICATION_PROVIDER_DISABLED');const bytes=await rawBody(req,signal,65536);signal.throwIfAborted();send(200,store.verifications.receive(options.verificationProvider,bytes,req.headers['x-payload-digest'],req.headers['x-payload-digest-alg']));return;}
         let validatedToken: string | undefined;
         const input = async <S extends z.ZodType>(schema: S,maximum=8192) => { const value = parse(schema, await body(req, signal,maximum)); signal.throwIfAborted(); if (validatedToken) store.session(validatedToken, origin); return value; };

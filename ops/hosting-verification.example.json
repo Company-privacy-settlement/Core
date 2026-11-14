@@ -1,0 +1,10 @@
+{
+  "apiOrigin": "https://api.example.com",
+  "organizationOrigin": "https://organizations.example.com",
+  "frontendOrigin": "https://core-private-settlement-0574c4.jiheon6768.chatgpt.site",
+  "policyFile": "/secure/core/trusted-policy.json",
+  "policySha256": "REPLACE_WITH_INDEPENDENT_POLICY_BYTE_SHA256",
+  "sampleDelayMs": 3000,
+  "maxIndexAgeMs": 60000,
+  "maxIndexLagBlocks": 100
+}

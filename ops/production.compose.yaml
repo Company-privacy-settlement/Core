@@ -1,0 +1,100 @@
+# A separate stack with one HTTPS gateway and isolated persistent databases.
+name: core-production
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 30s
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    expose: ['3001']
+    environment:
+      CORE_DATA_DIR: /data
+      CORE_POLICY_FILE: /config/policy.json
+      CORE_POLICY_SHA256: ${CORE_POLICY_SHA256:?Set the reviewed deployment-policy byte digest}
+      CORE_RPC_URL: ${CORE_RPC_URL:-https://rpc.testnet.near.org}
+      CORE_ALLOWED_ORIGINS: ${CORE_ALLOWED_ORIGINS:?Set exact Front origins}
+      CORE_API_REQUIRE_INDEX: 'true'
+      CORE_API_HOST: 0.0.0.0
+      CORE_SERVICE_NETWORK: testnet
+      CORE_BACKUP_INTERVAL_MS: ${CORE_BACKUP_INTERVAL_MS:-21600000}
+      CORE_BACKUP_KEEP: ${CORE_BACKUP_KEEP:-7}
+      PORT: '3001'
+    volumes:
+      - settlement-data:/data
+      - type: bind
+        source: ${CORE_POLICY_PATH:?Set an absolute reviewed deployed policy path}
+        target: /config/policy.json
+        read_only: true
+        bind:
+          create_host_path: false
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+  organization-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: [node, dist/service/scripts/organization-server.js]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 15s
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]
+    expose: ['3002']
+    environment:
+      PORT: '3002'
+      CORE_ORGANIZATION_HOST: 0.0.0.0
+      CORE_ORGANIZATION_DB: /data/organizations.sqlite
+      CORE_ORGANIZATION_ORIGIN: https://${CORE_ORGANIZATION_DOMAIN:?Set the organization API DNS name}
+      CORE_ORGANIZATION_ALLOWED_ORIGINS: ${CORE_ALLOWED_ORIGINS:?Set exact Front origins}
+      CORE_ORGANIZATION_RPC_URL: ${CORE_RPC_URL:-https://rpc.testnet.near.org}
+      CORE_ORGANIZATION_INVOICE_KEYS_FILE: /run/core-secrets/invoice-keys.json
+    volumes:
+      - organization-data:/data
+      - type: bind
+        source: ${CORE_ORGANIZATION_INVOICE_KEYS_PATH:?Set an absolute owner-only encryption key-ring path}
+        target: /run/core-secrets/invoice-keys.json
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3002/readyz',{signal:AbortSignal.timeout(12000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 15s
+      start_period: 30s
+      retries: 3
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+  https:
+    image: caddy:2-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      organization-api:
+        condition: service_healthy
+    ports: ['80:80', '443:443', '443:443/udp']
+    environment:
+      CORE_API_DOMAIN: ${CORE_API_DOMAIN:?Set the settlement API DNS name}
+      CORE_ORGANIZATION_DOMAIN: ${CORE_ORGANIZATION_DOMAIN:?Set the organization API DNS name}
+      CORE_TLS_EMAIL: ${CORE_TLS_EMAIL:?Set the TLS operator email}
+    volumes:
+      - ./Production.Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./OrganizationRoutes.caddy:/etc/caddy/OrganizationRoutes.caddy:ro
+      - tls-data:/data
+      - tls-config:/config
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+volumes:
+  settlement-data:
+  organization-data:
+  tls-data:
+  tls-config:

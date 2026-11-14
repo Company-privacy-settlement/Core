@@ -7,6 +7,7 @@ import { OrganizationStore } from './store.js';
 
 export interface OrganizationIdentitySource {
   currentFullAccessKey(accountId: string, publicKey: string, signal: AbortSignal): Promise<boolean>;
+  readiness?(signal: AbortSignal): Promise<{ network: 'testnet'; checkedAtBlock: { height: number; hash: string } }>;
 }
 export const OrganizationLogin = z.object({ challengeId: Id, accountId: OrganizationAccount, publicKey: z.string().max(52).regex(/^ed25519:[1-9A-HJ-NP-Za-km-z]{32,44}$/), signature: z.string().length(88).regex(/^[A-Za-z0-9+/]{86}==$/) }).strict();
 export class OrganizationAuth {
@@ -65,7 +66,7 @@ export class NearOrganizationIdentity implements OrganizationIdentitySource {
     }
     return value.result;
   }
-  async currentFullAccessKey(accountId: string, publicKey: string, signal: AbortSignal): Promise<boolean> {
+  async readiness(signal: AbortSignal) {
     try {
       const status = z.object({ chain_id: z.literal('testnet'), sync_info: z.object({ syncing: z.literal(false), latest_block_time: z.string() }) }).parse(await this.rpc('status', [], signal));
       const latest = Date.parse(status.sync_info.latest_block_time), now = Date.now();
@@ -73,9 +74,20 @@ export class NearOrganizationIdentity implements OrganizationIdentitySource {
       const block = z.object({ header: z.object({ height: z.number().int().nonnegative().safe(), hash: z.string().min(32).max(64), timestamp_nanosec: z.string().regex(/^[0-9]{1,20}$/) }) }).parse(await this.rpc('block', { finality: 'final' }, signal));
       const time = Number(BigInt(block.header.timestamp_nanosec) / 1000000n);
       if (now - time > 120_000 || time - now > 30_000) throw new Error('Stale finalized block');
-      const key = await this.rpc('query', { request_type: 'view_access_key', account_id: accountId, public_key: publicKey, block_id: block.header.hash }, signal);
+      signal.throwIfAborted();
+      return { network: 'testnet' as const, checkedAtBlock: { height: block.header.height, hash: block.header.hash } };
+    } catch (e) {
+      signal.throwIfAborted();
+      if (e instanceof OrganizationError) throw e;
+      throw new OrganizationError(503, 'IDENTITY_CHAIN_UNAVAILABLE');
+    }
+  }
+  async currentFullAccessKey(accountId: string, publicKey: string, signal: AbortSignal): Promise<boolean> {
+    try {
+      const { checkedAtBlock: block } = await this.readiness(signal);
+      const key = await this.rpc('query', { request_type: 'view_access_key', account_id: accountId, public_key: publicKey, block_id: block.hash }, signal);
       if (key === null) return false;
-      const snapshot = z.object({ block_hash: z.literal(block.header.hash), block_height: z.literal(block.header.height), permission: z.unknown() }).parse(key);
+      const snapshot = z.object({ block_hash: z.literal(block.hash), block_height: z.literal(block.height), permission: z.unknown() }).parse(key);
       return snapshot.permission === 'FullAccess';
     } catch (e) {
       signal.throwIfAborted();

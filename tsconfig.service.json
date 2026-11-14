@@ -14,6 +14,7 @@
     "scripts/index-maintenance.ts",
     "scripts/organization-server.ts",
     "scripts/organization-maintenance.ts",
-    "scripts/rules.ts"
+    "scripts/rules.ts",
+    "scripts/verify-hosting.ts"
   ]
 }

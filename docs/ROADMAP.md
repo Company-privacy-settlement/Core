@@ -167,3 +167,5 @@ Organization backup/recovery validation on 2026-11-13: Core types and all 303 te
 Corporate approval validation: the complete Core suite passes 320 tests, including 17 approval regressions. Contracts/circuits and funded public deployments were not changed. E01’s verified corporate signer mapping and contract-enforced approval remain separate scope.
 
 Source-bound draft tooling validation on **2026-11-14**: **488 Core tests** (29 new draft cases) and **256 desktop/mobile browser cases** (16 draft-specific) passed, with SDK/static builds, compiled service recovery and documentation/source checks. No live AI credentials, professional rule approval or filing were supplied. [Scope and operation](TAX_DRAFTS.md).
+
+Live-hosting preparation on **2026-11-14** adds a combined HTTPS gateway, route-specific body limits, organization RPC/storage readiness and external acceptance reports. **R04 stays open:** no connected host/account, assigned API domains or verified public testnet policy were supplied. [Required inputs and qualification](PRODUCTION_HOSTING.md).

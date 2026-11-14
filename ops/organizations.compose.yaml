@@ -41,6 +41,7 @@ services:
       CORE_ORGANIZATION_TLS_EMAIL: ${CORE_ORGANIZATION_TLS_EMAIL:?Set the TLS contact email}
     volumes:
       - ./Organizations.Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./OrganizationRoutes.caddy:/etc/caddy/OrganizationRoutes.caddy:ro
       - organization-tls:/data
       - organization-caddy:/config
     logging:

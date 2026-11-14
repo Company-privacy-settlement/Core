@@ -78,6 +78,12 @@ export class OrganizationStore {
     } catch (e) { this.db.close(); throw e; }
   }
   close() { this.db.close(); }
+  readiness() {
+    assertOrganizationReady(this.db);
+    const meta = this.get<{ version: number; audience: string; network: string }>('SELECT * FROM organization_meta WHERE id=1');
+    if (!meta || meta.version !== 1 || meta.audience !== this.audience || meta.network !== 'testnet') throw new OrganizationError(503, 'ORGANIZATION_STORAGE_UNAVAILABLE');
+    return { databaseAvailable: true as const };
+  }
   private get<T>(sql: string, ...args: (string | number | null)[]): T | undefined { return this.db.prepare(sql).get(...args) as T | undefined; }
   private all<T>(sql: string, ...args: (string | number | null)[]): T[] { return this.db.prepare(sql).all(...args) as T[]; }
   private run(sql: string, ...args: (string | number | null)[]) { return this.db.prepare(sql).run(...args); }

@@ -10,7 +10,7 @@ The repository provides a compiled Node runtime, Docker image, Docker Compose wi
 
 This guide's supervisor, index readiness, `CORE_DATA_DIR`, index backup/restore and Render blueprint concern the **public settlement API/indexer**. The authenticated [Organization API](ORGANIZATIONS.md#hosted-configuration-and-recovery) is a separate process and database. Its [standalone Compose stack](../ops/organizations.compose.yaml) uses the compiled service image with an organization-specific command, volume, origin and frontend allowlist. Organization membership does not change Site audience or settlement signing rights.
 
-The organization `/healthz` endpoint is liveness only; it does not establish identity RPC readiness. Do not use the public index restore tool for the organization database. A historical organization snapshot can restore revoked memberships or sessions; operator review, session/challenge invalidation and reconciliation are required before access is reopened. Organization restore/migration automation and actual public hosting remain unimplemented.
+The organization `/healthz` endpoint is liveness only. The new `/readyz` checks fresh testnet identity RPC/finalized state and the database recovery gate. Do not use the public index restore tool for the organization database. A historical organization snapshot can restore revoked memberships or sessions; operator review, session/challenge invalidation and reconciliation are required before access is reopened. Organization backup/restore and reviewed access activation tooling are implemented. Actual public hosting still requires operator target/access and external acceptance.
 
 ## Prerequisites and configuration
 
@@ -159,3 +159,7 @@ The Organization API uses a separate database and [dedicated backup/recovery com
 ## Source-bound tax preparation drafts
 
 [AI tax and procedure drafts](TAX_DRAFTS.md) connect verified rule reports and exact selected-receipt bindings to cited English preparation, encrypted organization storage and independent versioned review. AI only arranges verified statement IDs; deterministic outlines are labelled separately. Source/policy/membership expiry suspends internal approval. Restore invalidates all draft reviews and abandons pending generations. No statutory filing or payment is authorized. See the guide for permissions, API, provider configuration and independently pinned reviewer policy.
+
+## Combined live deployment and acceptance
+
+[Production hosting](PRODUCTION_HOSTING.md) provides the one-host, single-gateway stack, exact route-specific body limits, organization RPC/storage readiness and twelve external HTTPS acceptance checks. Hosting account/SSH target, actual domains and a verified deployed testnet policy are still missing; no backend has been publicly deployed from this workspace. R04 remains open.

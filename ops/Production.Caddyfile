@@ -1,0 +1,36 @@
+{
+    email {$CORE_TLS_EMAIL}
+}
+
+import OrganizationRoutes.caddy
+
+{$CORE_API_DOMAIN} {
+    encode zstd gzip
+    header {
+        -Server
+        Cache-Control "no-store"
+        X-Content-Type-Options "nosniff"
+    }
+    request_body {
+        max_size 65536
+    }
+    reverse_proxy api:3001 {
+        health_uri /readyz
+        health_interval 30s
+        health_timeout 20s
+        health_status 200
+        header_up -X-Forwarded-For
+        header_up -X-Real-IP
+    }
+}
+
+{$CORE_ORGANIZATION_DOMAIN} {
+    encode zstd gzip
+    header {
+        -Server
+        Cache-Control "no-store"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+    }
+    import organization_routes
+}
