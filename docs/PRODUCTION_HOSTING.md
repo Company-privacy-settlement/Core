@@ -2,7 +2,7 @@
 
 [Hosting architecture](HOSTING.md) · [Organization service](ORGANIZATIONS.md) · [Deployment policy](DEPLOYMENT.md)
 
-**Current status: not deployed.** On 2026-11-14 this workspace has no connected hosting account, SSH target or assigned API domains. A native development-testnet policy and wallet record are now available through [public-testnet qualification](TESTNET_WALLET.md); USDC and a hosted API remain unqualified. The existing Site URL hosts Front; it is not a persistent Node/SQLite API or indexer. Adding configuration and passing fixture tests do not complete live deployment. Work package R04 remains open.
+**Current status: not deployed.** The selected Ubuntu host is `64.227.151.164`, with frontend `moneystation.site` and requested settlement API `api.moneystation.site`. Direct Hostinger DNS was reported, but the dated authoritative/public DNS checks still returned NXDOMAIN and the runtime account required a sudo password. Front now provides reviewed HTTP/HTTPS gateway templates and a staged static release; actual root installation and public certificates have not been completed. The API/indexer and Organization API are not installed by the frontend gateway. A native development-testnet policy and wallet record are available through [public-testnet qualification](TESTNET_WALLET.md); browser USDC and hosted API acceptance remain unqualified. Work package R04 remains open.
 
 ## Required operator inputs
 
@@ -11,7 +11,7 @@
 | Hosting target | Connected Render account or an explicitly selected SSH host with access and persistent storage; agree actual service/disk cost before provisioning paid resources |
 | API domains | Two distinct HTTPS origins for settlement and organization APIs, DNS access if using custom domains; platform-provided HTTPS names are acceptable |
 | Deployment policy | Real deployed keyless testnet group, verified contract/verifier hashes, policy file and independently obtained exact **byte** SHA-256; example/sandbox policies are not sufficient |
-| Front origin | Exact allowed Front origin, currently `https://core-private-settlement-0574c4.jiheon6768.chatgpt.site` |
+| Front origin | Exact allowed Front origin; the selected custom-domain target is `https://moneystation.site`. The existing Sites preview is a separate origin. |
 | Protected keys | Organization encryption key ring, preserved separately from the database and readable only by the runtime owner |
 | Operator verification | External HTTPS reachability, advancing finalized index, current test-wallet organization session and post-restart persistence evidence |
 
