@@ -29,3 +29,7 @@ Set the backend switch to false and rebuild the frontend with `NEXT_PUBLIC_MONEY
 ## Validation
 
 Core's authenticated HTTP tests cover immediate/default-off behavior, unchanged identity claims, tenant/role/session/key boundaries, existing/revoked cases and mutually exclusive provider setup. Front unit and desktop/mobile browser cases cover automatic sample approval, export claims, edit invalidation, review and reload. Live deployment observations are recorded separately from fixtures.
+
+## Current deployment — 2026-11-14
+
+Enabled at [Money Station KYB](https://moneystation.site/kyb/). Backend runtime `f4c9a4859a73-490c8cc1ba5b` and Front runtime `524fdec58fe6-d84a43467fee` passed [recorded acceptance](evidence/hackathon-kyb-2026-11-14.json). The database and encryption keys were preserved. Actual desktop/mobile HTTPS checks confirmed immediate approval, export claims, no provider submission, no horizontal overflow and navigation to invoices. Organization readiness is 200 with demo mode enabled and identity claims false; anonymous organization reads remain 401. Validation: 600 Core tests, 13 Front unit tests and 26 targeted desktop/mobile browser cases. Real provider and signed-wallet business acceptance remain separate from this demo.
