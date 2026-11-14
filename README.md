@@ -130,7 +130,7 @@ Principal does not traverse A → B → C hops. One group's shared tree hides in
 
 Browser notes and full receipts stay in memory and encrypted downloaded files. Journal and optional invoice-library data persist encrypted in separate browser namespaces. Locking/history-cache handling invalidates pending work. An already-open wallet request cannot be cancelled by locking; its durable signing intent stays blocked for explicit reconciliation. The service cannot recover lost note secrets or passphrases.
 
-The US / Abu Dhabi scope is a planned preparation layer, with US state and ADGM/mainland distinctions required. AI tax drafts, deterministic tax rules, live KYB qualification, statutory filing, fiat conversion and production deployment are not implemented. See [compliance scope](compliance/README.md).
+The US / Abu Dhabi scope is a planned preparation layer, with US state and ADGM/mainland distinctions required. AI tax drafts, full jurisdiction tax coverage, live KYB qualification, statutory filing, fiat conversion and production deployment are not implemented. See [compliance scope](compliance/README.md).
 
 ## Guides
 
@@ -149,3 +149,7 @@ Worker/contractor payout validation on **2026-11-14**: **401 Core tests** and **
 [Sumsub KYB/KYC integration](docs/VERIFICATION.md) is available in Organization → Verification: company/beneficial-owner review, secure supplemental submissions, encrypted minimal snapshots, authenticated invalidation and fixed review-date expiry/revocation. Activation needs an operator-contracted account, configured levels and HTTPS callbacks; development exercised provider fixtures, not real entities. The separate `/kyb/` sample stays unsubmitted.
 
 KYB/KYC connector validation on **2026-11-14**: **428 Core tests** and **224 desktop/mobile browser cases** passed, including 27 new Core and 14 provider-workflow browser cases. Types, Node/browser SDK and static Front builds, compiled service restart/backup/recovery, documentation and SDK synchronization passed. Tests use local provider/RPC/wallet fixtures; no real Sumsub account, entity/person decision, live callback or public backend was qualified.
+
+[US/Abu Dhabi rules](docs/RULES.md) provide seven source-checked component candidates selected by jurisdiction, employee/contractor/B2B relationship and applicable date. The local browser/CLI engine records exact arithmetic and official sources; reviewed use requires an independently pinned Ed25519 reviewer approval. No professional approval, complete tax liability, automatic withholding or filing is bundled.
+
+Rule-engine validation on **2026-11-14**: **459 Core tests** and **240 desktop/mobile browser cases** passed, including 31 new Core and 16 rule-workspace browser cases. Types, Node/browser SDK and static Front builds, compiled CLI export/reverification, service restart/backup/recovery and source/documentation checks passed. Reviewer keys are test fixtures; no professional tax/legal rule approval, taxpayer assessment, automatic withholding or filing was performed.

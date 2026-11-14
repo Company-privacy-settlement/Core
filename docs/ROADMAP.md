@@ -36,7 +36,9 @@ The latest recorded full implementation runs on **2026-11-13** include:
 
 Payout service validation on **2026-11-14**: **401 Core tests**, **210 desktop/mobile Chromium browser cases**, SDK/static builds and compiled service/organization recovery checks passed. This includes worker/contractor payout staging, independent approval, fixed-destination individual recovery and observed settlement exports.
 
-Latest connector validation on **2026-11-14**: **428 Core tests**, **224 desktop/mobile Chromium browser cases**, SDK/static builds and compiled service recovery checks passed. Sumsub transport and entity/owner decisions were local fixtures; no provider account, live callback or real entity/person was qualified.
+Connector validation on **2026-11-14**: **428 Core tests**, **224 desktop/mobile Chromium browser cases**, SDK/static builds and compiled service recovery checks passed. Sumsub transport and entity/owner decisions were local fixtures; no provider account, live callback or real entity/person was qualified.
+
+Latest rule-engine validation on **2026-11-14**: **459 Core tests**, **240 desktop/mobile Chromium browser cases**, SDK/static builds, compiled rule CLI and service recovery checks passed. This covers exact component arithmetic, review signature/trust/revocation, engine/catalog binding and exported-report integrity. Test reviewer keys do not constitute professional tax/legal approval.
 
 The FT is a local **TESTUSD fixture, not Circle-issued USDC**. No funded public-network wallet smoke test has been completed. These are dated results; documentation edits do not imply fresh execution of every suite. Reproduction: [Core README](../README.md), [Front README](https://github.com/Company-privacy-settlement/Front), [Contract README](https://github.com/Company-privacy-settlement/Contract).
 
@@ -44,7 +46,7 @@ Historical reviews: [invoice/index](REVIEW-2026-11-12.md), [selection/checkout](
 
 ## Remaining development — priority and status
 
-The backlog below contains **36 work packages: nine delivered (R01/R02/U01/U02 tooling, M01/M02/M03 and E02/E03 integration), 27 open including partial foundations** across six areas. They are planning items, not 36 discovered vulnerabilities or equally urgent release blockers. Completed capabilities above must be reused rather than rebuilt. Ownership names refer to repositories/workstreams, not assigned people. Effort and dates remain unestimated until deployment access, provider choices and product requirements are known.
+The backlog below contains **36 work packages: ten delivered (R01/R02/U01/U02 tooling, M01/M02/M03, E02/E03 integration and E05 component engine), 26 open including partial foundations** across six areas. They are planning items, not 36 discovered vulnerabilities or equally urgent release blockers. Completed capabilities above must be reused rather than rebuilt. Ownership names refer to repositories/workstreams, not assigned people. Effort and dates remain unestimated until deployment access, provider choices and product requirements are known.
 
 - **P0 — public testnet demo:** required to demonstrate the existing protocol with a real funded deployment and wallets. External accounts/funding and hosting-audience decisions are dependencies, not authorization to spend funds, remove keys or change access.
 - **P1 — usable merchant flow:** removes CLI friction and adds merchant operations. These are service additions, not claims of production safety.
@@ -52,7 +54,7 @@ The backlog below contains **36 work packages: nine delivered (R01/R02/U01/U02 t
 - **Design — optional protocol scope:** requires an explicit requirement and version/compatibility analysis. Do not bundle these research changes into a release of the current fixed-denomination protocol.
 - **Gate — before production funds:** independent security, setup and operational/product qualification. Gate work starts in parallel; it cannot wait until after a production launch.
 
-Entries other than **R01/R02/U01/U02 tooling, M01/M02/M03 and E02/E03 integration** remain **open**, including explicitly labeled partial foundations. External dependency does not mean development is blocked: prepare dry-runs, reviewable manifests, runbooks, adapters and fixtures first.
+Entries other than **R01/R02/U01/U02 tooling, M01/M02/M03, E02/E03 integration and E05 component engine** remain **open**, including explicitly labeled partial foundations. External dependency does not mean development is blocked: prepare dry-runs, reviewable manifests, runbooks, adapters and fixtures first.
 
 ## P0 — public testnet release (6)
 
@@ -97,10 +99,10 @@ These are optional service-layer additions for a persistent merchant gateway. Th
 | E02 | **Worker/contractor payout batches delivered** — Core + Front | Validate recipient lists and classifications, isolate failures, show each note/fee/approval and reconcile per-recipient results. Specify scheduled execution authority separately; a saved schedule must not silently gain wallet signing power. | [Independent approvals, per-row recovery and settlement](PAYOUT_BATCHES.md); scheduled execution authority remains separate |
 | E03 | **Sumsub KYB/KYC connector delivered; live qualification and credentials remain separate** — Core + Front | Entity/beneficial-owner cases, documents/follow-ups, authenticated callbacks, issuer trust, expiry/current revocation and explicit decisions. Version signed claims for any finer jurisdiction/scope than current US/AE credentials. Decide off-chain eligibility versus X05 circuit admission. | [Provider integration, secure supplementation, expiry/revocation and recovery](VERIFICATION.md); contracted account, configured levels, live callback/real entity qualification and any signed credential remain required |
 | E04 | Encrypted business-document packages — enterprise service + Front | Authenticated upload/access, encryption/key rotation, integrity commitments, authorized selective export and tested retention/deletion. Never place raw identity, beneficial-owner, salary or tax files on-chain. | E01; storage/key-management/retention decisions |
-| E05 | Versioned US / Abu Dhabi rule engine — Core / compliance preparation | Resolve US state/federal scope, ADGM/mainland status, B2B/employee/contractor classification and effective date. Store cited official rule versions, deterministic calculations, source/input provenance and reviewed fixtures. No invented rates. | Jurisdiction/product facts and qualified rule review |
+| E05 | **Versioned component rule engine delivered; professional review and wider coverage remain open** — Core + Front | Resolve US state/federal scope, ADGM/mainland status, B2B/employee/contractor classification and effective date. Store cited official rule versions, deterministic calculations, source/input provenance and reviewed fixtures. No invented rates. | [Seven candidates, official provenance, signed review gate and deterministic evidence](RULES.md); no professional approval bundled, US state/local/full tax coverage and consolidated-source gaps need separate review |
 | E06 | Reviewable AI preparation and evidence review — enterprise service + Front | Generate cited drafts from reviewed E05 outputs and authorized documents; expose unknowns and require review. Separate receipt integrity, final payment, declaration truth, identity and legal/tax conclusions. Filing/payment connectors are a distinct later integration, never implied by draft generation. | E03/E04/E05; model/data-access and review policy |
 
-Tax calculation, payroll withholding, treaty analysis, AI legal drafts, actual provider qualification, statutory filing and fiat conversion remain unimplemented. These entries describe development preparation, not current legal obligations or approved tax rates. See [compliance scope](../compliance/README.md).
+Complete tax liability/payroll withholding, treaty analysis, AI legal drafts, actual provider qualification, statutory filing and fiat conversion remain outside the delivered component engine. These entries describe development preparation, not current legal obligations or approved tax rates. See [compliance scope](../compliance/README.md).
 
 ## Design — optional protocol expansion (6)
 

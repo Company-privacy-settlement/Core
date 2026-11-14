@@ -1,0 +1,62 @@
+{
+  "format": "core-rule-sources-v1",
+  "checkedAt": "2026-11-14",
+  "captures": [
+    {
+      "id": "irs-p15-2025",
+      "url": "https://www.irs.gov/pub/irs-prior/p15--2025.pdf",
+      "sha256": "168837bd5f666d8c0a7cd59a1309512c0429974b5b7b982ae781a3b9f925b7a0",
+      "bytes": 1638723
+    },
+    {
+      "id": "irs-p15-2026",
+      "url": "https://www.irs.gov/pub/irs-pdf/p15.pdf",
+      "sha256": "b46c3622439d8521e3a0faca4cd5b5ece3451b526f65f06a5e38d5c9f804c88b",
+      "bytes": 1713916
+    },
+    {
+      "id": "irs-additional-medicare",
+      "url": "https://www.irs.gov/taxtopics/tc560",
+      "sha256": "88b722783e82b03843591f46d3ef14e8328b8b6acff9835b03149d6ad73d869e",
+      "bytes": 103875
+    },
+    {
+      "id": "uae-vat",
+      "url": "https://tax.gov.ae/en/faq.aspx?keyword=Does+VAT+apply+to+all+goods+and+services",
+      "sha256": "88919ac9a07df0fdf4ed9675aec58526b171a0f9ec3bc757ec0f67eadbb51e48",
+      "bytes": 390449
+    },
+    {
+      "id": "uae-labour",
+      "url": "https://u.ae/en/information-and-services/jobs/employment-in-the-private-sector/-/media/Information-and-services/Jobs/Federal-DecreeLaw-No-33-of-2021.pdf",
+      "error": "<urlopen error _ssl.c:983: The handshake operation timed out>"
+    },
+    {
+      "id": "adgm-employment",
+      "url": "https://assets.adgm.com/download/assets/ADGM%20EAO%20-%20FAQs%20-%20ER%202024%20%28Feb%202025%29.pdf/eed10768edbe11ef9eaee2d468ad6a26",
+      "sha256": "90fe70d6ec89b0365355c9b0c815c47370e4efadc01b88ffd18f87fcfddb8099",
+      "bytes": 422963
+    },
+    {
+      "id": "adgm-regulations",
+      "url": "https://en.adgm.thomsonreuters.com/sites/default/files/net_file_store/ADGM1547_27534_VER20251028.pdf",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "uae-labour-current",
+      "url": "https://www.uaelegislation.gov.ae/en/legislations/1541/download",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "uae-vat-introduction",
+      "url": "https://mof.gov.ae/en/public-finance/tax/",
+      "sha256": "2ce535e7206c335d01fe7c9fd5fc82e3fc9db5ef58f871e48e20f6a0e14b0159",
+      "bytes": 256098
+    },
+    {
+      "id": "adgm-effective-date",
+      "url": "https://www.adgm.com/operating-in-adgm/employment-affairs-office",
+      "error": "HTTP Error 403: Forbidden"
+    }
+  ]
+}

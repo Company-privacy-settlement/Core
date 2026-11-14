@@ -11,7 +11,7 @@ This document describes implemented behavior as of **2026-11-14**. It is not a c
 | Settlement | [Contract](https://github.com/Company-privacy-settlement/Contract) | Native NEAR v2 and immutable-token NEP-141 v3 groups, independent vaults, shared forest/nullifiers, real Groth16 circuit |
 | Integration | [Core](../README.md) | Browser/Node SDK, local proving CLI, read-only HTTP API, SQLite index, evidence tools |
 | Interface | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js landing, ten English Docs guides and wallet workspaces |
-| Future compliance | [Compliance scope](../compliance/README.md) | [Configured Sumsub connector](VERIFICATION.md); versioned US/Abu Dhabi rules and reviewable AI preparation remain planned |
+| Compliance preparation | [Compliance scope](../compliance/README.md) | [Configured Sumsub connector](VERIFICATION.md) and [versioned rule components](RULES.md); professional review, wider tax coverage and AI preparation remain separate |
 
 | Front route | Use |
 | --- | --- |
@@ -135,7 +135,7 @@ The [separate Organization API](ORGANIZATIONS.md) adds NEP-413 testnet wallet au
 - **Capacity:** fixed denominations and 256 total note outputs per group, including private transfers. Withdrawal does not recycle outputs. Groups/assets remain separate domains with no automatic private migration.
 - **Browser:** configured testnet FT execution, local notes and receipts are implemented. New Groth16 spend proofs remain in the CLI; native NEAR v2 uses the contract/CLI path.
 - **KYB:** Front’s six-page sample intake distinguishes the US, Abu Dhabi mainland and ADGM. File contents are not read/uploaded. Exports state `verified: false`, `credentialIssued: false`, `providerSubmission: not_sent`. SDK checks trusted issuer signatures, subject binding, expiry and supplied revocations; this is not live identity review or circuit-enforced admission.
-- **Tax/legal:** B2B, employee and contractor classification, US state/federal jurisdiction, ADGM/mainland status and effective date must be resolved before future rules/drafts. Real tax calculation, payroll withholding, treaty analysis, AI legal drafts and statutory filings are not implemented.
+- **Tax/legal:** B2B, employee and contractor classification, US state/federal jurisdiction, ADGM/mainland status and effective date must be resolved before relying on a rule or future draft. The Rules engine prepares source-checked candidate components with an independent signed-review gate; full tax liability/payroll withholding, treaty analysis, AI legal drafts and statutory filings remain outside its implementation.
 - **Security/release:** no production audit, reviewed multi-party setup, bundled funded public deployment or public-network real-wallet smoke test. Missing payout callbacks remain conservatively reserved; never reset nullifiers or redirect destinations to manufacture recovery.
 
 ## Recorded validation and next work
@@ -165,3 +165,5 @@ Standalone browser FT withdrawal proving, artifact integrity checks, cancellatio
 [Payout batches](PAYOUT_BATCHES.md) group independently approved public requests with resumable/idempotent staging, per-recipient additive fee review, one encrypted journal, individual fixed-destination recovery and observational CSV/JSON settlement reports. Existing corporate note/dispatch reservations and reviewed restore invalidation remain in force; there is no implicit whole-run replay or contract custody.
 
 [Organization → Verification](VERIFICATION.md) now integrates Sumsub company/UBO review, secure supplementation, expiring encrypted status and local/provider-event revocation. Activation and actual provider review require the operator’s account/levels/HTTPS callback; development used local provider fixtures. The `/kyb/` sample flow still submits nothing.
+
+[US/Abu Dhabi rule engine](RULES.md) adds seven source-checked component candidates, strict date/jurisdiction/relationship selection, deterministic minor-unit arithmetic and independently pinned reviewer signatures. Front Rules and the local CLI keep calculations separate from payment execution, complete tax liability and filing. No professional approval is bundled.

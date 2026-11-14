@@ -1,6 +1,19 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "noEmit": false, "rootDir": ".", "outDir": "dist/service" },
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": ".",
+    "outDir": "dist/service"
+  },
   "include": [],
-  "files": ["sdk/vendor.d.ts", "scripts/server.ts", "scripts/indexer.ts", "scripts/service.ts", "scripts/index-maintenance.ts", "scripts/organization-server.ts", "scripts/organization-maintenance.ts"]
+  "files": [
+    "sdk/vendor.d.ts",
+    "scripts/server.ts",
+    "scripts/indexer.ts",
+    "scripts/service.ts",
+    "scripts/index-maintenance.ts",
+    "scripts/organization-server.ts",
+    "scripts/organization-maintenance.ts",
+    "scripts/rules.ts"
+  ]
 }

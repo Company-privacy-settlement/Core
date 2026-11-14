@@ -1,0 +1,17 @@
+{
+  "format": "core-rule-input-v1",
+  "jurisdiction": "US-FEDERAL",
+  "relationship": "employee",
+  "effectiveDate": "2026-11-14",
+  "currency": "USD",
+  "facts": {
+    "usState": "CA",
+    "taxYear": "2026",
+    "standardCoveredWages": true,
+    "sameEmployerYtd": true,
+    "socialSecurityWagesMinor": "100000",
+    "medicareWagesMinor": "100000",
+    "ytdSocialSecurityWagesMinor": "0",
+    "ytdMedicareWagesMinor": "0"
+  }
+}

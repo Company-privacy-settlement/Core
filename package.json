@@ -48,7 +48,9 @@
     "index": "tsx scripts/indexer.ts",
     "test:groups-proof": "tsx tests/manual/groups-proof.ts",
     "test:browser-prover": "tsx tests/manual/browser-prover.ts",
-    "organizations:invoice-keys": "node scripts/organization-invoice-keys.mjs"
+    "organizations:invoice-keys": "node scripts/organization-invoice-keys.mjs",
+    "rules": "tsx scripts/rules.ts",
+    "rules:compiled": "node dist/service/scripts/rules.js"
   },
   "dependencies": {
     "bs58": "^6.0.0",
