@@ -10,6 +10,8 @@ This repository contains the SDK, local browser prover and proving CLI, read-onl
 
 [Organization invoice API](docs/ORGANIZATION_INVOICES.md) stores and retrieves immutable signed invoices per organization, prevents duplicate creation and encrypts sensitive terms with AES-256-GCM. Configure a separate owner-only key ring; the API refuses invoice storage without it. Existing local invoice creation/checkout remains independent.
 
+[Payment management dashboard](docs/PAYMENT_DASHBOARD.md) adds organization invoice search, status/asset/group/date filters, CSV/JSON export and finalized-index payment reconciliation. The SDK distinguishes historical lookup from current-key checkout; unknown, stale and incomplete observations remain explicit.
+
 ## Repositories
 
 | Repository | Responsibility |
@@ -133,3 +135,5 @@ The US / Abu Dhabi scope is a planned preparation layer, with US state and ADGM/
 The hosted development workspace is owner-private; external customer checkout requires suitable access configuration and an independently deployed/funded group. No funded public deployment is bundled. Variable amounts, private group migration, real compliance integrations, independent security review and a reviewed multi-party setup remain outstanding.
 
 Validated on **2026-11-14** for organization invoice storage: **342 Core tests** passed, including 22 new invoice API/encryption/idempotency/recovery cases, plus the compiled service startup/restart and CLI recovery harness.
+
+Payment dashboard validation on **2026-11-14**: **355 Core tests** and **182 desktop/mobile browser cases** passed, including 13 new Core and 18 browser dashboard cases; type checks, Node/browser SDK builds and the static Front build passed. Browser service/wallet fixtures do not establish a live public-network deployment.

@@ -61,3 +61,5 @@ export type {
 } from "./activity.js";
 
 export * from './organization-invoices.js';
+
+export * from "./invoice-dashboard.js";

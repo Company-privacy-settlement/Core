@@ -47,7 +47,7 @@ const firstPage = await invoices.list(undefined, abortController.signal);
 const original = await invoices.get(saved.invoice.id, abortController.signal);
 ```
 
-The helper transports signed terms and does not persist tokens or invoice plaintext. The existing `/invoices/` browser creation/library and checkout workflows remain usable; they do not automatically sync to this private API. Persistent dashboard search/export (M02) and webhooks (M03) remain separate work.
+The helper transports signed terms and does not persist tokens or invoice plaintext. The existing `/invoices/` browser creation/library and checkout workflows remain usable; they do not automatically sync to this private API. [Persistent dashboard search/export (M02)](PAYMENT_DASHBOARD.md) is available; webhooks (M03) remain separate work.
 
 ## Encryption boundary and recovery
 
@@ -66,3 +66,7 @@ To rotate encryption keys, provision a new random data key under a new key ID, k
 [Organization backup/recovery](ORGANIZATION_BACKUPS.md) preserves ciphertext and blinded idempotency indexes without copying keys. A restored snapshot remains quarantined and drops sessions/challenges; reviewed current ACL activation is still mandatory. Re-provision the correct key ring separately before serving invoices. A removed historical member cannot recover invoice access through restoration. A wrong/missing ring never causes plaintext restoration or new duplicate records.
 
 Validation covers real Ed25519 signatures, HTTP/session/tenant isolation, concurrent idempotency, conflicts, at-rest plaintext absence, authenticated metadata tampering, key loading/rotation, bounded pagination, and encrypted backup/reviewed recovery. The compiled-runtime harness additionally generates a protected key file, starts/restarts the service and reads the encrypted invoice after CLI backup/restore/activation. Container image execution and public testnet backend deployment require their respective external environments.
+
+## Payment management dashboard
+
+[Organization payment dashboard](PAYMENT_DASHBOARD.md) provides complete-snapshot search, state/asset/group/date filters, CSV/JSON export and finalized-index payment observations in Front `/organization/` → Invoice payments. Signed JSON can be explicitly saved to organization storage. Local creation remains independent. Unknown, stale and incomplete observations remain explicit; exports require current read access.

@@ -149,3 +149,7 @@ Also outstanding: indexed-provider scaling, connected note-to-invoice browser pr
 Core tests cover independent NEP-413 serialization, term tampering, UTF-8 links, full-access ownership, additive fees, expiry/partial/late/overpayment, nullifier deduplication, incomplete indexing, strict APIs and invoice-bound plan checks. Browser tests issue a request with a standard injected fixture wallet, open its fragment checkout, reject a different invoice proof, and reconcile two simulated wallet settlements. The actual sandbox integration verifies a recipient-issued merchant signature against live account keys, pays an invoice-bound withdrawal after recovery, and reconciles its finalized principal through the real index/API. The token in that integration is a sandbox fixture, not Circle-issued USDC.
 
 References: [NEP-413](https://github.com/near/NEPs/blob/master/neps/nep-0413.md), [Core wallet execution](WALLET.md), [Core index](INDEXER.md), [CoinGate create-order flow](https://developer.coingate.com/reference/create-order).
+
+## Payment management dashboard
+
+[Organization payment dashboard](PAYMENT_DASHBOARD.md) provides complete-snapshot search, state/asset/group/date filters, CSV/JSON export and finalized-index payment observations in Front `/organization/` → Invoice payments. Signed JSON can be explicitly saved to organization storage. Local creation remains independent. Unknown, stale and incomplete observations remain explicit; exports require current read access.

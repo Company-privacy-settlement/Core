@@ -81,8 +81,8 @@ export class HttpGateway implements Gateway {
     }
     return r.json();
   }
-  async policy(): Promise<Policy> {
-    return parsePolicy((await this.request("/v1/config")).policy);
+  async policy(options: { signal?: AbortSignal } = {}): Promise<Policy> {
+    return parsePolicy((await this.request("/v1/config", undefined, options.signal)).policy);
   }
   preflight(request: Parameters<Gateway["preflight"]>[0]): Promise<Preflight> {
     return this.request("/v1/ft/preflight", request);
@@ -143,8 +143,17 @@ export class HttpGateway implements Gateway {
     return signed;
   }
   async invoiceStatus(input: SignedInvoice, options: { signal?: AbortSignal } = {}): Promise<InvoiceStatus> {
-    const signed = await this.verifyInvoice(input, options),
-      hash = await invoiceHash(signed.invoice),
+    const signed = await this.verifyInvoice(input, options);
+    return this.readInvoiceHistory(signed, options);
+  }
+  /** Archived signed terms: indexed final history only, without granting current merchant authority. */
+  async invoiceHistory(input: SignedInvoice, options: { signal?: AbortSignal } = {}): Promise<InvoiceStatus> {
+    const signed = await verifySignedInvoice(input);
+    await this.trusted(signed.invoice.policy, options.signal);
+    return this.readInvoiceHistory(signed, options);
+  }
+  private async readInvoiceHistory(signed: SignedInvoice, options: { signal?: AbortSignal }): Promise<InvoiceStatus> {
+    const hash = await invoiceHash(signed.invoice),
       result = await this.request("/v1/invoices/status", await invoiceStatusRequest(signed.invoice), options.signal),
       roots = await invoicePaymentRoots(signed.invoice);
     if (
