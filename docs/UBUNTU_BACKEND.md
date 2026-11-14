@@ -50,7 +50,7 @@ Front's reviewed Ubuntu HTTPS configuration uses a single API audience, `https:/
 | `/v1/auth/*`, `/v1/me`, `/v1/organizations` and child routes | Organization API `3332` |
 | `/v1/providers/sumsub/webhook` | Organization API; actual provider remains disabled |
 
-Both runtimes allow the exact browser origin `https://moneystation.site`. Organization signatures retain the exact shared API audience; no path or host rewriting changes that audience. Nginx strips untrusted peer headers and retains the existing 8,192-byte default, 65,536-byte provider and 131,072-byte draft-body limits. The static frontend installer does not launch these backend processes.
+Both runtimes allow the exact browser origin `https://moneystation.site`. Organization signatures retain the exact shared API audience; no path or host rewriting changes that audience. Nginx strips untrusted peer headers and retains the existing 8,192-byte default, 65,536-byte provider and 131,072-byte draft-body limits. The static frontend installer does not launch these backend processes. The frontend itself now runs separately as an isolated owner-managed service on port 3330; its root-promotion script transfers that port to the system frontend without stopping these backends.
 
 The existing Docker/Caddy profile and `hosting:verify` continue to require two distinct API origins. They are a separate deployment profile; do not use their verifier as acceptance for this path-routed configuration. Front's `tests/manual/ubuntu-hosting.py --live-backends <archive> <sha256>` exercises the actual shared Nginx routes with a temporary explicitly trusted certificate and the real loopback services. This establishes local routing/CORS/auth behavior, not a public certificate.
 
