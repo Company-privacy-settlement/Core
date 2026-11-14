@@ -71,6 +71,6 @@ Keep durable unsigned transaction intents before signing, use one dispatch per n
 
 ## Privacy qualification remains separate
 
-This run has one public payer signing deposits and withdrawals, two notes and two vaults. It establishes functionality and recovery, **not meaningful anonymity**. It has no automated cover-traffic scheduler or measured effective anonymity set. See [privacy and cover traffic](PRIVACY.md#participation-and-cover-traffic).
+This run has one public payer signing deposits and withdrawals, two notes and two vaults. It establishes functionality and recovery, **not meaningful anonymity**. This initial run did not include automated cover traffic or a measured effective anonymity set. The later [bounded cover experiment](COVER_TRAFFIC.md) is separate; its artificial outputs do not add independent participants. Current addresses and a dated read-only snapshot are in [deployed addresses](DEPLOYED_ADDRESSES.md). See [privacy and cover traffic](PRIVACY.md#participation-and-cover-traffic).
 
 Recorded validation: **513 Core tests**, SDK/type/compiled service restart/backup/recovery gates, real testnet execution and the public read-only verifier passed. Browser-wallet acceptance, USDC funding/settlement, hosted HTTPS and remote Actions success are separate observations and are not inferred from this run.

@@ -67,6 +67,8 @@ npm run testnet:verify-wallet -- docs/evidence/testnet-wallet-2026-11-14.json \
 
 [Testnet run and transaction links](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md) · [Public evidence](https://github.com/Company-privacy-settlement/Core/blob/main/docs/evidence/testnet-wallet-2026-11-14.json)
 
+[컨트랙트·볼트 주소](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/deployments/) · [주소 기록과 검증 핀](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYED_ADDRESSES.md). 2026-11-14 FINAL 블록 **277653473**에서 레지스트리와 볼트 2개를 재확인했습니다. 네이티브 NEAR 테스트넷 참조이며 브라우저 USDC 정산과 별도입니다.
+
 네이티브 지갑 실증 시 **Core 513개 테스트**와 SDK·타입 빌드·컴파일 서비스 재시작/백업/복구를 검증했습니다. 브라우저 USDC 준비 업데이트는 **Core 520개 테스트**와 타입 검사를 통과했으나 실제 자금 점검은 차단 상태입니다. 프라이버시 기준선 업데이트는 **Core 535개 테스트**를 통과했으며 재검증한 네이티브 기록을 측정하지만 실효 익명성을 입증하지는 않습니다. 브라우저 테스트 환경·자금 사전 점검·공개 정산 실거래 증거는 구분합니다. 비수탁 릴레이는 **Core 549개 테스트**, 실제 네이티브/FT 샌드박스와 공개 테스트넷 0.1 NEAR 대납 출금을 검증했으며 중복 요청·재시작 시 재전송하지 않았습니다.
 
 ## 구조와 수수료

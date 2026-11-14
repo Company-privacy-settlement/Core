@@ -67,6 +67,8 @@ npm run testnet:verify-wallet -- docs/evidence/testnet-wallet-2026-11-14.json \
 
 [Testnet run and transaction links](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md) · [Public evidence](https://github.com/Company-privacy-settlement/Core/blob/main/docs/evidence/testnet-wallet-2026-11-14.json)
 
+[Contract and vault addresses](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/deployments/) · [Address record and verification pins](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYED_ADDRESSES.md). Registry and two vaults were rechecked at FINAL block **277653473** on 2026-11-14. This native NEAR testnet reference is separate from browser USDC settlement.
+
 The recorded native-wallet gate passed **513 Core tests**, SDK/type builds and compiled service restart/backup/recovery. The browser-USDC preparatory update passed **520 Core tests** and type checking; its actual funding report remains blocked. The privacy-baseline update passed **535 Core tests** and measures reverified native records without claiming effective anonymity. Browser fixtures, funding preflight and public settlement execution are separate evidence categories. The proof-relay update passed **549 Core tests**, real native/FT sandbox execution and a 0.1 NEAR public-testnet sponsored payout; repeated requests/restart did not resend.
 
 ## Architecture and fees
