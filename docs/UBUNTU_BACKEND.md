@@ -2,6 +2,8 @@
 
 Money Station runs two actual loopback services on the selected Ubuntu host (`64.227.151.164`): settlement API plus its single finalized index writer on `127.0.0.1:3331`, and Organization API on `127.0.0.1:3332`. Both passed `/readyz` against actual NEAR testnet RPC on 2026-11-14. The finalized checkpoint advanced and retained 16 indexed records through a controlled worker restart. This qualifies local runtime operation, not public HTTPS or a browser payment journey.
 
+[Recorded local acceptance report](evidence/ubuntu-backend-2026-11-14.json) pins deployed Core `d6ab7c5a37796b26eeb85209a5e4bc18a1b9e319` and runtime `d6ab7c5a3779-b1d5111020f7`. The evidence-only documentation commit can follow that runtime commit; it does not imply a different deployed executable.
+
 ## Runtime and isolation
 
 The owner is `jiheon`, not root. State lives outside the checkout under `/home/jiheon/.local/share/money-station/backend/` with mode 0700. Bubblewrap uses separate user, mount and PID namespaces, drops capabilities and mounts the release read-only. Each service sees only its own writable `/data`; neither sees the host home. Host networking allows actual RPC access, while listeners bind only to loopback.

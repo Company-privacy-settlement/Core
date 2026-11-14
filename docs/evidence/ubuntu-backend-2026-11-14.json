@@ -1,0 +1,60 @@
+{
+  "format": "money-station-backend-acceptance-v1",
+  "status": "passed",
+  "checkedAt": "2026-11-14T20:35:32Z",
+  "runtime": "d6ab7c5a3779-b1d5111020f7",
+  "sourceCommit": "d6ab7c5a37796b26eeb85209a5e4bc18a1b9e319",
+  "checks": [
+    "native-deployment-and-index-ready",
+    "organization-rpc-and-storage-ready",
+    "exact-policy-and-allowed-origin",
+    "both-unrelated-origins-denied",
+    "organization-session-required",
+    "host-home-absent",
+    "public-api-cannot-read-organization-secrets",
+    "organization-secrets-and-runtime-read-only",
+    "duplicate-index-writer-rejected",
+    "real-finalized-index-checkpoint-advanced",
+    "controlled-worker-restart",
+    "index-and-organization-database-preserved",
+    "separate-encryption-keys-preserved"
+  ],
+  "apiReadiness": {
+    "ready": true,
+    "readOnly": true,
+    "checkedAtBlock": {
+      "hash": "5jLyEFCTDaL32a5EjKeeyHvYE5RTmeRLEgtHAvJCUPwu",
+      "height": 277706979
+    },
+    "deploymentVerified": true,
+    "checkedVaults": 1,
+    "index": {
+      "enabled": true,
+      "ageMs": 127,
+      "lagBlocks": 1,
+      "indexedRecords": 16,
+      "provenanceChecked": false
+    },
+    "chainFreshnessChecked": false
+  },
+  "organizationReadiness": {
+    "ready": true,
+    "service": "core-organizations",
+    "network": "testnet",
+    "checkedAtBlock": {
+      "height": 277706982,
+      "hash": "ArV8qmddRFkJ4Su77an4ZgMb51uvhbPCfMaxREvBhZdC"
+    },
+    "databaseAvailable": true,
+    "checkedAt": "2026-11-14T20:35:32.648Z",
+    "identityClaimsVerified": false
+  },
+  "restartChecked": true,
+  "scope": {
+    "nativeNearTestnet": true,
+    "publicHttpsAccepted": false,
+    "realWalletSessionChecked": false,
+    "browserUsdcAccepted": false,
+    "actualKybTaxProvidersAccepted": false
+  }
+}
