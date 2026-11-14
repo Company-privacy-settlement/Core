@@ -8,6 +8,8 @@ The `Core` repository contains Money Station’s SDK, API, finalized indexer and
 
 Live Ubuntu deployment: [Money Station](https://moneystation.site) · [API readiness](https://api.moneystation.site/readyz). Native index, final-origin CORS, browser requests and public TLS passed; private state and certificate renewal are retained. [Operations and evidence](docs/UBUNTU_BACKEND.md).
 
+Hackathon KYB can approve the sample workflow immediately with an explicit demo switch. Provider identity claims and organization/wallet permissions remain separate. [Demo behavior and switches](docs/HACKATHON_KYB.md).
+
 Optional delayed delivery is available at `/relay/`: persistently sampled execution windows, batches of up to eight separate transactions, waiting/cancellation/expiry and original-request recovery. [Scheduling guide](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SCHEDULED_DELIVERY.md). This does not establish anonymity or a live hosted relay.
 
 Scheduled-delivery validation: **565 Core tests**, **8 Front unit tests**, real native/FT WASM and Groth16 scheduling checks, and desktop/mobile delivery/recovery/proof UX regressions. Public USDC and a hosted HTTPS relay remain separately unqualified.

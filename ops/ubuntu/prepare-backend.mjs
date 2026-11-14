@@ -6,6 +6,8 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const root=resolve(process.argv[2]??'/home/jiheon/.local/share/money-station/backend');
+const demoValue=process.env.MONEY_STATION_DEMO_KYB??'false';
+if(!['true','false'].includes(demoValue))throw Error('MONEY_STATION_DEMO_KYB must be true or false');
 if(root.includes('\n')||root.includes('%'))throw Error('Unsupported deployment root');
 mkdirSync(root,{recursive:true,mode:0o700});
 if(lstatSync(root).isSymbolicLink()||statSync(root).uid!==process.getuid()||(statSync(root).mode&0o077))throw Error('Deployment root must be an owner-only directory');
@@ -44,7 +46,7 @@ try{
   for(const [name,pin] of Object.entries(files))if(lstatSync(resolve(release,name)).isSymbolicLink()||sha(readFileSync(resolve(release,name)))!==pin)throw Error('Existing runtime asset differs: '+name);
  }else renameSync(staging,release);
  copyFileSync(resolve(repo,'ops/ubuntu/manage-backend.py'),resolve(root,'control.next'));chmodSync(resolve(root,'control.next'),0o700);renameSync(resolve(root,'control.next'),resolve(root,'control.py'));
- const config={format:'money-station-backend-config-v1',release,releaseId:id,rpc:'https://test.rpc.fastnear.com',frontOrigin:'https://moneystation.site',apiOrigin:'https://api.moneystation.site',apiPort:3331,organizationPort:3332,policySha256:policySha};
+ const config={format:'money-station-backend-config-v1',release,releaseId:id,rpc:'https://test.rpc.fastnear.com',frontOrigin:'https://moneystation.site',apiOrigin:'https://api.moneystation.site',apiPort:3331,organizationPort:3332,policySha256:policySha,demoKyb:demoValue==='true'};
  writeFileSync(resolve(root,'config.next'),JSON.stringify(config,null,2)+'\n',{mode:0o600});renameSync(resolve(root,'config.next'),resolve(root,'config.json'));
  console.log(JSON.stringify({status:'prepared',root,releaseId:id,sourceCommit:source,nodeVersion:process.versions.node,policySha256:policySha,files:Object.keys(files).length}));
 }finally{rmSync(staging,{recursive:true,force:true});}

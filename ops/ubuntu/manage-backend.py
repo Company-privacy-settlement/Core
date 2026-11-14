@@ -36,6 +36,7 @@ def load(root):
     if c['frontOrigin']!='https://moneystation.site' or c['apiOrigin']!='https://api.moneystation.site':raise ValueError('Unexpected origins')
     if (c['apiPort'],c['organizationPort'])!=(3331,3332):raise ValueError('Unexpected backend ports')
     if c['rpc']!='https://test.rpc.fastnear.com':raise ValueError('Unexpected RPC')
+    if not isinstance(c.get('demoKyb',False),bool):raise ValueError('Invalid hackathon KYB switch')
     for name in ['run','logs','state','state/api','state/organizations','secrets','secrets/organizations']:private_directory(root/name)
     return c
 
@@ -79,6 +80,7 @@ def sandbox(root,c,unit,maintenance=None,secrets_write=False):
         command=['/app/runtime/node','scripts/start-service.mjs']
     else:
         env.update(CORE_ORGANIZATION_HOST='127.0.0.1',CORE_ORGANIZATION_DB='/data/organizations.sqlite',
+                   CORE_ORGANIZATION_DEMO_KYB='true' if c.get('demoKyb',False) else 'false',
                    CORE_ORGANIZATION_ORIGIN=c['apiOrigin'],CORE_ORGANIZATION_ALLOWED_ORIGINS=c['frontOrigin'],
                    CORE_ORGANIZATION_RPC_URL=c['rpc'],CORE_ORGANIZATION_INVOICE_KEYS_FILE='/secrets/invoice-keys.json')
         command=['/app/runtime/node','dist/service/scripts/organization-server.js']

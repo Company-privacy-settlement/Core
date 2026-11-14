@@ -22,7 +22,8 @@ async function rawBody(req: IncomingMessage, signal: AbortSignal, maximum=8192):
   });
 }
 async function body(req:IncomingMessage,signal:AbortSignal,maximum=8192):Promise<unknown>{const bytes=await rawBody(req,signal,maximum);try{return JSON.parse(bytes.toString('utf8'));}catch{throw new OrganizationError(400,'INVALID_JSON');}}
-export function createOrganizationApi(options: { store: OrganizationStore; identity: OrganizationIdentitySource; allowedOrigins: string[]; timeoutMs?: number; maxConcurrent?: number; ratePoints?: number; verificationProvider?:SumsubProvider; draftServices?:DraftServices }) {
+export function createOrganizationApi(options: { store: OrganizationStore; identity: OrganizationIdentitySource; allowedOrigins: string[]; timeoutMs?: number; maxConcurrent?: number; ratePoints?: number; verificationProvider?:SumsubProvider; draftServices?:DraftServices; demoKyb?:boolean }) {
+  if(options.demoKyb&&options.verificationProvider)throw new Error('Hackathon KYB and a real verification provider cannot be enabled together');
   const origins = new Set(options.allowedOrigins.map(organizationOrigin));
   if (!origins.size) throw new Error('Organization API needs an exact frontend origin allowlist');
   organizationOrigin(options.store.audience);
@@ -62,7 +63,7 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
         if(isReadiness){
           if(!options.identity.readiness)throw new OrganizationError(503,'IDENTITY_READINESS_UNAVAILABLE');
           const chain=await options.identity.readiness(signal);signal.throwIfAborted();
-          send(200,{ready:true,service:'core-organizations',...chain,...store.readiness(),checkedAt:new Date().toISOString(),identityClaimsVerified:false});return;
+          send(200,{ready:true,service:'core-organizations',...chain,...store.readiness(),checkedAt:new Date().toISOString(),identityClaimsVerified:false,...(options.demoKyb?{demoKybEnabled:true}:{})});return;
         }
         if(isVerificationHook){if(!options.verificationProvider)throw new OrganizationError(503,'VERIFICATION_PROVIDER_DISABLED');const bytes=await rawBody(req,signal,65536);signal.throwIfAborted();send(200,store.verifications.receive(options.verificationProvider,bytes,req.headers['x-payload-digest'],req.headers['x-payload-digest-alg']));return;}
         let validatedToken: string | undefined;
@@ -98,7 +99,13 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
           throw new OrganizationError(404,'NOT_FOUND');}
         const verification=/^\/v1\/organizations\/([^/]+)\/verification(?:\/(refresh|link|revoke))?$/.exec(url.pathname);
         if(verification){const org=parse(Id,verification[1]),action=verification[2],provider=options.verificationProvider;
-          if(!action&&req.method==='GET'){send(200,store.verifications.get(org,actor,provider));return;}
+          if(!action&&req.method==='GET'){
+            const result=store.verifications.get(org,actor,provider);
+            // A separate presentation-only approval never overwrites a provider case
+            // or changes legal identity, organization permissions or signing claims.
+            if(options.demoKyb&&!result.case)result.demo={mode:'hackathon',state:'approved',identityChecksPerformed:false,credentialIssued:false};
+            send(200,result);return;
+          }
           if(!action&&req.method==='POST'){const v=await input(z.unknown());send(200,store.verifications.create(org,actor,v,provider));return;}
           if(action&&req.method==='POST'){const v=await input(Input.version),check=()=>{signal.throwIfAborted();store.session(token,origin);};
             if(action==='revoke'){send(200,store.verifications.revoke(org,actor,v.version,provider));return;}

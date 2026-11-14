@@ -8,6 +8,8 @@ NEAR 기반 기업 프라이빗 정산: 독립 볼트가 원금을 보관하고,
 
 우분투 배포: [Money Station](https://moneystation.site) · [API 상태](https://api.moneystation.site/readyz). 공개 HTTPS·네이티브 인덱스·최종 출처 CORS·브라우저 연결을 검증했고 비공개 DB·암호화 키와 인증서 갱신을 유지합니다. [운영과 검증 기록](docs/UBUNTU_BACKEND.md).
 
+해커톤에서는 명시적으로 활성화한 데모 KYB가 샘플 흐름을 즉시 승인합니다. 실제 심사·신원 증명과 조직·지갑 권한은 분리됩니다. [데모 동작과 설정](docs/HACKATHON_KYB.md).
+
 `/relay/`에서 선택적 지연 실행을 지원합니다. 실행 시간을 한 번 추첨해 저장하고, 배치당 최대 8개의 개별 거래와 대기·취소·만료·원본 요청 복구를 처리합니다. [지연 실행 가이드](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SCHEDULED_DELIVERY.md). 익명성 입증이나 공개 릴레이 운영을 의미하지 않습니다.
 
 지연 실행 검증: **Core 565개 테스트**, **Front 단위 테스트 8개**, 실제 네이티브/FT WASM·Groth16 스케줄링과 데스크톱·모바일 대기·복구·증명 UX를 검증했습니다. 공개 USDC와 외부 HTTPS 릴레이 실증은 별도입니다.
