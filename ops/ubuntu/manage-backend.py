@@ -33,7 +33,7 @@ def load(root):
     c=json.loads((root/'config.json').read_text())
     release=Path(c['release'])
     if release.parent!=root/'releases' or release.is_symlink():raise ValueError('Invalid release path')
-    if c['frontOrigin']!='https://moneysation.site' or c['apiOrigin']!='https://api.moneysation.site':raise ValueError('Unexpected origins')
+    if c['frontOrigin']!='https://moneystation.site' or c['apiOrigin']!='https://api.moneystation.site':raise ValueError('Unexpected origins')
     if (c['apiPort'],c['organizationPort'])!=(3331,3332):raise ValueError('Unexpected backend ports')
     if c['rpc']!='https://test.rpc.fastnear.com':raise ValueError('Unexpected RPC')
     for name in ['run','logs','state','state/api','state/organizations','secrets','secrets/organizations']:private_directory(root/name)

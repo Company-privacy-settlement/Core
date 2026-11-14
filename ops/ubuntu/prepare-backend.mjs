@@ -44,7 +44,7 @@ try{
   for(const [name,pin] of Object.entries(files))if(lstatSync(resolve(release,name)).isSymbolicLink()||sha(readFileSync(resolve(release,name)))!==pin)throw Error('Existing runtime asset differs: '+name);
  }else renameSync(staging,release);
  copyFileSync(resolve(repo,'ops/ubuntu/manage-backend.py'),resolve(root,'control.next'));chmodSync(resolve(root,'control.next'),0o700);renameSync(resolve(root,'control.next'),resolve(root,'control.py'));
- const config={format:'money-station-backend-config-v1',release,releaseId:id,rpc:'https://test.rpc.fastnear.com',frontOrigin:'https://moneysation.site',apiOrigin:'https://api.moneysation.site',apiPort:3331,organizationPort:3332,policySha256:policySha};
+ const config={format:'money-station-backend-config-v1',release,releaseId:id,rpc:'https://test.rpc.fastnear.com',frontOrigin:'https://moneystation.site',apiOrigin:'https://api.moneystation.site',apiPort:3331,organizationPort:3332,policySha256:policySha};
  writeFileSync(resolve(root,'config.next'),JSON.stringify(config,null,2)+'\n',{mode:0o600});renameSync(resolve(root,'config.next'),resolve(root,'config.json'));
  console.log(JSON.stringify({status:'prepared',root,releaseId:id,sourceCommit:source,nodeVersion:process.versions.node,policySha256:policySha,files:Object.keys(files).length}));
 }finally{rmSync(staging,{recursive:true,force:true});}
