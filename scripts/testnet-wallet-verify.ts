@@ -1,0 +1,5 @@
+import {openSync,writeFileSync,fsyncSync,closeSync} from 'node:fs';
+import {loadPublicWalletEvidence,verifyPublicWalletEvidence} from './lib/testnet-wallet-verification.js';
+const [file,digest,output,...extra]=process.argv.slice(2);
+if(!file||!digest||!output||extra.length){console.error('Usage: testnet:verify-wallet PUBLIC_EVIDENCE_JSON INDEPENDENT_SHA256 NEW_REPORT_JSON');process.exitCode=1;}
+else {let fd:number|undefined;try{const evidence=loadPublicWalletEvidence(file,digest);fd=openSync(output,'wx',0o600);const result=await verifyPublicWalletEvidence(evidence);writeFileSync(fd,JSON.stringify({...result,evidenceSha256:digest},null,2)+'\n');fsyncSync(fd);console.log(JSON.stringify(result));}catch{if(fd!==undefined){writeFileSync(fd,JSON.stringify({format:'core-testnet-wallet-reverification-v1',passed:false,evidenceSha256:digest,error:'PUBLIC_EVIDENCE_OR_CHAIN_VERIFICATION_FAILED'})+'\n');fsyncSync(fd);}console.error('Testnet wallet evidence verification failed; no successful public-network qualification is claimed.');process.exitCode=1;}finally{if(fd!==undefined)closeSync(fd);}}

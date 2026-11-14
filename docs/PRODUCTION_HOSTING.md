@@ -2,7 +2,7 @@
 
 [Hosting architecture](HOSTING.md) · [Organization service](ORGANIZATIONS.md) · [Deployment policy](DEPLOYMENT.md)
 
-**Current status: not deployed.** On 2026-11-14 this workspace has no connected hosting account, SSH target, assigned API domains or independently verified public deployment policy. The existing Site URL hosts Front; it is not a persistent Node/SQLite API or indexer. Adding configuration and passing fixture tests do not complete live deployment. Work package R04 remains open.
+**Current status: not deployed.** On 2026-11-14 this workspace has no connected hosting account, SSH target or assigned API domains. A native development-testnet policy and wallet record are now available through [public-testnet qualification](TESTNET_WALLET.md); USDC and a hosted API remain unqualified. The existing Site URL hosts Front; it is not a persistent Node/SQLite API or indexer. Adding configuration and passing fixture tests do not complete live deployment. Work package R04 remains open.
 
 ## Required operator inputs
 
@@ -77,3 +77,5 @@ After passing external HTTPS probes:
 `CORE_CADDY_BIN=/path/to/pinned/caddy node --import tsx tests/manual/hosting-proxy.ts` exercises the actual gateway with local HTTP upstreams: dual origins, exact body boundaries, revision/provider routing and forwarded-header stripping. Public ACME, DNS, Docker deployment, remote persistence and a live test-wallet session remain outside that local test. Official references: [Caddy request limits](https://caddyserver.com/docs/caddyfile/directives/request_body), [reverse proxy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy), [Render disk constraints](https://render.com/docs/disks), [Render health checks](https://render.com/docs/health-checks).
 
 Recorded local validation on **2026-11-14**: **504 Core tests** (16 new hosting/readiness cases), type checking, compiled service/indexer and organization restart/backup/quarantined-restore checks passed. Both changed Compose files passed the official Compose schema; pinned Caddy adapted/validated both configurations and passed the actual local HTTP route/body-limit test. Live read-only RPC readiness reached NEAR testnet finalized block **277609625**. No Docker daemon, external server, domain, public deployed policy or authenticated live business canary was supplied. No external API HTTPS acceptance report or live restart/persistence qualification is claimed.
+
+The [native testnet policy](evidence/testnet-native-policy-2026-11-14.json) is now technically verified for the recorded CLI development run. It has no tokenId and does not qualify Front FT/USDC use or replace an operator review/security audit. Hosting account/SSH access, API domains and actual external HTTPS/restart acceptance still remain outstanding.

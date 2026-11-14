@@ -15,6 +15,7 @@
     "scripts/organization-server.ts",
     "scripts/organization-maintenance.ts",
     "scripts/rules.ts",
-    "scripts/verify-hosting.ts"
+    "scripts/verify-hosting.ts",
+    "scripts/testnet-wallet-verify.ts"
   ]
 }

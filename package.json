@@ -51,7 +51,9 @@
     "organizations:invoice-keys": "node scripts/organization-invoice-keys.mjs",
     "rules": "tsx scripts/rules.ts",
     "rules:compiled": "node dist/service/scripts/rules.js",
-    "hosting:verify": "tsx scripts/verify-hosting.ts"
+    "hosting:verify": "tsx scripts/verify-hosting.ts",
+    "deploy:resume-intent": "tsx scripts/deploy.ts resume-intent",
+    "testnet:verify-wallet": "tsx scripts/testnet-wallet-verify.ts"
   },
   "dependencies": {
     "bs58": "^6.0.0",

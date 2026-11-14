@@ -301,3 +301,37 @@ export async function reconcileDeployment(context: Context, source: DeploymentSo
     return { attempts: journal.attempts.map(({ phase, hash, state }) => ({ phase, hash, state })), automaticResubmit: false };
   });
 }
+
+/** Explicitly recover a pre-dispatch intent; never creates a new transaction or nonce. */
+export async function resumeDeploymentIntent(context: Context, source: DeploymentSource, phase: DeploymentPhase, journalFile: string, planSha256: string, signer: DeploymentSigner, options: { acknowledgeExactIntent?: boolean; acknowledgeKeyRemoval?: boolean } = {}) {
+  Phase.parse(phase);
+  if (!options.acknowledgeExactIntent) throw new Error('Explicit acknowledgement of the exact original intent is required');
+  if (phase === 'seal' && !options.acknowledgeKeyRemoval) throw new Error('Explicit irreversible key-removal acknowledgement is required');
+  context = { ...context, plan: structuredClone(context.plan), wasm: Buffer.from(context.wasm) };
+  return withJournal(context, journalFile, planSha256, async (journal, save) => {
+    const pending = journal.attempts.filter(a => a.state === 'intent' || a.state === 'submitted');
+    if (pending.length !== 1 || pending[0].phase !== phase || pending[0].state !== 'intent') throw new Error('Resume only one exact pre-dispatch intent; submitted uncertainty requires read-only reconciliation');
+    const attempt = pending[0], chain = await source.chain();
+    freshTestnet(chain);
+    if (source.network !== 'testnet' || source.factory !== context.plan.policy.registry) throw new Error('Wrong resume network/source');
+    const observed = finalizedResult(await source.transaction(attempt.hash, context.plan.policy.registry), attempt, context.plan);
+    if (observed !== 'pending') { attempt.state = observed; save(); return { phase, state: observed, hash: attempt.hash, resumedExactIntent: false }; }
+    const unsigned = Buffer.from(attempt.unsignedTransaction, 'base64'), tx = decodeUnsigned(unsigned);
+    const nonceMatches = (check: Awaited<ReturnType<typeof deploymentPreflight>>) => {
+      const key = check.keys.find(k => k.public_key === context.plan.publicKey)!;
+      if (!Number.isSafeInteger(key.access_key.nonce) || BigInt(key.access_key.nonce) + 1n !== tx.nonce) throw new Error('Original intent nonce is no longer next; reconcile instead');
+    };
+    nonceMatches(await deploymentPreflight(context, source, phase));
+    const signedBytes = Buffer.from((await signer(decodeUnsigned(unsigned))).encode()), signed = decodeDeploymentSignedTransaction(signedBytes);
+    if (!Buffer.from(signed.transaction.encode()).equals(unsigned) || transactionHash(signed.transaction) !== attempt.hash || !tx.publicKey.verify(createHash('sha256').update(unsigned).digest(), signed.signature)) throw new Error('Signer changed the exact original intent');
+    nonceMatches(await deploymentPreflight(context, source, phase));
+    attempt.state = 'submitted'; save();
+    let result: unknown;
+    try { result = await source.submit(signedBytes.toString('base64')); }
+    catch { throw new Error(`Original intent outcome is uncertain; reconcile ${attempt.hash} without resubmission`); }
+    const state = finalizedResult(result, attempt, context.plan);
+    if (state !== 'pending') { attempt.state = state; save(); }
+    if (state === 'complete') await deploymentPreflight(context, source, phase === 'seal' ? 'verify' : 'initialized');
+    return { phase, state, hash: attempt.hash, resumedExactIntent: true };
+  });
+}

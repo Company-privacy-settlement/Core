@@ -9,7 +9,7 @@ import { releaseFixture } from './fixtures/releases.js';
 import { operationsFixture } from './fixtures/operations.js';
 import { domain, quoteFees } from '../sdk/core.js';
 import { digest } from '../scripts/lib/release.js';
-import { buildDeploymentPlan, decodeDeploymentSignedTransaction, deploymentKeyFile, deploymentPreflight, executeDeployment, loadDeployment, reconcileDeployment, saveDeploymentPlan, type DeploymentSource } from '../scripts/lib/deployment.js';
+import { buildDeploymentPlan, decodeDeploymentSignedTransaction, deploymentKeyFile, deploymentPreflight, executeDeployment, loadDeployment, reconcileDeployment, resumeDeploymentIntent, saveDeploymentPlan, type DeploymentSource } from '../scripts/lib/deployment.js';
 
 async function fixture(t: { after(fn: () => void): void }, native = false) {
   const f = releaseFixture(t), base = operationsFixture(native), pair = KeyPair.fromRandom('ed25519'), pk = pair.getPublicKey().toString();
@@ -205,3 +205,14 @@ test('deployment key file is local, owner-only and bound to the reviewed account
   chmodSync(file, 0o600); writeFileSync(file, JSON.stringify({ account_id: 'other.testnet', public_key: f.plan.publicKey, private_key: f.pair.toString() }));
   assert.throws(() => deploymentKeyFile(file, f.plan), error => error instanceof Error && !error.message.includes(f.pair.toString()));
 });
+
+async function unsubmitted(t: {after(fn:()=>void):void}) {
+ const f=await fixture(t,true),chain=f.source.chain;let signed=false;
+ f.source.chain=async()=>{if(signed)throw new Error('pre-dispatch RPC outage');return chain();};
+ await assert.rejects(executeDeployment(f.context,f.source,'deploy',f.journal,f.saved.planSha256,async tx=>{const result=await f.signer(tx);signed=true;return result;}),/RPC outage/);
+ f.source.chain=chain;assert.equal(f.state.broadcasts,0);return f;
+}
+test('explicit pre-dispatch recovery keeps the original hash, nonce and single journal attempt',async t=>{const f=await unsubmitted(t),before=JSON.parse(readFileSync(f.journal,'utf8')).attempts[0];const r=await resumeDeploymentIntent(f.context,f.source,'deploy',f.journal,f.saved.planSha256,f.signer,{acknowledgeExactIntent:true});assert.equal(r.state,'complete');assert.equal(r.hash,before.hash);assert.equal(r.resumedExactIntent,true);const after=JSON.parse(readFileSync(f.journal,'utf8')).attempts;assert.equal(after.length,1);assert.equal(after[0].unsignedTransaction,before.unsignedTransaction);assert.equal(f.state.broadcasts,1);});
+test('intent recovery requires explicit acknowledgement and rejects changed nonce or payload',async t=>{for(const mode of ['ack','nonce','payload']){const f=await unsubmitted(t);if(mode==='nonce')f.setKeys([{public_key:f.plan.publicKey,access_key:{permission:'FullAccess',nonce:2}}]);const signer=async(tx:transactions.Transaction)=>{if(mode==='payload')tx.receiverId='substituted.testnet';return f.signer(tx);};await assert.rejects(resumeDeploymentIntent(f.context,f.source,'deploy',f.journal,f.saved.planSha256,signer,{acknowledgeExactIntent:mode!=='ack'}));assert.equal(f.state.broadcasts,0);assert.equal(JSON.parse(readFileSync(f.journal,'utf8')).attempts.length,1);}});
+test('submitted unknown outcomes cannot use pre-dispatch recovery',async t=>{const f=await fixture(t,true);f.state.loseResponse=true;await assert.rejects(f.run('deploy'));f.state.unknown=true;let signed=false;await assert.rejects(resumeDeploymentIntent(f.context,f.source,'deploy',f.journal,f.saved.planSha256,async tx=>{signed=true;return f.signer(tx);},{acknowledgeExactIntent:true}),/submitted uncertainty/);assert.equal(signed,false);assert.equal(f.state.broadcasts,1);});
+test('seal intent recovery always requires the separate irreversible-key acknowledgement',async t=>{const f=await unsubmitted(t);await assert.rejects(resumeDeploymentIntent(f.context,f.source,'seal',f.journal,f.saved.planSha256,f.signer,{acknowledgeExactIntent:true}),/irreversible/);assert.equal(f.state.broadcasts,0);});

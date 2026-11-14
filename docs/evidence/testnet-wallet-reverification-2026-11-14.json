@@ -1,0 +1,26 @@
+{
+  "format": "core-testnet-wallet-reverification-v1",
+  "passed": true,
+  "checkedAt": "2026-11-14T05:52:29.832Z",
+  "snapshot": {
+    "height": 277614194,
+    "hash": "5UmiAmFiSN6MXRqH7bmw4yk3T8D3umhdjGU5TJqyGEsT"
+  },
+  "observedFinalTransactions": 14,
+  "completedWithdrawals": 2,
+  "recordedBeforeBalancesReRead": true,
+  "outstandingNotes": 0,
+  "totalProtocolFeeYoctoNear": "600000000000000000000",
+  "rpcUrl": "https://test.rpc.fastnear.com/",
+  "claims": {
+    "publicTestnet": true,
+    "nativeNear": true,
+    "browserWalletVerified": false,
+    "usdcVerified": false,
+    "hostedHttpsVerified": false,
+    "productionQualified": false
+  },
+  "releaseSafety": "UNSAFE_LOCAL_DEVELOPMENT_ONLY",
+  "assurance": "Observed public RPC receipts, canonical snapshot, code/key bindings and balances. Private note origin is an executor declaration. This is not a light-client proof, browser-wallet qualification or production setup approval.",
+  "evidenceSha256": "e009bd0f600b23e0fabe30064ee3211446682946126d1b341aace34b5981a681"
+}

@@ -161,3 +161,5 @@ KYB/KYC 集成验证（**2026-11-14**）：**428 项 Core 测试**和 **224 项�
 [真实服务器部署准备](docs/PRODUCTION_HOSTING.md)新增 API/索引器与独立组织服务共用的 HTTPS 网关、组织 RPC/数据库就绪检查及固定策略的外部 HTTPS 验证命令。**真实部署仍等待托管账户/SSH 访问、API 域名及已验证的真实 testnet 部署策略**。Front 站点不是后端，配置与本地检查不代表运营部署完成。
 
 服务器部署准备验证（**2026-11-14**）通过：**504 项 Core 测试**、类型检查、编译运行时/重启/备份/恢复、官方 Compose 模式及固定 Caddy 的本地 HTTP 边界检查。已观察公开 NEAR testnet RPC 就绪状态。因缺少运营基础设施，未执行 Docker/外部服务器部署、公开 API HTTPS 验收或真实业务数据持久性验证。
+
+[原生 NEAR 真实 testnet 钱包验证](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md)（**2026-11-14**）确认 **14 笔真实交易均为 FINAL**：无密钥注册表/金库、两笔 0.1 NEAR 入金、跨金库付款及收款账户不存在后的原 nullifier/目的地恢复，重试无额外协议费。重新查询公开签名、规范快照、本金与合计 0.0006 NEAR 费用；**513 项 Core 测试**、SDK/类型/编译运行时及恢复检查通过。范围为本地密钥原生软件钱包开发验证，未验证浏览器钱包、USDC、外部 HTTPS、远程 Actions 成功或有效匿名性。当前无 cover traffic 调度，单一公开付款人的关联仍存在。指南提供公开策略、交易链接和只读验证命令，不包含私钥或票据 witness。

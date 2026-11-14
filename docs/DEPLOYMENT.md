@@ -121,3 +121,19 @@ Primary RPC references: [NEAR protocol configuration](https://docs.near.org/api/
 ## Recorded validation
 
 On 2026-11-13: Core type checking and **215 tests** passed, along with the Node/browser SDK build. The actual local WASM rehearsal finalized **six deployment transactions** across native and FT groups, verified both registries keyless, and covered a deliberately lost response with hash-bound reconciliation. Public testnet RPC status, finalized block and protocol/gas cost reads were checked separately without signing or broadcasting. CLI smoke checks cover public-plan generation and overwrite, hash, phase, missing-key and read-only reconciliation guards. No funded public-testnet deployment or public-network key removal was performed.
+
+## Recover an exact pre-dispatch intent
+
+`deploy:resume-intent` is an explicit operator action for **one** journal entry still in `intent`. It first checks the original hash's current status. If unresolved, current account nonce must make the recorded nonce exactly next. Both preflight checks, immutable unsigned bytes, original hash and signature are verified. It re-signs the same bytes and dispatches that exact transaction without creating a new nonce, block hash, destination, amount or journal attempt. A pending external copy has the same transaction identity; it cannot become a second transaction through this command.
+
+```sh
+npm run deploy:resume-intent -- /path/deployment-plan.json PLAN_SHA256 \
+  /path/testnet-release /path/deployment-journal.json seal \
+  --acknowledge-exact-original-intent --acknowledge-irreversible-key-removal
+```
+
+The separate key-removal acknowledgement is mandatory for seal, including recovery. `submitted` uncertainty cannot use this command and remains read-only reconciliation. Non-next nonces, substituted payloads, multiple unresolved entries and missing acknowledgements are rejected. An expired original cannot be refreshed here. Ordinary execute/reconcile never resubmits an unknown transaction automatically.
+
+Transaction status queries now request the current `NONE` milestone instead of waiting for an absent transaction to finalize. Consumers still require an **observed FINAL** result before accepting it; non-final or unknown status stays pending.
+
+The [2026-11-14 native testnet run](TESTNET_WALLET.md) deployed and sealed a real registry and verified deposits, withdrawals and missing-recipient recovery. It uses a development setup and a CLI software wallet; browser/USDC/HTTPS/production qualification remain separate.

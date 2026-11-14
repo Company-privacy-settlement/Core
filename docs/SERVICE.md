@@ -175,3 +175,7 @@ Standalone browser FT withdrawal proving, artifact integrity checks, cancellatio
 ## Live server acceptance
 
 [Production hosting and HTTPS acceptance](PRODUCTION_HOSTING.md) documents the combined API/indexer/organization stack and external verification command. Organization `/readyz` checks fresh testnet RPC and current storage recovery state without exposing business records; `/healthz` remains liveness only. Infrastructure account, domains and independently verified deployed policy are required. Configuration/local tests are not a live deployment.
+
+## Native public-testnet qualification
+
+[Recorded testnet wallet run](TESTNET_WALLET.md) verifies actual native deposits, payouts, fixed-destination failure recovery and public receipts. CLI software-wallet qualification does not establish browser/USDC compatibility, HTTPS hosting or anonymity effectiveness.

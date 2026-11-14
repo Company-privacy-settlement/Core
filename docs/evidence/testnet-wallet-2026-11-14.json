@@ -1,0 +1,243 @@
+{
+  "format": "core-public-testnet-wallet-evidence-v1",
+  "network": "testnet",
+  "asset": "NEAR",
+  "walletKind": "local-ed25519-software-wallet",
+  "completedAt": "2026-11-14T05:28:23.237Z",
+  "rpcUrl": "https://test.rpc.fastnear.com",
+  "deploymentBroadcastRpc": "https://rpc.testnet.near.org",
+  "snapshot": {
+    "height": 277614194,
+    "hash": "5UmiAmFiSN6MXRqH7bmw4yk3T8D3umhdjGU5TJqyGEsT"
+  },
+  "policy": {
+    "network": "testnet",
+    "registry": "c14f-c1b494d1.testnet",
+    "denomination": "100000000000000000000000",
+    "feeRecipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+    "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+    "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+    "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45"
+  },
+  "release": {
+    "version": "0.1.0-testnet-wallet.1",
+    "manifestSha256": "6cc972cbb2bf1ee512e5ddc7abca2a043072b56a2192d6baf1137605b77750ce",
+    "archiveSha256": "4efdbdf66daf68017804c506f19c07a8d56e0767dd46a45b2ac990daa009a012",
+    "safety": "UNSAFE_LOCAL_DEVELOPMENT_ONLY",
+    "sources": {
+      "Core": "4f606ca7baaaef7b754412105bee728ef1995151",
+      "Contract": "a68f38096422b01286ce988c28550310f573c358",
+      "Front": "f817e7e74e86d17f0782f38b1e5a8eb526e890a7"
+    }
+  },
+  "accounts": {
+    "payer": "core14-0574c4-ebed76bb2c.testnet",
+    "recipient": "core14-forest-f2fd1a94fd.testnet",
+    "failedRecipient": "late.core14-0574c4-ebed76bb2c.testnet",
+    "treasury": "treasury.core14-0574c4-ebed76bb2c.testnet"
+  },
+  "vaults": [
+    "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+    "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet"
+  ],
+  "balances": {
+    "normalRecipientBeforeYoctoNear": "10000000000000000000000000",
+    "recoveryRecipientBeforeYoctoNear": "100000000000000000000000",
+    "treasuryBeforeYoctoNear": "100000000000000000000000"
+  },
+  "normalWithdrawal": {
+    "nullifier": "4681588613611790185509328007788780523523401668061221007280589364799965985258",
+    "fromDepositVault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+    "payoutVault": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+    "recipient": "core14-forest-f2fd1a94fd.testnet",
+    "state": "Complete",
+    "principalReceivedYoctoNear": "100000000000000000000000",
+    "attempt": 1
+  },
+  "recovery": {
+    "failed": {
+      "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+      "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+      "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+      "state": "Retryable",
+      "attempt": 1,
+      "last_height": 277614116,
+      "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+      "outstandingNotes": 1,
+      "pendingFeeYoctoNear": "150000000000000000000"
+    },
+    "completed": {
+      "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+      "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+      "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+      "state": "Complete",
+      "attempt": 2,
+      "last_height": 277614142,
+      "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+      "principalReceivedYoctoNear": "100000000000000000000000",
+      "retryAttachedYoctoNear": "20000000000000000000000",
+      "additionalProtocolFeeYoctoNear": "0"
+    }
+  },
+  "fees": {
+    "depositBasisPoints": 15,
+    "withdrawalBasisPoints": 15,
+    "principalYoctoNear": "100000000000000000000000",
+    "depositFeePerNoteYoctoNear": "150000000000000000000",
+    "withdrawalFeePerNoteYoctoNear": "150000000000000000000",
+    "totalCollectedYoctoNear": "600000000000000000000",
+    "retryStorageYoctoNear": "20000000000000000000000",
+    "retryAdditionalProtocolFeeYoctoNear": "0"
+  },
+  "sealRecovery": {
+    "originalIntentHash": "Dm2qXrR8PbjM88sscJyHopzGnFssM6KxZXis61G2Byjz",
+    "sameHashFinalized": true,
+    "newNonceOrAttemptCreated": false
+  },
+  "transactions": [
+    {
+      "label": "seal",
+      "hash": "Dm2qXrR8PbjM88sscJyHopzGnFssM6KxZXis61G2Byjz",
+      "signer": "c14f-c1b494d1.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:4ijtCGzqriGxNCAs5FMmWmGcdcYhpnfv2PqHKPTZzDbY",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "deploy",
+      "hash": "44d1ejinSv6sdAMGEm8jDLQ3B3typdqGs5Di6bH2krv5",
+      "signer": "c14f-c1b494d1.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:4ijtCGzqriGxNCAs5FMmWmGcdcYhpnfv2PqHKPTZzDbY",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "create-treasury",
+      "hash": "54tkaonSjZddDutPidQ6XfgAFFEc6c4u2gGpHXq7pYpJ",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "treasury.core14-0574c4-ebed76bb2c.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000001",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4QS8Hanz8AAApAAAAdHJlYXN1cnkuY29yZTE0LTA1NzRjNC1lYmVkNzZiYjJjLnRlc3RuZXRQgdroskzlN1Nyv7z7Nh69zu+khUNym7y9xI2/S7eYEgMAAAAAAwAAgPZK4ccCLRUAAAAAAAAFALdsDTA3pHREzr9EEBPZyqDfqo61QmegGy/aYdj5BlPOAAAAAAAAAAAB",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "create-vault-a",
+      "hash": "HYnrYXipksZjECbdrmsdLKtVSchteKqM2qZfrX7kEbpU",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000002",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4Qi8Hanz8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0YopU4I2LFh05K6s6bXpEB8YdXY5GWXd2pyf8+py4dRQBAAAAAgwAAABjcmVhdGVfdmF1bHRLAAAAeyJzYWx0IjoiYTBjZjNhMmFmM2U4MGY1MmRlZDU1YTM3ZGU2ZGE5NzJkZWVkNTI3ODg3ZjlmN2MyOGJkOWNjODg2Mzk3MjQ3YiJ9AMBuMdkQAQAAAIgO6mAd3jIGAwAAAAAA",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "create-vault-b",
+      "hash": "AKdybvk95LocJAugguZXnuYF2oeUg4Cvo3rzUYXvWWyt",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000003",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4Qy8Hanz8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV04bJ8p+FIIEL5NAYmO6moIhotrEG+6RiXAXUjc5jccr8BAAAAAgwAAABjcmVhdGVfdmF1bHRLAAAAeyJzYWx0IjoiNjMxMjgxZjNkYzU2ZTJhNDQ5ZTRkNjU1MDkxM2Y4MmE0ZGJhMzczOWI0OWVlMjQxMzE4M2JkMjdiOTU5NmNjZCJ9AMBuMdkQAQAAAIgO6mAd3jIGAwAAAAAA",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "deposit-0",
+      "hash": "H58XhKqPjkS3rgZdBBUnX8cAXpDYPcekneCbXp67ztzi",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000004",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4RC8Hanz8AAA3AAAAdjBiZWE0M2JiMzgzMmRhNjE0NWE3ZDA3ZGViNWJjYTRiLmMxNGYtYzFiNDk0ZDEudGVzdG5ldJKNXVFe6f9Hl4zPB/3NPxPaknzrta5DcYrZXBIO3SOXAQAAAAIHAAAAZGVwb3NpdLMAAAB7ImNvbW1pdG1lbnQiOiIxMTgzMzI3ODQ0ODI0MTI2NzAyODI5MTQzNDIwMzE1NDAxOTMzNjY3ODkyNDg3MTEyOTg0MDc5NzA1OTIyMjIyOTg1OTQ5OTA1MzAyOCIsImRpc2Nsb3N1cmVfcm9vdCI6ImQ0OGZkYzI2NTdkNGYzYzdiMTkwZjZhYjQ1NTlmNTFkYzNjNzg4NWZmYzliYTY0N2YzYmMxZTZmYjZlMjYzNGIifQDAbjHZEAEAAACYbwSCNFhxGQAAAAAAAA==",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "deposit-1",
+      "hash": "69VVRKHLMp3vAenzoUsM4MEiWRcTrZ2gNnwV1pzjzvhr",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000005",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4RS8Hanz8AAA3AAAAdmVmMWM2ZDZkNTY1NGU3YzA3NTM2NjExNDkwNDQzZDUyLmMxNGYtYzFiNDk0ZDEudGVzdG5ldKCPaZ5mZPcj5KeaP58AsyRFRp5gq3IAPxggUeuK1RuPAQAAAAIHAAAAZGVwb3NpdLMAAAB7ImNvbW1pdG1lbnQiOiIxNTA5OTE0NzU5OTE3Mjc5NTY2MzA1ODM4NDY4NzIwOTI0ODIzNTk2ODg2NTcwOTM5NTg1NTY5MjE2NzYyNTA4MDA1MjU0ODQzMjU4MiIsImRpc2Nsb3N1cmVfcm9vdCI6Ijk2NjI3MDVkZWZkY2M1Zjk1MWMyZGYzMTRiMWQyNWIwYzhlYmNlYmVjN2Y4MzUxZGVmMzVmNmFmNDdlMWNmMWUifQDAbjHZEAEAAACYbwSCNFhxGQAAAAAAAA==",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "withdraw-cross-vault",
+      "hash": "E89i9KhiAhcQYBPBdo77pTavdPWpmqXeugsRN3gvGgUE",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000006",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4Ri8Hanz8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0EXr3SuKWoCzFqZNJjIPy8hL+eYL43eZXUmk2igmV+4ABAAAAAggAAAB3aXRoZHJhd8sDAAB7InZhdWx0IjoidmVmMWM2ZDZkNTY1NGU3YzA3NTM2NjExNDkwNDQzZDUyLmMxNGYtYzFiNDk0ZDEudGVzdG5ldCIsInJlY2lwaWVudCI6ImNvcmUxNC1mb3Jlc3QtZjJmZDFhOTRmZC50ZXN0bmV0IiwiZGlzY2xvc3VyZV9yb290IjoiMmU4MjU4MGNiZDUzNWRhZmQ0ZmFjYTkwOGQwNzM0MjFmZmRkZjIzMjdjNGRkMjc1YWRmMzdlMGVmMDQ5MmNhYyIsInByb29mIjoiazJtWjNQKzF3RnZmSXN3cTUxN25WdzFqQlZpR201VkxZeUFWdEIxNzZnSmRzOVlzaGJpU2tpQk03a2s2MVRoRHllb1R1NTkxMkNpTHF4eWx0S3BITUM3WVBnajV6Uzd1Q0NwSFBCbkd1bFNoYzIyU0VTU2xHWFdQdFpCeE14d0J2bGdHSDVPRTIrelZORkNLZDZDS1czR0V3YkNxQ1I5cUhNSWY0cE9jaGhDa0dXYzVXUEpTdXRUZjR3bnFaWlF2cmtNYmJ4bHVVT21xRlVJZzYxb0lGaWVoWTBUbVZWVkZRK2pDb0tLY2xxNjVQcXhEVml6bDRMRS9mN1krNzJrck4wa0ZRMlloWkhrRDhVYUJCV2VWSmxKaUs4Sk01V2M3RkpZVjA2RUtLUmlFdDY0MmJZYk9COXJLaTZIUjJ4bS90M3lWQzVVQ2VZSklrUUdBdEtTVUZBPT0iLCJwdWJsaWNfaW5wdXRzIjpbIjQ2ODE1ODg2MTM2MTE3OTAxODU1MDkzMjgwMDc3ODg3ODA1MjM1MjM0MDE2NjgwNjEyMjEwMDcyODA1ODkzNjQ3OTk5NjU5ODUyNTgiLCIxNTcyNDMzMjIyNjg2MzM4OTcyMDE1ODk0NTcwMDI3MjQ0ODc2MTM2ODY2MDIxNTI3MTc2Mzk3MzA5MzE1MTAyMTk5MTY0NzI5MzEwNSIsIjE3MzA5MjM1NTczMDc0MDAwMTc0MjA1MjE2NzM5NTM3MTUxODA0OTMwOTY0MzQyNjYwNjMyMDA0OTkzNjE3MDgxMzMzODU4NzUwMTkzIiwiMTEzNDU3NTc4NTYyOTcyOTIzOTMyNDg2MDUzOTg2NTM0MjM4ODY3OTc5MDQxNzY3MDIxNTkzOTc2NTQyNDU2NjAwNDc4MzcwMDc4MzEiLCIxMDU4NTcwODczNTUxMTU4NTczOTkwNjg1NzE2MDg0ODkzNTAxNjgzNTk5OTMyMjY1NTc3NTkyMzI1MTg0OTI2MDQ0NTU4NjEwNTYxNyJdfQDAbjHZEAEAAAAYebmgbFVEBAAAAAAAAA==",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "withdraw-to-missing-account",
+      "hash": "FwoYLjZx6oWMksVFaUP6Dsc1qQ1p6icw9DNifFTUWnQF",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000007",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4Ry8Hanz8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0ZAkXKxvPO5FXDoAjPn4hAzrDfC///zY2NStIHvfu7m8BAAAAAggAAAB3aXRoZHJhd9ADAAB7InZhdWx0IjoidjBiZWE0M2JiMzgzMmRhNjE0NWE3ZDA3ZGViNWJjYTRiLmMxNGYtYzFiNDk0ZDEudGVzdG5ldCIsInJlY2lwaWVudCI6ImxhdGUuY29yZTE0LTA1NzRjNC1lYmVkNzZiYjJjLnRlc3RuZXQiLCJkaXNjbG9zdXJlX3Jvb3QiOiIzM2I4MWQwZDJjMjc3OTk5MTkzYWZiNDY0OTU3MWNjMzQzMTNiMTc5ZjI3ZDdhYjZmZWI2YjdhZTgwOTBjYTJkIiwicHJvb2YiOiIyL0x6eW5JY0hnK3Z1MEFxNmdERmFmSnI1NUxiN2pEYkRldDNDUDZ1QkRCSUZGdlRjTG5QN1MvUUE1NzJYcnlIdlpSNkQycytSWEdMaWZFaWpsd3hGa2x1ajE5RzVkMUdudTI5V1NjSncwM2x1TXF4R2F6VU9md3pTVnZoNVZrSjBsdWhZSUpzR2xxNDFSSWVBcklqdm92S1NqU3dDS1RzM3ZxcE93MEdCeTdzNHp6WWY5UHVOMW5UWFpHVDE4VXo5aDBNWTBjWVlNdVc1aFhaZjR1TklLQ0ZhY0lQUmN2RGtkb3FyVmFLaDFOd1AwY015aUF4WkY2alJNdXdybGdQV2dzNEJ5VnFUc1EyRHliZVZlRlJxSk1yVStVWURobTFEeG92RHM5OTNRdUlNcEh0R0hUcWZYNzJKV0k2bUJ2Q2VnZlNQSDhpcW5Nc3I5bDkzWENvSHc9PSIsInB1YmxpY19pbnB1dHMiOlsiMTk2MTQxNTE4NTM0MDg3MzU1MzM2NTg3NTk4NjE2MzQwMjkzNzc3NjE5NzM2MzA5NDI3MzAzODgzMzYyNzM1NjU4MDgyMDE0ODk5NTYiLCI1NTQ2NTUyNDM0MDgwMDQ0MjMwOTkyMTIxMTMzMzI3MTc1MzQzNTUxOTM1NTQ5NzYxODk3MDA0OTMxNjM3MDc1OTI3MTE3MDEwMTQxIiwiMTczMDkyMzU1NzMwNzQwMDAxNzQyMDUyMTY3Mzk1MzcxNTE4MDQ5MzA5NjQzNDI2NjA2MzIwMDQ5OTM2MTcwODEzMzM4NTg3NTAxOTMiLCIxMDEwMTkzNjQ1NDgxOTY2ODg1OTI1OTI4MzMxMjQ2NzYwNDYxNjEzODk5MjAyOTg4Nzk5NDI4MzM5NzI2ODM1OTQxNjkzOTEzMjkyMCIsIjEwNTg1NzA4NzM1NTExNTg1NzM5OTA2ODU3MTYwODQ4OTM1MDE2ODM1OTk5MzIyNjU1Nzc1OTIzMjUxODQ5MjYwNDQ1NTg2MTA1NjE3Il19AMBuMdkQAQAAABh5uaBsVUQEAAAAAAAA",
+      "expectedReceiptFailure": true
+    },
+    {
+      "label": "activate-original-failed-recipient",
+      "hash": "Fmt53FXqLSkSkx9GUMXZbEpfK3Ua779G5SYHdDHf6DFJ",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "late.core14-0574c4-ebed76bb2c.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000008",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4SC8Hanz8AAAlAAAAbGF0ZS5jb3JlMTQtMDU3NGM0LWViZWQ3NmJiMmMudGVzdG5ldKytq0cbaozGAqCKAyaYFOBriBEowZQlGj7X5R2JmmPoAwAAAAADAACA9krhxwItFQAAAAAAAAUAu6/rcbOE6+wjBTwrYUcig+feCflGCThG8JAzvjTtuvgAAAAAAAAAAAE=",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "retry-original-withdrawal",
+      "hash": "Y445NDQDRJsEwYGn8yreiv1vcVUKj8wNp27xDH1w19u",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000009",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4SS8Hanz8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0fV0QAWj+KapFAMiQRewP/LK+uSAQpi42pToxKJw6BAsBAAAAAhAAAAByZXRyeV93aXRoZHJhd2FsXQAAAHsibnVsbGlmaWVyIjoiMTk2MTQxNTE4NTM0MDg3MzU1MzM2NTg3NTk4NjE2MzQwMjkzNzc3NjE5NzM2MzA5NDI3MzAzODgzMzYyNzM1NjU4MDgyMDE0ODk5NTYifQDAbjHZEAEAAACAZHWTwTM8BAAAAAAAAA==",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "collect-fees-a",
+      "hash": "EWSHM6ez8DLpUVWVGg5CdHXGTA7Y7aiz1wheyio1TB5R",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000010",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4Si8Hanz8AAA3AAAAdjBiZWE0M2JiMzgzMmRhNjE0NWE3ZDA3ZGViNWJjYTRiLmMxNGYtYzFiNDk0ZDEudGVzdG5ldAA5HRy5IqdxnO8E4ge+F+nlOtb8fi2p1zZ37RT3Up2VAQAAAAIVAAAAY29sbGVjdF9wcm90b2NvbF9mZWVzAgAAAHt9AMBuMdkQAQABAAAAAAAAAAAAAAAAAAAA",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "collect-fees-b",
+      "hash": "2WqNHWG7fnKezE7JdArWYHEjFzrsvJvysJjV6x68qBaT",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000011",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4Sy8Hanz8AAA3AAAAdmVmMWM2ZDZkNTY1NGU3YzA3NTM2NjExNDkwNDQzZDUyLmMxNGYtYzFiNDk0ZDEudGVzdG5ldFkJK3/+P3/01gi+vbQQjf+AyIsK/E9lwPUXzgs/+C+SAQAAAAIVAAAAY29sbGVjdF9wcm90b2NvbF9mZWVzAgAAAHt9AMBuMdkQAQABAAAAAAAAAAAAAAAAAAAA",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "collect-fees-registry",
+      "hash": "8hfBQihp2Mz9PPXdAYDU1ZXBYYctqVrCvTaJazdiKNGK",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000012",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4TC8Hanz8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0AkuMSFUkvK+xFV0wM2xDg6nwg2g90POhUDiFd4YGZZIBAAAAAhUAAABjb2xsZWN0X3Byb3RvY29sX2ZlZXMCAAAAe30AwG4x2RABAAEAAAAAAAAAAAAAAAAAAAA=",
+      "expectedReceiptFailure": false
+    }
+  ],
+  "claims": {
+    "publicTestnet": true,
+    "nativeNear": true,
+    "browserWalletVerified": false,
+    "usdcVerified": false,
+    "hostedHttpsVerified": false,
+    "productionQualified": false
+  }
+}

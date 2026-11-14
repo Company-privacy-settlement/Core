@@ -14,7 +14,9 @@ export interface OperationsSource extends SharedChainSource {
 }
 export class NearRpcOperationsSource extends NearRpcSharedSource implements OperationsSource {
   async transaction(hash: string, signer: string): Promise<unknown | null> {
-    try { return await this.rpc('tx', { tx_hash: hash, sender_account_id: signer, wait_until: 'FINAL' }); }
+    // Status lookup must not wait for a transaction that may never have been
+    // dispatched. Callers still require an observed FINAL result for acceptance.
+    try { return await this.rpc('tx', { tx_hash: hash, sender_account_id: signer, wait_until: 'NONE' }); }
     catch (e) { if (e instanceof NearRpcError && e.causeName === 'UNKNOWN_TRANSACTION') return null; throw e; }
   }
   async finalBlock(): Promise<FinalBlock> {
