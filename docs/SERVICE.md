@@ -2,7 +2,7 @@
 
 Core is a development protocol for private business-to-business payments and business-to-worker transfers on NEAR. The service combines independently held vault balances, shared zero-knowledge notes, recipient-signed invoices and selective payment evidence. English is the default website/documentation language; the three repository READMEs also provide Korean and Simplified Chinese.
 
-This document describes implemented behavior as of **2026-11-13**. It is not a claim of production readiness, live KYB review or tax/legal approval.
+This document describes implemented behavior as of **2026-11-14**. It is not a claim of production readiness, live KYB review or tax/legal approval.
 
 ## Repository and service map
 
@@ -11,7 +11,7 @@ This document describes implemented behavior as of **2026-11-13**. It is not a c
 | Settlement | [Contract](https://github.com/Company-privacy-settlement/Contract) | Native NEAR v2 and immutable-token NEP-141 v3 groups, independent vaults, shared forest/nullifiers, real Groth16 circuit |
 | Integration | [Core](../README.md) | Browser/Node SDK, local proving CLI, read-only HTTP API, SQLite index, evidence tools |
 | Interface | [Front](https://github.com/Company-privacy-settlement/Front) | Next.js landing, ten English Docs guides and wallet workspaces |
-| Future compliance | [Compliance scope](../compliance/README.md) | Real KYB providers, versioned US/Abu Dhabi rules and reviewable AI preparation |
+| Future compliance | [Compliance scope](../compliance/README.md) | [Configured Sumsub connector](VERIFICATION.md); versioned US/Abu Dhabi rules and reviewable AI preparation remain planned |
 
 | Front route | Use |
 | --- | --- |
@@ -163,3 +163,5 @@ Standalone browser FT withdrawal proving, artifact integrity checks, cancellatio
 ## Worker and contractor payout batches
 
 [Payout batches](PAYOUT_BATCHES.md) group independently approved public requests with resumable/idempotent staging, per-recipient additive fee review, one encrypted journal, individual fixed-destination recovery and observational CSV/JSON settlement reports. Existing corporate note/dispatch reservations and reviewed restore invalidation remain in force; there is no implicit whole-run replay or contract custody.
+
+[Organization → Verification](VERIFICATION.md) now integrates Sumsub company/UBO review, secure supplementation, expiring encrypted status and local/provider-event revocation. Activation and actual provider review require the operator’s account/levels/HTTPS callback; development used local provider fixtures. The `/kyb/` sample flow still submits nothing.

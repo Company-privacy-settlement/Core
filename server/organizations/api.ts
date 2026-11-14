@@ -1,3 +1,4 @@
+import type { SumsubProvider } from './sumsub.js';
 import { createServer, type IncomingMessage } from 'node:http';
 import { z } from 'zod';
 import { ORGANIZATION_ROLE_PERMISSIONS, organizationOrigin } from '../../sdk/client/organizations.js';
@@ -7,19 +8,20 @@ import { Id, OrganizationAccount, OrganizationError, OrganizationInputs as Input
 import { OrganizationStore } from './store.js';
 
 function parse<S extends z.ZodType>(schema: S, value: unknown): z.output<S> { const result = schema.safeParse(value); if (!result.success) throw new OrganizationError(400, 'INVALID_INPUT'); return result.data; }
-async function body(req: IncomingMessage, signal: AbortSignal): Promise<unknown> {
+async function rawBody(req: IncomingMessage, signal: AbortSignal, maximum=8192): Promise<Buffer> {
   if ((req.headers['content-type'] ?? '').split(';')[0].trim() !== 'application/json' || req.headers['content-encoding']) throw new OrganizationError(415, 'JSON_REQUIRED');
   return new Promise((resolve, reject) => {
     let size = 0, done = false; const chunks: Buffer[] = [];
     const cleanup = () => { req.off('data', data); req.off('end', end); req.off('error', fail); req.off('aborted', aborted); signal.removeEventListener('abort', aborted); };
     const fail = (error: unknown) => { if (done) return; done = true; cleanup(); req.resume(); reject(error); };
     const aborted = () => fail(new OrganizationError(408, 'REQUEST_ABORTED'));
-    const data = (chunk: Buffer) => { size += chunk.length; if (size > 8192) return fail(new OrganizationError(413, 'BODY_TOO_LARGE')); chunks.push(chunk); };
-    const end = () => { if (done) return; done = true; cleanup(); try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); } catch { reject(new OrganizationError(400, 'INVALID_JSON')); } };
+    const data = (chunk: Buffer) => { size += chunk.length; if (size > maximum) return fail(new OrganizationError(413, 'BODY_TOO_LARGE')); chunks.push(chunk); };
+    const end = () => { if (done) return; done = true; cleanup(); resolve(Buffer.concat(chunks)); };
     req.on('data', data); req.on('end', end); req.on('error', fail); req.on('aborted', aborted); signal.addEventListener('abort', aborted, { once: true }); if (signal.aborted) aborted();
   });
 }
-export function createOrganizationApi(options: { store: OrganizationStore; identity: OrganizationIdentitySource; allowedOrigins: string[]; timeoutMs?: number; maxConcurrent?: number; ratePoints?: number }) {
+async function body(req:IncomingMessage,signal:AbortSignal):Promise<unknown>{const bytes=await rawBody(req,signal);try{return JSON.parse(bytes.toString('utf8'));}catch{throw new OrganizationError(400,'INVALID_JSON');}}
+export function createOrganizationApi(options: { store: OrganizationStore; identity: OrganizationIdentitySource; allowedOrigins: string[]; timeoutMs?: number; maxConcurrent?: number; ratePoints?: number; verificationProvider?:SumsubProvider }) {
   const origins = new Set(options.allowedOrigins.map(organizationOrigin));
   if (!origins.size) throw new Error('Organization API needs an exact frontend origin allowlist');
   organizationOrigin(options.store.audience);
@@ -37,9 +39,10 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
     try {
       res.setHeader('vary', 'Origin');
       if (req.url === '/healthz' && req.method === 'GET') { send(200, { live: true, service: 'core-organizations' }); return; }
-      const origin = req.headers.origin;
-      if (!origin || !origins.has(origin)) throw new OrganizationError(403, 'ORIGIN_DENIED');
-      res.setHeader('access-control-allow-origin', origin);
+      const isVerificationHook=req.method==='POST'&&req.url==='/v1/providers/sumsub/webhook';
+      const origin = req.headers.origin ?? '';
+      if (!isVerificationHook&&(!origin || !origins.has(origin))) throw new OrganizationError(403, 'ORIGIN_DENIED');
+      if(!isVerificationHook)res.setHeader('access-control-allow-origin', origin);
       if (req.method === 'OPTIONS') {
         if (!['GET', 'POST', 'PATCH', 'DELETE'].includes(req.headers['access-control-request-method'] ?? '')) throw new OrganizationError(403, 'METHOD_DENIED');
         const headers = (req.headers['access-control-request-headers'] ?? '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
@@ -54,6 +57,7 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
       try {
         const url = new URL(req.url ?? '/', 'http://organization.invalid');
         const signal = current.signal;
+        if(isVerificationHook){if(!options.verificationProvider)throw new OrganizationError(503,'VERIFICATION_PROVIDER_DISABLED');const bytes=await rawBody(req,signal,65536);signal.throwIfAborted();send(200,store.verifications.receive(options.verificationProvider,bytes,req.headers['x-payload-digest'],req.headers['x-payload-digest-alg']));return;}
         let validatedToken: string | undefined;
         const input = async <S extends z.ZodType>(schema: S) => { const value = parse(schema, await body(req, signal)); signal.throwIfAborted(); if (validatedToken) store.session(validatedToken, origin); return value; };
         if (url.search && !(req.method === 'GET' && /^\/v1\/organizations\/[a-f0-9-]+\/(audit|invoices|webhooks\/deliveries)$/.test(url.pathname))) throw new OrganizationError(400, 'QUERY_DENIED');
@@ -76,6 +80,14 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
           if (req.method === 'GET') { send(200, { items: store.list(actor) }); return; }
           if (req.method === 'POST') { const value = await input(Input.create); send(201, store.create(actor, value.name)); return; }
         }
+        const verification=/^\/v1\/organizations\/([^/]+)\/verification(?:\/(refresh|link|revoke))?$/.exec(url.pathname);
+        if(verification){const org=parse(Id,verification[1]),action=verification[2],provider=options.verificationProvider;
+          if(!action&&req.method==='GET'){send(200,store.verifications.get(org,actor,provider));return;}
+          if(!action&&req.method==='POST'){const v=await input(z.unknown());send(200,store.verifications.create(org,actor,v,provider));return;}
+          if(action&&req.method==='POST'){const v=await input(Input.version),check=()=>{signal.throwIfAborted();store.session(token,origin);};
+            if(action==='revoke'){send(200,store.verifications.revoke(org,actor,v.version,provider));return;}
+            send(200,action==='refresh'?await store.verifications.refresh(org,actor,v.version,provider,signal,check):await store.verifications.link(org,actor,v.version,provider,signal,check));return;}
+          throw new OrganizationError(404,'NOT_FOUND');}
         const batch = /^\/v1\/organizations\/([^/]+)\/payout-batches(?:\/([^/]+))?$/.exec(url.pathname);
         if(batch){
           const org=parse(Id,batch[1]),id=batch[2];

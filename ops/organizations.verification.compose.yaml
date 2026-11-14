@@ -1,0 +1,12 @@
+# Combine with organizations.compose.yaml and organizations.invoices.compose.yaml.
+services:
+  organization-api:
+    environment:
+      CORE_SUMSUB_CONFIG_FILE: /run/core-secrets/provider.sumsub-config.json
+    volumes:
+      - type: bind
+        source: ${CORE_SUMSUB_CONFIG_PATH:?Set an absolute owner-only Sumsub configuration file path}
+        target: /run/core-secrets/provider.sumsub-config.json
+        read_only: true
+        bind:
+          create_host_path: false

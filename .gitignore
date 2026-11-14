@@ -20,3 +20,5 @@ withdrawal-args.json
 commitments.json
 
 *.invoice-keys.json
+
+*.sumsub-config.json

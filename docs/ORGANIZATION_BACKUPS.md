@@ -119,3 +119,5 @@ The compiled runtime harness executes the real launcher/CLI through backup, bad-
 ## Worker and contractor payout batches
 
 [Payout batches](PAYOUT_BATCHES.md) group independently approved public requests with resumable/idempotent staging, per-recipient additive fee review, one encrypted journal, individual fixed-destination recovery and observational CSV/JSON settlement reports. Existing corporate note/dispatch reservations and reviewed restore invalidation remain in force; there is no implicit whole-run replay or contract custody.
+
+[Sumsub business/beneficial-owner verification](VERIFICATION.md) adds provider-hosted company/owner review, supplementation, authenticated invalidation, fixed review-date expiry and irreversible local reliance revocation. Restored cases are revoked and need new review; organization roles and permissionless contract execution remain separate.

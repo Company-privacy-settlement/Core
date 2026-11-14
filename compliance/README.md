@@ -19,10 +19,12 @@ Receipts commit to declared fields and allow selected integrity proofs. Separate
 1. Classify B2B, employee or contractor payments and establish the parties’ relevant jurisdictions and effective date.
 2. Resolve US state/federal obligations or ADGM/mainland status before selecting dated, versioned official rules.
 3. Calculate using deterministic reviewed rules; use AI to prepare cited, reviewable explanations and document drafts.
-4. Integrate a real KYB/KYC provider for entity/beneficial-owner review, trusted credentials and current revocation handling. Circuit-enforced eligibility requires separately versioned contract/circuit work.
+4. Qualify the implemented Sumsub company/beneficial-owner connector against the operator account and configured levels; any trusted credential issuance is separate. Circuit-enforced eligibility requires separately versioned contract/circuit work.
 5. Keep supporting documents encrypted off-chain, with access controls and retention/deletion rules; disclose selected evidence to an authorized reviewer.
 6. Route drafts through appropriate review and a separately implemented filing/payment process. Preparation is not approval or submission.
 
-Tax rates/calculation, payroll withholding, treaty analysis, AI legal drafts, real provider calls, statutory filing and fiat conversion are **not implemented**. No rates or legal outcomes are inferred from the current UI.
+Tax rates/calculation, payroll withholding, treaty analysis, AI legal drafts, statutory filing and fiat conversion are **not implemented**. No rates or legal outcomes are inferred from the current UI.
 
 Do not put legal names, beneficial-owner documents, salary details or raw tax forms on-chain. Detailed payment/evidence boundaries: [privacy](../docs/PRIVACY.md), [browser receipts](../docs/BROWSER_RECEIPTS.md), [invoices](../docs/INVOICES.md).
+
+The separate [Sumsub connector](../docs/VERIFICATION.md) now supports company/beneficial-owner review, secure supplementation, encrypted minimal snapshots and expiry/revocation. A contracted account, reviewed levels and live-provider qualification are still required. The sample intake above remains unsubmitted; no on-chain eligibility credential is issued.

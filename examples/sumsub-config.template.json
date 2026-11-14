@@ -1,0 +1,12 @@
+{
+  "format": "core-sumsub-config-v1",
+  "environment": "sandbox",
+  "apiOrigin": "https://api.sumsub.com",
+  "clientId": "REPLACE_WITH_YOUR_SUMSUB_CLIENT_ID",
+  "appToken": "REPLACE_WITH_SANDBOX_APP_TOKEN",
+  "secretKey": "REPLACE_WITH_SANDBOX_API_SECRET_AT_LEAST_32_CHARACTERS",
+  "webhookSecret": "REPLACE_WITH_SEPARATE_WEBHOOK_SECRET_AT_LEAST_32_CHARACTERS",
+  "companyLevel": "REPLACE_WITH_CONFIGURED_FULL_KYB_LEVEL",
+  "individualLevel": "REPLACE_WITH_CONFIGURED_UBO_KYC_LEVEL",
+  "validityDays": 30
+}

@@ -16,6 +16,8 @@ const temporary = mkdtempSync(resolve(tmpdir(), 'core-service-runtime-')), f = i
 const registryCode = Buffer.from('service-fixture-registry'), vaultCode = Buffer.from('service-fixture-vault');
 f.policy.registryWasmSha256 = digest(registryCode); f.policy.vaultWasmSha256 = digest(vaultCode); f.config.vault_wasm_sha256 = f.policy.vaultWasmSha256;
 f.records.push(f.record(0));
+// A finalized block must retain its original records while the mock head advances.
+const snapshots = new Map<string, typeof f.records>();
 let hang = false;
 const rpc = createServer(async (req, res) => {
   if (hang) return;
@@ -23,15 +25,17 @@ const rpc = createServer(async (req, res) => {
     let body = ''; for await (const chunk of req) body += chunk;
     const { id, method, params: p } = JSON.parse(body); let result: unknown;
     if (method === 'status') result = { chain_id: 'test-chain-service-runtime', sync_info: { syncing: false, latest_block_time: new Date().toISOString() } };
-    else if (method === 'block') { const height = typeof p.block_id === 'number' ? p.block_id : f.state.height; result = { header: { hash: blockHash(height), height } }; }
+    else if (method === 'block') { const height = typeof p.block_id === 'number' ? p.block_id : f.state.height; const hash=blockHash(height);if(!snapshots.has(hash))snapshots.set(hash,structuredClone(f.records));result = { header: { hash, height } }; }
     else if (method === 'query') {
       if (p.request_type === 'view_code') result = { code_base64: (p.account_id === f.policy.registry ? registryCode : vaultCode).toString('base64') };
       else if (p.request_type === 'view_access_key_list') result = { keys: [] };
       else {
         const args = JSON.parse(Buffer.from(p.args_base64, 'base64').toString());
-        const value = p.method_name === 'get_config' ? p.account_id === f.policy.registry ? await f.source.config(p.block_id) : await f.source.vaultConfig(p.account_id, p.block_id)
+        const pinned=snapshots.get(String(p.block_id));
+        let value = p.method_name === 'get_config' ? p.account_id === f.policy.registry ? await f.source.config(p.block_id) : await f.source.vaultConfig(p.account_id, p.block_id)
           : p.method_name === 'list_vaults' ? await f.source.records(args.from_index, args.limit, p.block_id)
           : await f.source.contractView(p.account_id, p.method_name, args, p.block_id);
+        if(pinned&&p.account_id===f.policy.registry){if(p.method_name==='get_config')value={...(value as object),record_count:pinned.length};if(p.method_name==='get_records')value=pinned.slice(Number(args.from_index),Number(args.from_index)+Number(args.limit));}
         result = { result: [...Buffer.from(JSON.stringify(value))] };
       }
     } else throw new Error('Unexpected fixture RPC method');
