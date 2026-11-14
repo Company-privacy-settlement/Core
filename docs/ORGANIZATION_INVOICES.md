@@ -47,7 +47,7 @@ const firstPage = await invoices.list(undefined, abortController.signal);
 const original = await invoices.get(saved.invoice.id, abortController.signal);
 ```
 
-The helper transports signed terms and does not persist tokens or invoice plaintext. The existing `/invoices/` browser creation/library and checkout workflows remain usable; they do not automatically sync to this private API. [Persistent dashboard search/export (M02)](PAYMENT_DASHBOARD.md) is available; webhooks (M03) remain separate work.
+The helper transports signed terms and does not persist tokens or invoice plaintext. The existing `/invoices/` browser creation/library and checkout workflows remain usable; they do not automatically sync to this private API. [Persistent dashboard search/export (M02)](PAYMENT_DASHBOARD.md) is available; [Signed payment webhooks (M03)](WEBHOOKS.md) are available.
 
 ## Encryption boundary and recovery
 
@@ -70,3 +70,7 @@ Validation covers real Ed25519 signatures, HTTP/session/tenant isolation, concur
 ## Payment management dashboard
 
 [Organization payment dashboard](PAYMENT_DASHBOARD.md) provides complete-snapshot search, state/asset/group/date filters, CSV/JSON export and finalized-index payment observations in Front `/organization/` → Invoice payments. Signed JSON can be explicitly saved to organization storage. Local creation remains independent. Unknown, stale and incomplete observations remain explicit; exports require current read access.
+
+## Payment webhooks
+
+[Signed payment webhooks](WEBHOOKS.md) provide an encrypted durable outbox, stable event IDs, HMAC signatures, bounded retries/dead letters and receiver-side atomic deduplication. The optional worker consumes a pinned local finalized index and only approved HTTPS callback origins. Organization → Webhooks manages callback pause/rotation and failure history. Recovery pauses callbacks and holds outstanding deliveries until current-admin review.

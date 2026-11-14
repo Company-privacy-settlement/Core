@@ -1,0 +1,21 @@
+# Combine with organizations.compose.yaml and organizations.invoices.compose.yaml.
+services:
+  organization-api:
+    environment:
+      CORE_WEBHOOK_ALLOWED_ORIGINS: ${CORE_WEBHOOK_ALLOWED_ORIGINS:?Set exact approved HTTPS callback origins}
+      CORE_WEBHOOK_INDEX_DB: /index/activity.sqlite
+      CORE_WEBHOOK_POLICY_FILE: /run/core-secrets/webhook-policy.json
+      CORE_WEBHOOK_POLICY_SHA256: ${CORE_WEBHOOK_POLICY_SHA256:?Set independently reviewed webhook policy digest}
+    volumes:
+      - type: bind
+        source: ${CORE_WEBHOOK_INDEX_DIRECTORY:?Set the verified index directory including WAL sidecars}
+        target: /index
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${CORE_WEBHOOK_POLICY_PATH:?Set an absolute independently reviewed policy file}
+        target: /run/core-secrets/webhook-policy.json
+        read_only: true
+        bind:
+          create_host_path: false

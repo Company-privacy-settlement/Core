@@ -63,3 +63,5 @@ export type {
 export * from './organization-invoices.js';
 
 export * from "./invoice-dashboard.js";
+
+export * from "./webhooks.js";

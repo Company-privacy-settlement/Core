@@ -7,6 +7,7 @@ import { canGrant, OrganizationError, requirePermission, versionMatches } from '
 import { assertOrganizationReady, recoverySchema } from './recovery-state.js';
 import { OrganizationPayments, organizationPaymentsSchema } from './payments.js';
 import { OrganizationInvoices, organizationInvoicesSchema } from './invoices.js';
+import { OrganizationWebhooks, webhookSchema } from './webhooks.js';
 import type { InvoiceKeys } from './invoice-keys.js';
 
 type OrgRow = { id: string; name: string; owner: string; version: number; created: number };
@@ -21,7 +22,8 @@ export class OrganizationStore {
   private db: DatabaseSync;
   readonly payments: OrganizationPayments;
   readonly invoices: OrganizationInvoices;
-  constructor(filename: string, readonly audience: string, readonly now: () => number = Date.now, invoiceKeys?: InvoiceKeys) {
+  readonly webhooks: OrganizationWebhooks;
+  constructor(filename: string, readonly audience: string, readonly now: () => number = Date.now, invoiceKeys?: InvoiceKeys, webhookOrigins: readonly string[] = []) {
     if (filename !== ':memory:') {
       filename = resolve(filename); mkdirSync(dirname(filename), { recursive: true, mode: 0o700 });
       try { closeSync(openSync(filename, 'wx', 0o600)); } catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e; }
@@ -55,10 +57,12 @@ export class OrganizationStore {
       this.db.exec(recoverySchema);
       this.db.exec(organizationPaymentsSchema);
       this.db.exec(organizationInvoicesSchema);
+      this.db.exec(webhookSchema);
       this.run("INSERT OR IGNORE INTO organization_recovery VALUES(1,1,'ready',NULL,?,NULL)", this.now());
       this.db.exec('COMMIT');
       this.payments = new OrganizationPayments({db:this.db,now:this.now,atomic:action=>this.atomic(action),authorize:(...args)=>this.authorize(...args),member:(...args)=>this.member(...args),audit:(...args)=>this.audit(...args)});
       this.invoices = new OrganizationInvoices({db:this.db,audience,now:this.now,keys:invoiceKeys,atomic:action=>this.atomic(action),authorize:(...args)=>this.authorize(...args),audit:(...args)=>this.audit(...args)});
+      this.webhooks = new OrganizationWebhooks({db:this.db,audience,keys:invoiceKeys,now:this.now,allowed:new Set(webhookOrigins),atomic:action=>this.atomic(action),authorize:(...args)=>this.authorize(...args),audit:(...args)=>this.audit(...args)});
     } catch (e) { this.db.close(); throw e; }
   }
   close() { this.db.close(); }

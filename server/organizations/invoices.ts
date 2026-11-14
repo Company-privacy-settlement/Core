@@ -46,6 +46,10 @@ export class OrganizationInvoices {
       return value;
     } catch { throw new OrganizationError(503,'INVOICE_DECRYPTION_FAILED'); }
   }
+  /** Internal trusted worker scan; never exposed as an unauthenticated route. */
+  webhookRecords(after?:string):OrganizationInvoice[] {
+    this.keys();return (this.c.db.prepare("SELECT i.* FROM organization_invoices i WHERE i.id>? AND EXISTS(SELECT 1 FROM organization_webhook_endpoints e WHERE e.org=i.org AND e.state='active') ORDER BY i.id LIMIT 25").all(after??'') as Row[]).map(r=>this.view(r));
+  }
   get(org:string,actor:string,id:string):OrganizationInvoice {
     this.c.authorize(org,actor,'invoices.read'); this.keys();
     const row=this.c.db.prepare('SELECT * FROM organization_invoices WHERE org=? AND id=?').get(org,id) as Row|undefined;

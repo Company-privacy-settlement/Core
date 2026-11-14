@@ -12,6 +12,8 @@ This repository contains the SDK, local browser prover and proving CLI, read-onl
 
 [Payment management dashboard](docs/PAYMENT_DASHBOARD.md) adds organization invoice search, status/asset/group/date filters, CSV/JSON export and finalized-index payment reconciliation. The SDK distinguishes historical lookup from current-key checkout; unknown, stale and incomplete observations remain explicit.
 
+[Signed payment webhooks](docs/WEBHOOKS.md) add encrypted callbacks/events, a durable finalized-index outbox, stable IDs, HMAC signatures, retries/dead letters, failure history and atomic receiver deduplication. Owners/Admins manage callbacks and redrives in Organization → Webhooks. A pinned local index, approved HTTPS destinations and protected key ring are required.
+
 ## Repositories
 
 | Repository | Responsibility |
@@ -137,3 +139,5 @@ The hosted development workspace is owner-private; external customer checkout re
 Validated on **2026-11-14** for organization invoice storage: **342 Core tests** passed, including 22 new invoice API/encryption/idempotency/recovery cases, plus the compiled service startup/restart and CLI recovery harness.
 
 Payment dashboard validation on **2026-11-14**: **355 Core tests** and **182 desktop/mobile browser cases** passed, including 13 new Core and 18 browser dashboard cases; type checks, Node/browser SDK builds and the static Front build passed. Browser service/wallet fixtures do not establish a live public-network deployment.
+
+Signed webhook validation on **2026-11-14**: **379 Core tests** and **194 desktop/mobile browser cases** passed, including 24 new Core and 12 browser webhook cases. Node/browser SDK, static build and compiled service/recovery checks passed. Tests use local index/wallet/transport fixtures; no real merchant callback or public backend deployment was performed.

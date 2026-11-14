@@ -52,4 +52,8 @@ const csv = exportInvoiceDashboard(filtered, 'csv');
 
 Snapshot/signature/tenant checks, historical HTTP/current-checkout separation, search/date filters, status uncertainty, reused-unit references, formula-safe exports and actual finalized-index record selection have Core tests. Desktop/mobile browser tests cover API import, full pagination, filters/exports, stale/error/coverage states, role restrictions, cancellation, revocation, organization switching and page-hide. These browser service/wallet fixtures do not establish a live public-network deployment or KYB.
 
-Webhooks/outbox, server-side reporting jobs, saved source directories, arbitrary fiat amounts, FX and corporate legal qualification remain separate work. This dashboard does not alter contract fees, fixed-denomination proof rules or the existing corporate approval workflow.
+Server-side reporting jobs, saved source directories, arbitrary fiat amounts, FX and corporate legal qualification remain separate work. This dashboard does not alter contract fees, fixed-denomination proof rules or the existing corporate approval workflow.
+
+## Payment webhooks
+
+[Signed payment webhooks](WEBHOOKS.md) provide an encrypted durable outbox, stable event IDs, HMAC signatures, bounded retries/dead letters and receiver-side atomic deduplication. The optional worker consumes a pinned local finalized index and only approved HTTPS callback origins. Organization → Webhooks manages callback pause/rotation and failure history. Recovery pauses callbacks and holds outstanding deliveries until current-admin review.

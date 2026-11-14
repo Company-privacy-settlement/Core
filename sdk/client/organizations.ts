@@ -3,14 +3,14 @@ import { account } from './payment.js';
 
 export const ORGANIZATION_ROLES = Object.freeze(['owner', 'admin', 'operator', 'viewer', 'auditor'] as const);
 export type OrganizationRole = typeof ORGANIZATION_ROLES[number];
-export const ORGANIZATION_PERMISSIONS = Object.freeze(['organization.read', 'organization.update', 'members.read', 'members.manage', 'invitations.manage', 'audit.read', 'ownership.transfer', 'payments.read', 'payments.create', 'payments.approve', 'payments.execute', 'invoices.read', 'invoices.create'] as const);
+export const ORGANIZATION_PERMISSIONS = Object.freeze(['organization.read', 'organization.update', 'members.read', 'members.manage', 'invitations.manage', 'audit.read', 'ownership.transfer', 'payments.read', 'payments.create', 'payments.approve', 'payments.execute', 'invoices.read', 'invoices.create', 'webhooks.read', 'webhooks.manage'] as const);
 export type OrganizationPermission = typeof ORGANIZATION_PERMISSIONS[number];
 export const ORGANIZATION_ROLE_PERMISSIONS: Readonly<Record<OrganizationRole, readonly OrganizationPermission[]>> = Object.freeze({
   owner: ORGANIZATION_PERMISSIONS,
-  admin: Object.freeze(['organization.read', 'organization.update', 'members.read', 'members.manage', 'invitations.manage', 'audit.read', 'payments.read', 'payments.create', 'payments.approve', 'payments.execute', 'invoices.read', 'invoices.create'] as const),
-  operator: Object.freeze(['organization.read', 'members.read', 'payments.read', 'payments.create', 'payments.execute', 'invoices.read', 'invoices.create'] as const),
+  admin: Object.freeze(['organization.read', 'organization.update', 'members.read', 'members.manage', 'invitations.manage', 'audit.read', 'payments.read', 'payments.create', 'payments.approve', 'payments.execute', 'invoices.read', 'invoices.create', 'webhooks.read', 'webhooks.manage'] as const),
+  operator: Object.freeze(['organization.read', 'members.read', 'payments.read', 'payments.create', 'payments.execute', 'invoices.read', 'invoices.create', 'webhooks.read'] as const),
   viewer: Object.freeze(['organization.read'] as const),
-  auditor: Object.freeze(['organization.read', 'members.read', 'audit.read', 'payments.read', 'invoices.read'] as const),
+  auditor: Object.freeze(['organization.read', 'members.read', 'audit.read', 'payments.read', 'invoices.read', 'webhooks.read'] as const),
 });
 export type Organization = { id: string; name: string; ownerAccount: string; version: number; membershipVersion: number; createdAt: string; role: OrganizationRole; permissions: OrganizationPermission[]; claims: { kybVerified: false; walletSigningAuthorityGranted: false } };
 export type OrganizationMember = { accountId: string; role: OrganizationRole; status: 'active' | 'revoked'; version: number; joinedAt: string };
@@ -51,7 +51,7 @@ export class OrganizationClient {
   constructor(origin: string, private token?: string) { this.origin = organizationOrigin(origin); }
   async request<T>(path: string, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
     const url = new URL(path, this.origin);
-    if (!path.startsWith('/') || url.origin !== this.origin || !/^\/(?:v1\/(?:auth|me|organizations)(?:\/[a-zA-Z0-9_.-]+)*|healthz)$/.test(url.pathname) || url.hash || (url.search && !((/\/(audit|invoices)$/.test(url.pathname)) && /^\?before=[1-9][0-9]{0,15}$/.test(url.search)))) throw new Error('Invalid organization API path');
+    if (!path.startsWith('/') || url.origin !== this.origin || !/^\/(?:v1\/(?:auth|me|organizations)(?:\/[a-zA-Z0-9_.-]+)*|healthz)$/.test(url.pathname) || url.hash || (url.search && !((/\/(audit|invoices|deliveries)$/.test(url.pathname)) && /^\?before=[1-9][0-9]{0,15}$/.test(url.search)))) throw new Error('Invalid organization API path');
     const response = await fetch(this.origin + path, { method, credentials: 'omit', redirect: 'error', cache: 'no-store', headers: {
       ...(body !== undefined ? { 'content-type': 'application/json' } : {}), ...(this.token ? { authorization: `Bearer ${this.token}` } : {}),
     }, signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(25_000)]) : AbortSignal.timeout(25_000), ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });

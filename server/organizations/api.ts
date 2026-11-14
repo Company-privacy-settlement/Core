@@ -56,7 +56,7 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
         const signal = current.signal;
         let validatedToken: string | undefined;
         const input = async <S extends z.ZodType>(schema: S) => { const value = parse(schema, await body(req, signal)); signal.throwIfAborted(); if (validatedToken) store.session(validatedToken, origin); return value; };
-        if (url.search && !(req.method === 'GET' && /^\/v1\/organizations\/[a-f0-9-]+\/(audit|invoices)$/.test(url.pathname))) throw new OrganizationError(400, 'QUERY_DENIED');
+        if (url.search && !(req.method === 'GET' && /^\/v1\/organizations\/[a-f0-9-]+\/(audit|invoices|webhooks\/deliveries)$/.test(url.pathname))) throw new OrganizationError(400, 'QUERY_DENIED');
         if (req.method === 'POST' && url.pathname === '/v1/auth/challenge') {
           const value = await input(z.object({ accountId: OrganizationAccount }).strict()); send(200, store.challenge(value.accountId, origin)); return;
         }
@@ -75,6 +75,21 @@ export function createOrganizationApi(options: { store: OrganizationStore; ident
         if (url.pathname === '/v1/organizations') {
           if (req.method === 'GET') { send(200, { items: store.list(actor) }); return; }
           if (req.method === 'POST') { const value = await input(Input.create); send(201, store.create(actor, value.name)); return; }
+        }
+        const webhook = /^\/v1\/organizations\/([^/]+)\/webhooks(?:\/([^/]+)(?:\/([^/]+)(?:\/(retry))?)?)?$/.exec(url.pathname);
+        if(webhook){
+          const org=parse(Id,webhook[1]),resource=webhook[2],target=webhook[3],action=webhook[4];
+          if(!resource&&req.method==='GET'){send(200,{items:store.webhooks.endpoints(org,actor)});return;}
+          if(!resource&&req.method==='POST'){const value=await input(z.unknown());const result=store.webhooks.create(org,actor,value);send(result.replayed?200:201,result);return;}
+          if(resource==='deliveries'){
+            if(!target&&req.method==='GET'){
+              const cursor=url.searchParams.get('before');if([...url.searchParams.keys()].some(k=>k!=='before')||url.searchParams.getAll('before').length>1||(cursor!==null&&(!/^[1-9][0-9]{0,15}$/.test(cursor)||!Number.isSafeInteger(Number(cursor)))))throw new OrganizationError(400,'INVALID_CURSOR');
+              send(200,store.webhooks.deliveries(org,actor,cursor===null?undefined:Number(cursor)));return;
+            }
+            if(target&&!action&&req.method==='GET'){send(200,store.webhooks.detail(org,actor,parse(Id,target)));return;}
+            if(target&&action==='retry'&&req.method==='POST'){const value=await input(Input.version);send(200,store.webhooks.retry(org,actor,parse(Id,target),value.version));return;}
+          }else if(resource&&['pause','resume','rotate'].includes(target??'')&&req.method==='POST'){const value=await input(z.unknown());send(200,store.webhooks.update(org,actor,parse(Id,resource),target as 'pause'|'resume'|'rotate',value));return;}
+          throw new OrganizationError(404,'NOT_FOUND');
         }
         const invoice = /^\/v1\/organizations\/([^/]+)\/invoices(?:\/([^/]+))?$/.exec(url.pathname);
         if (invoice) {

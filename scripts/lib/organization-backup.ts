@@ -30,6 +30,11 @@ const columns: Record<string, string[]> = {
   organization_invoices: ['id','org','sequence','created','key_id','nonce','ciphertext','tag','natural_hash','payload_hash'],
   organization_invoice_requests: ['org','request_hash','invoice_id','payload_hash'],
   organization_invoice_key_checks: ['purpose','key_id','check_value'],
+  organization_webhook_endpoints: ['id','org','url_hash','payload_hash','key_id','sealed','state','version','created'],
+  organization_webhook_requests: ['org','request_hash','endpoint_id','payload_hash'],
+  organization_webhook_events: ['id','org','invoice_id','identity_hash','key_id','sealed','created'],
+  organization_webhook_deliveries: ['id','org','sequence','event_id','endpoint_id','state','version','attempts','cycle_attempts','redrives','due','lease','lease_until','last_error','created'],
+  organization_webhook_attempts: ['delivery_id','number','lease','started','finished','outcome','http_status','error'],
 };
 type Recovery = { state: 'ready' | 'quarantined'; recovery_id: string | null };
 
@@ -56,8 +61,9 @@ function inspect(path: string, audience: string) {
     if (db.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok' || db.prepare('PRAGMA foreign_key_check').get()) throw new Error('Organization SQLite integrity check failed');
     const objects = db.prepare("SELECT name,type FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'").all();
     const tables = objects.filter(o => o.type === 'table').map(o => String(o.name));
-    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches','organization_invoices','organization_invoice_requests','organization_invoice_key_checks'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
+    if (objects.some(o => ['trigger','view'].includes(String(o.type))) || tables.some(n => !Object.hasOwn(columns, n)) || Object.keys(columns).filter(n => !['organization_recovery','organization_payments','organization_payment_dispatches','organization_invoices','organization_invoice_requests','organization_invoice_key_checks','organization_webhook_endpoints','organization_webhook_requests','organization_webhook_events','organization_webhook_deliveries','organization_webhook_attempts'].includes(n)).some(n => !tables.includes(n)) || tables.includes('organization_payments') !== tables.includes('organization_payment_dispatches')) throw new Error('Unexpected organization schema');
     if (["organization_invoices","organization_invoice_requests","organization_invoice_key_checks"].filter(n => tables.includes(n)).length % 3 !== 0) throw new Error('Incomplete invoice schema');
+    if (['organization_webhook_endpoints','organization_webhook_requests','organization_webhook_events','organization_webhook_deliveries','organization_webhook_attempts'].filter(n=>tables.includes(n)).length % 5 !== 0) throw new Error('Incomplete webhook schema');
     for (const name of tables) {
       const actual = db.prepare(`PRAGMA table_info(${name})`).all().map(c => String(c.name)); // name is from the closed inventory above.
       if (JSON.stringify(actual) !== JSON.stringify(columns[name])) throw new Error('Unexpected organization columns');
@@ -91,6 +97,10 @@ function quarantine(path: string) {
     // rather than ignoring the newer optional recovery-state table.
     db.exec('UPDATE organization_meta SET version=2 WHERE id=1');
     if (db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name='organization_payments'").get()) db.exec("UPDATE organization_payments SET state='invalidated',version=version+1 WHERE state IN ('pending','approved','dispatched')");
+    if(db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='organization_webhook_endpoints'").get()){
+      db.exec("UPDATE organization_webhook_endpoints SET state='paused',version=version+1; UPDATE organization_webhook_deliveries SET state='held',version=version+1,lease=NULL,lease_until=NULL,last_error='RECOVERY_HOLD' WHERE state IN ('pending','sending')");
+      db.prepare("UPDATE organization_webhook_attempts SET outcome='unknown',error='RECOVERY_HOLD',finished=COALESCE(finished,?) WHERE outcome='sending'").run(Date.now());
+    }
     db.prepare("INSERT INTO organization_recovery VALUES(1,1,'quarantined',?,?,NULL)").run(recoveryId, Date.now());
     db.exec('COMMIT; VACUUM'); return recoveryId;
   } finally { db.close(); }
