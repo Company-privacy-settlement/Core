@@ -1,0 +1,42 @@
+{
+  "format": "core-relay-validation-v1",
+  "passed": true,
+  "checkedAt": "2026-11-14T08:06:07.932Z",
+  "publicNetworkDeployed": false,
+  "productionQualified": false,
+  "results": [
+    {
+      "asset": "NEAR",
+      "network": "sandbox",
+      "sponsor": "native-sponsor.test.near",
+      "user": "native-user.test.near",
+      "principal": "1000000000000000000000000",
+      "gasPaidBySponsor": true,
+      "userBalanceUnchangedDuringWithdrawal": true,
+      "recipientReceivedFullPrincipal": true,
+      "txHash": "5ohfD3QuXYAgF3xcumKK81gVvhF8xwLFzh1Acpfe1xoS",
+      "duplicateDispatchPrevented": true,
+      "recipientAndAmountMutationRejected": true,
+      "realGroth16": true,
+      "realWasm": true,
+      "onChainReplayRejected": true,
+      "failedPayoutRecoveredWithoutSecondProtocolFee": true
+    },
+    {
+      "asset": "local TESTUSD fixture, NOT Circle-issued USDC",
+      "network": "sandbox",
+      "sponsor": "ft-sponsor.test.near",
+      "user": "ft-user.test.near",
+      "principal": "1000000",
+      "gasPaidBySponsor": true,
+      "userBalanceUnchangedDuringWithdrawal": true,
+      "recipientReceivedFullPrincipal": true,
+      "txHash": "6FcdPfSKxCgMk7WKxW3zsYzVWeFN5kn98THsvHVZtg48",
+      "duplicateDispatchPrevented": true,
+      "recipientAndAmountMutationRejected": true,
+      "realGroth16": true,
+      "realWasm": true,
+      "sponsorFeeTokens": "1500"
+    }
+  ]
+}

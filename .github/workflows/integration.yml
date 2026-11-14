@@ -153,6 +153,10 @@ jobs:
         id: ft
         timeout-minutes: 15
         run: npm run demo:ft
+      - name: Noncustodial proof relay real native and FT WASM sponsorship
+        id: relay
+        timeout-minutes: 10
+        run: npm run test:relay-sandbox
       - name: Prepare and verify exact-source development release
         id: release
         run: |
@@ -180,6 +184,7 @@ jobs:
             Contract/artifacts/core_*.wasm
             Core/dist/client/
             Core/demo-output/browser-prover-validation.json
+            Core/demo-output/relay-validation.json
       - name: Retain failed browser fixture diagnostics
         if: failure() && steps.browser.outcome == 'failure'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

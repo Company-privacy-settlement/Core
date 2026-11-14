@@ -26,6 +26,7 @@ Core는 SDK·API·최종화 인덱서·기업 워크플로 저장소입니다.
 
 | 기능 | 구현 |
 | --- | --- |
+| 가스 대납 | 출금·복구용 비수탁 증명 릴레이, 자체 키 비용 대납과 영속 재전송 차단. |
 | 정산 | 네이티브 NEAR v2·토큰 고정 NEP-141/USDC v3, 공유 nullifier와 분산 원금. |
 | 로컬 증명 | Groth16 노트 생성·사용, 브라우저 증명 지원, 선택 공개 영수증. |
 | 운영 | 읽기 전용 API·최종화 SQLite 인덱서·서비스 감독·배포/릴리스·복구. |
@@ -56,7 +57,7 @@ npm run testnet:verify-wallet -- docs/evidence/testnet-wallet-2026-11-14.json \
 
 [Testnet run and transaction links](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md) · [Public evidence](https://github.com/Company-privacy-settlement/Core/blob/main/docs/evidence/testnet-wallet-2026-11-14.json)
 
-네이티브 지갑 실증 시 **Core 513개 테스트**와 SDK·타입 빌드·컴파일 서비스 재시작/백업/복구를 검증했습니다. 브라우저 USDC 준비 업데이트는 **Core 520개 테스트**와 타입 검사를 통과했으나 실제 자금 점검은 차단 상태입니다. 프라이버시 기준선 업데이트는 **Core 535개 테스트**를 통과했으며 재검증한 네이티브 기록을 측정하지만 실효 익명성을 입증하지는 않습니다. 브라우저 테스트 환경·자금 사전 점검·공개 정산 실거래 증거는 구분합니다.
+네이티브 지갑 실증 시 **Core 513개 테스트**와 SDK·타입 빌드·컴파일 서비스 재시작/백업/복구를 검증했습니다. 브라우저 USDC 준비 업데이트는 **Core 520개 테스트**와 타입 검사를 통과했으나 실제 자금 점검은 차단 상태입니다. 프라이버시 기준선 업데이트는 **Core 535개 테스트**를 통과했으며 재검증한 네이티브 기록을 측정하지만 실효 익명성을 입증하지는 않습니다. 브라우저 테스트 환경·자금 사전 점검·공개 정산 실거래 증거는 구분합니다. 비수탁 릴레이는 **Core 549개 테스트**, 실제 네이티브/FT 샌드박스와 공개 테스트넷 0.1 NEAR 대납 출금을 검증했으며 중복 요청·재시작 시 재전송하지 않았습니다.
 
 ## 구조와 수수료
 
@@ -82,4 +83,4 @@ ZK는 사용한 입력 노트의 연결을 숨깁니다. 서명자·수취인·�
 
 ## 프로젝트 살펴보기
 
-[브라우저 USDC 실증](https://github.com/Company-privacy-settlement/Core/blob/main/docs/BROWSER_USDC_TESTNET.md) · [Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [프라이버시 기준선](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY_BASELINE.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)
+[브라우저 USDC 실증](https://github.com/Company-privacy-settlement/Core/blob/main/docs/BROWSER_USDC_TESTNET.md) · [Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [프라이버시 기준선](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY_BASELINE.md) · [비수탁 릴레이](https://github.com/Company-privacy-settlement/Core/blob/main/docs/RELAY.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)

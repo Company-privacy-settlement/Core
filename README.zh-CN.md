@@ -26,6 +26,7 @@ Core 仓库提供 SDK、API、最终化索引器和企业工作流。
 
 | 能力 | 实现 |
 | --- | --- |
+| 费用赞助 | 提款/恢复的非托管证明中继，自有密钥支付费用及持久化重放保护。 |
 | 结算 | 原生 NEAR v2、绑定代币的 NEP-141/USDC v3、共享 nullifier 与分布式本金。 |
 | 本地证明 | Groth16 票据生成/花费、浏览器证明支持及选择披露收据。 |
 | 运营 | 只读 API、最终化 SQLite 索引器、服务监督、部署/发布与恢复。 |
@@ -56,7 +57,7 @@ npm run testnet:verify-wallet -- docs/evidence/testnet-wallet-2026-11-14.json \
 
 [Testnet run and transaction links](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md) · [Public evidence](https://github.com/Company-privacy-settlement/Core/blob/main/docs/evidence/testnet-wallet-2026-11-14.json)
 
-原生钱包实证记录通过了 **Core 513 项测试**、SDK/类型构建和编译服务重启/备份/恢复验证。浏览器 USDC 准备更新通过了 **Core 520 项测试**与类型检查，但实际资金预检仍被阻塞。隐私基线更新通过了 **Core 535 项测试**，测量重新验证的原生交易记录，但不证明有效匿名性。浏览器测试环境、资金预检和公开结算执行是不同的证据类别。
+原生钱包实证记录通过了 **Core 513 项测试**、SDK/类型构建和编译服务重启/备份/恢复验证。浏览器 USDC 准备更新通过了 **Core 520 项测试**与类型检查，但实际资金预检仍被阻塞。隐私基线更新通过了 **Core 535 项测试**，测量重新验证的原生交易记录，但不证明有效匿名性。浏览器测试环境、资金预检和公开结算执行是不同的证据类别。 非托管中继通过了 **Core 549 项测试**、真实原生/FT 沙箱执行及公开测试网 0.1 NEAR 赞助提款，重复请求和进程重启未再次发送。
 
 ## 架构与费用
 
@@ -82,4 +83,4 @@ ZK 隐藏使用了哪一张输入票据。签名人、收款人、时间、固�
 
 ## 探索项目
 
-[浏览器 USDC 验证](https://github.com/Company-privacy-settlement/Core/blob/main/docs/BROWSER_USDC_TESTNET.md) · [Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [隐私基线](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY_BASELINE.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)
+[浏览器 USDC 验证](https://github.com/Company-privacy-settlement/Core/blob/main/docs/BROWSER_USDC_TESTNET.md) · [Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [隐私基线](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY_BASELINE.md) · [非托管中继](https://github.com/Company-privacy-settlement/Core/blob/main/docs/RELAY.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)

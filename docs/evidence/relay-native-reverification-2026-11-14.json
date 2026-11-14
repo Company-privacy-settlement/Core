@@ -1,0 +1,35 @@
+{
+  "format": "core-public-proof-relay-reverification-v1",
+  "passed": true,
+  "checkedAt": "2026-11-14T08:24:59.388Z",
+  "evidenceSha256": "12632a946a36a239fc93d42b53932c4ed4d1b69cbdb27bd596bf952d8b9acba6",
+  "snapshot": {
+    "hash": "A557yMUp1Ave6EVuDP9DZxCLJDEU3yzUtBNkVC1FmzJ6",
+    "height": 277630880
+  },
+  "transaction": "DoqjRCkQqb5JTv5SDEbafvXBzyBwbkCSP6NAUHN7E9xY",
+  "observedFinalTransactions": 3,
+  "exactSponsoredCallAndSignatureVerified": true,
+  "historicalBalancesReRead": true,
+  "registryAndVaultCodeKeysVerified": true,
+  "originalRecipientAndAmountVerified": true,
+  "sponsorNonceIncreasedOnce": true,
+  "laterNonceAndBalanceUnchanged": true,
+  "replayRestartReadback": {
+    "block": {
+      "hash": "73CH58Mb6wWyDFSUQU7Fkf9VFzr5ewx4obMMRr95xT1h",
+      "height": 277632059
+    },
+    "sponsorAmount": "974801699639643100000000",
+    "sponsorNonce": "277630554000001"
+  },
+  "claims": {
+    "nativeNear": true,
+    "browserWalletVerified": false,
+    "usdcVerified": false,
+    "hostedHttpsVerified": false,
+    "effectiveAnonymityEstablished": false,
+    "productionQualified": false
+  },
+  "assurance": "Public RPC, signed intent and canonical historical balance/state verification; not a light-client proof. HTTP replay/restart actions are operator observations; unchanged key nonce and sponsor balance were independently re-read."
+}

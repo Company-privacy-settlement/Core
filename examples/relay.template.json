@@ -1,0 +1,19 @@
+{
+  "format": "core-proof-relay-config-v1",
+  "policyFile": "/secure/reviewed-policy.json",
+  "policySha256": "REPLACE_WITH_INDEPENDENT_POLICY_FILE_SHA256",
+  "verificationKeyFile": "/secure/verification_key.json",
+  "sponsorKeyFile": "/secure/dedicated-relay-key.json",
+  "journalFile": "/secure/relay/relay.sqlite",
+  "rpcUrl": "https://test.rpc.fastnear.com",
+  "host": "127.0.0.1",
+  "port": 3003,
+  "allowedOrigins": ["http://127.0.0.1:3000"],
+  "limits": {
+    "maxExecutions": 32,
+    "maxNearYoctoNear": "10000000000000000000000000",
+    "maxTokenAtomic": "100000",
+    "maxGasPriceYoctoNear": "1000000000",
+    "maxRetries": 2
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "format": "core-public-proof-relay-evidence-v1",
+  "checkedAt": "2026-11-14T08:13:38.331Z",
+  "network": "testnet",
+  "asset": "NEAR",
+  "rpcUrl": "https://test.rpc.fastnear.com",
+  "policy": {
+    "network": "testnet",
+    "registry": "c14f-c1b494d1.testnet",
+    "denomination": "100000000000000000000000",
+    "feeRecipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+    "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+    "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+    "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45"
+  },
+  "policyFileSha256": "f6ca5b87c5ae8140f791d84d9464aec60f32f0da58a9cf050b46ad30bd371595",
+  "implementationFileSha256": {
+    "server/relay/protocol.ts": "bd28406729dfe1a9f5d0043179687980261872d10df22726ba3f726359a84e5e",
+    "server/relay/store.ts": "5a9c60e08c50e0a4cbb739c4a908df9d7f361356eec9a0f015db574df255f52e",
+    "server/relay/service.ts": "9c509bb965f39c72a134b7dc56da802e9c7e12c82689685c3db3d61adacc394e",
+    "server/relay/signer.ts": "21935967d1fcc76ddc4edaabd37872f94e9638cf95a18787ab91f912ea026ee8",
+    "server/relay/http.ts": "603d91197e0d80a7cec78c0c0315b09a4eb701d5a8020ce6f5194730dee3e1f8",
+    "scripts/relay-server.ts": "1ae556b24e099efb78058e34757f91f80ba30ddd565434dc6f2acceb813e32c4"
+  },
+  "execution": "Compiled Node service over loopback HTTP; actual public RPC and ZK proof. Not a browser-wallet run.",
+  "requestId": "051c91b568cd6bd2b4f0a5840a85b90cb86554987d333db5b69845b4c3dc3dcb",
+  "request": {
+    "format": "core-relay-withdrawal-v1",
+    "policyHash": "035d277c09774c93e738391dd17b208d8754ce3cf50e0f277be1c34cbca74f47",
+    "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+    "recipient": "core14-forest-f2fd1a94fd.testnet",
+    "disclosureRoot": "827ff8ca43cb4415e5a7780d20199c8716626c29476fc3b6d2efe82d674068ea",
+    "spend": {
+      "proof": "aHwGjoXxTI1kBPmzCgjYBFYp+AZCJWnnREXm+j/iUSLipVyDVYZB/26124WqKPdNP4YISJtB1cuYQMrjq12jDdlSLj3dGzIm3aQCtx30PQmQ5KBJ7Q1hiJUxmn0J71oMBeEm6iqRFc6sBQmdpjSx3ErGFCUx1HvDTcQd55FhqgOqnVO2D6d4D6kKfvijvWk3EHh2P41IvEzyzcqeAj19CvttBHKeXXW5oenM1L5UW2ssyLnpNY3VwSGE3maCNt4GRwumciE08JxLUBpYY6fFMcbpW0ymJHXLAdBwr6v5agTygHoL3SzbNEIdCFi+Zv9xsgZJiZnqQJ72oC4a4ZufIw==",
+      "public_inputs": [
+        "21510418481469510019224297200411193768368678855810914436139760176762395215816",
+        "4127735823886556387601175224988565126265761765221555340308534989906296310410",
+        "9561128915262880632150073677307610751936006827462182244864190332090811425832",
+        "8383842694255382651338999964142319189931868888813821920312882991985770495462",
+        "10585708735511585739906857160848935016835999322655775923251849260445586105617"
+      ]
+    }
+  },
+  "preparationTransactions": [
+    {
+      "label": "create-dedicated-relay",
+      "hash": "8UyvsZfh8gDNPyLRQJbm2KsiCs9kqz6Bm55rGKZecv9F",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "r4.core14-0574c4-ebed76bb2c.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000014",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4Ti8Hanz8AAAjAAAAcjQuY29yZTE0LTA1NzRjNC1lYmVkNzZiYjJjLnRlc3RuZXQ6tcGEHWx8J7XbGB+RJbKC84Kc2X8H6yijAw0tpGd3SwMAAAAAAwAAAKHtzM4bwtMAAAAAAAAFAKE5ySD/XAnlLtrSLbBXBjVJRGph2A/bLU8zDZQJt0uFAAAAAAAAAAAB",
+      "expectedReceiptFailure": false
+    },
+    {
+      "label": "deposit-relayed-note",
+      "hash": "5oUntXeR7gBAE38js954j7knR767Yb9PU2GmwWwh7Yv9",
+      "signer": "core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:J8D3rL5b2LciZJWxPvy5YNkGW8ycFbftMq1CwUKA1QZm",
+      "nonce": "277611285000015",
+      "unsignedTransaction": "IAAAAGNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AP5vXg+PkBsoEU/icOXwGbOqxLmeXw5rIuGOSmPRXks4Ty8Hanz8AAA3AAAAdjBiZWE0M2JiMzgzMmRhNjE0NWE3ZDA3ZGViNWJjYTRiLmMxNGYtYzFiNDk0ZDEudGVzdG5ldK2w9W90ig7rfLMuUHLIv7NdlJZCYpMS1MshW1dI0R41AQAAAAIHAAAAZGVwb3NpdLMAAAB7ImNvbW1pdG1lbnQiOiIxODA2NDE5MTM5OTAxNDA0MDI2ODU5OTE5MDM2MTAwNTQ3ODU5OTcxNzM0MjM2MzUwNDQ1NDYwMTI2OTI0MzExMjA3MTc4OTgxNDY5OSIsImRpc2Nsb3N1cmVfcm9vdCI6Ijg1ZDI2NGIyNTYxNDNhZmVhODhkMDZmZDk2MmU3OTY3NzA4YmE5OTNkYzM5OGZmMGI2YmM5N2IzNDM5M2JkYzkifQDAbjHZEAEAAACYbwSCNFhxGQAAAAAAAA==",
+      "expectedReceiptFailure": false
+    }
+  ],
+  "sponsorTransaction": {
+    "label": "sponsored-withdrawal",
+    "hash": "DoqjRCkQqb5JTv5SDEbafvXBzyBwbkCSP6NAUHN7E9xY",
+    "signer": "r4.core14-0574c4-ebed76bb2c.testnet",
+    "receiver": "c14f-c1b494d1.testnet",
+    "publicKey": "ed25519:BrMkE67nK8mVcW4Pam2N8yguEdVg8dBypTffbegaQyiL",
+    "nonce": "277630554000001",
+    "expectedReceiptFailure": false,
+    "unsignedTransaction": "IwAAAHI0LmNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AKE5ySD/XAnlLtrSLbBXBjVJRGph2A/bLU8zDZQJt0uFgcqM5oD8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0hegBEEyM7To0v1dm7U8EwfgBxCT0D89ZR5yCLQoul4UBAAAAAggAAAB3aXRoZHJhd8kDAAB7ImRpc2Nsb3N1cmVfcm9vdCI6IjgyN2ZmOGNhNDNjYjQ0MTVlNWE3NzgwZDIwMTk5Yzg3MTY2MjZjMjk0NzZmYzNiNmQyZWZlODJkNjc0MDY4ZWEiLCJwcm9vZiI6ImFId0dqb1h4VEkxa0JQbXpDZ2pZQkZZcCtBWkNKV25uUkVYbStqL2lVU0xpcFZ5RFZZWkIvMjYxMjRXcUtQZE5QNFlJU0p0QjFjdVlRTXJqcTEyakRkbFNMajNkR3pJbTNhUUN0eDMwUFFtUTVLQko3UTFoaUpVeG1uMEo3MW9NQmVFbTZpcVJGYzZzQlFtZHBqU3gzRXJHRkNVeDFIdkRUY1FkNTVGaHFnT3FuVk8yRDZkNEQ2a0tmdmlqdldrM0VIaDJQNDFJdkV6eXpjcWVBajE5Q3Z0dEJIS2VYWFc1b2VuTTFMNVVXMnNzeUxucE5ZM1Z3U0dFM21hQ050NEdSd3VtY2lFMDhKeExVQnBZWTZmRk1jYnBXMHltSkhYTEFkQndyNnY1YWdUeWdIb0wzU3piTkVJZENGaStadjl4c2daSmlabnFRSjcyb0M0YTRadWZJdz09IiwicHVibGljX2lucHV0cyI6WyIyMTUxMDQxODQ4MTQ2OTUxMDAxOTIyNDI5NzIwMDQxMTE5Mzc2ODM2ODY3ODg1NTgxMDkxNDQzNjEzOTc2MDE3Njc2MjM5NTIxNTgxNiIsIjQxMjc3MzU4MjM4ODY1NTYzODc2MDExNzUyMjQ5ODg1NjUxMjYyNjU3NjE3NjUyMjE1NTUzNDAzMDg1MzQ5ODk5MDYyOTYzMTA0MTAiLCI5NTYxMTI4OTE1MjYyODgwNjMyMTUwMDczNjc3MzA3NjEwNzUxOTM2MDA2ODI3NDYyMTgyMjQ0ODY0MTkwMzMyMDkwODExNDI1ODMyIiwiODM4Mzg0MjY5NDI1NTM4MjY1MTMzODk5OTk2NDE0MjMxOTE4OTkzMTg2ODg4ODgxMzgyMTkyMDMxMjg4Mjk5MTk4NTc3MDQ5NTQ2MiIsIjEwNTg1NzA4NzM1NTExNTg1NzM5OTA2ODU3MTYwODQ4OTM1MDE2ODM1OTk5MzIyNjU1Nzc1OTIzMjUxODQ5MjYwNDQ1NTg2MTA1NjE3Il0sInJlY2lwaWVudCI6ImNvcmUxNC1mb3Jlc3QtZjJmZDFhOTRmZC50ZXN0bmV0IiwidmF1bHQiOiJ2MGJlYTQzYmIzODMyZGE2MTQ1YTdkMDdkZWI1YmNhNGIuYzE0Zi1jMWI0OTRkMS50ZXN0bmV0In0AwG4x2RABAAAAGHm5oGxVRAQAAAAAAAA="
+  },
+  "before": {
+    "block": {
+      "hash": "Faub1VDqyJQu4wYoUtngGMY6ePcquBAqfb4Uq9Vq9iJ8",
+      "height": 277630848
+    },
+    "payer": {
+      "accountId": "core14-0574c4-ebed76bb2c.testnet",
+      "amount": "996508227077847699999997"
+    },
+    "sponsor": {
+      "accountId": "r4.core14-0574c4-ebed76bb2c.testnet",
+      "amount": "1000000000000000000000000"
+    },
+    "recipient": {
+      "accountId": "core14-forest-f2fd1a94fd.testnet",
+      "amount": "10100000000000000000000000"
+    },
+    "sponsorNonce": "277630554000000"
+  },
+  "after": {
+    "block": {
+      "hash": "A557yMUp1Ave6EVuDP9DZxCLJDEU3yzUtBNkVC1FmzJ6",
+      "height": 277630880
+    },
+    "payer": {
+      "accountId": "core14-0574c4-ebed76bb2c.testnet",
+      "amount": "996508227077847699999997"
+    },
+    "sponsor": {
+      "accountId": "r4.core14-0574c4-ebed76bb2c.testnet",
+      "amount": "974801699639643100000000"
+    },
+    "recipient": {
+      "accountId": "core14-forest-f2fd1a94fd.testnet",
+      "amount": "10200000000000000000000000"
+    },
+    "sponsorNonce": "277630554000001"
+  },
+  "assertions": {
+    "gasPaidBySponsor": true,
+    "userBalanceUnchangedDuringWithdrawal": true,
+    "fullPrincipalReceived": true,
+    "recipientAmountAndDisclosureMutationRejected": true,
+    "replayedRequestsDidNotSign": true,
+    "restartDidNotResend": true,
+    "invalidResults": [
+      "RELAY_BINDING_MISMATCH",
+      "RELAY_REQUEST_REJECTED",
+      "RELAY_BINDING_MISMATCH"
+    ]
+  },
+  "claims": {
+    "publicTestnet": true,
+    "nativeNear": true,
+    "usdcVerified": false,
+    "browserWalletVerified": false,
+    "hostedHttpsVerified": false,
+    "effectiveAnonymityEstablished": false,
+    "productionQualified": false
+  },
+  "privacyLimit": "Both accounts are controlled by one test operator; the sponsor was funded by the public payer. This establishes sponsorship, not independent participation or funding unlinkability.",
+  "replayRestartReadback": {
+    "block": {
+      "hash": "73CH58Mb6wWyDFSUQU7Fkf9VFzr5ewx4obMMRr95xT1h",
+      "height": 277632059
+    },
+    "sponsorAmount": "974801699639643100000000",
+    "sponsorNonce": "277630554000001"
+  }
+}

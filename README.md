@@ -26,6 +26,7 @@ Repository and Site access follow their existing permissions. Demo media is stor
 
 | Capability | Implementation |
 | --- | --- |
+| Sponsorship | Noncustodial proof relay for withdrawals/recovery; own-key gas/fee sponsorship and durable replay guards. |
 | Settlement | Native NEAR v2 and token-bound NEP-141/USDC v3; shared nullifiers and distributed principal. |
 | Local proving | Groth16 note creation/spending, browser proving support and selective-disclosure receipts. |
 | Operations | Read-only API, finalized SQLite indexer, service supervision, deployment/release tools and recovery. |
@@ -56,7 +57,7 @@ npm run testnet:verify-wallet -- docs/evidence/testnet-wallet-2026-11-14.json \
 
 [Testnet run and transaction links](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md) · [Public evidence](https://github.com/Company-privacy-settlement/Core/blob/main/docs/evidence/testnet-wallet-2026-11-14.json)
 
-The recorded native-wallet gate passed **513 Core tests**, SDK/type builds and compiled service restart/backup/recovery. The browser-USDC preparatory update passed **520 Core tests** and type checking; its actual funding report remains blocked. The privacy-baseline update passed **535 Core tests** and measures reverified native records without claiming effective anonymity. Browser fixtures, funding preflight and public settlement execution are separate evidence categories.
+The recorded native-wallet gate passed **513 Core tests**, SDK/type builds and compiled service restart/backup/recovery. The browser-USDC preparatory update passed **520 Core tests** and type checking; its actual funding report remains blocked. The privacy-baseline update passed **535 Core tests** and measures reverified native records without claiming effective anonymity. Browser fixtures, funding preflight and public settlement execution are separate evidence categories. The proof-relay update passed **549 Core tests**, real native/FT sandbox execution and a 0.1 NEAR public-testnet sponsored payout; repeated requests/restart did not resend.
 
 ## Architecture and fees
 
@@ -82,4 +83,4 @@ Next priorities: noncustodial relaying, optional randomized delay/batching, priv
 
 ## Explore the project
 
-[Browser USDC qualification](https://github.com/Company-privacy-settlement/Core/blob/main/docs/BROWSER_USDC_TESTNET.md) · [Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [Privacy baseline](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY_BASELINE.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)
+[Browser USDC qualification](https://github.com/Company-privacy-settlement/Core/blob/main/docs/BROWSER_USDC_TESTNET.md) · [Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [Proof relay](https://github.com/Company-privacy-settlement/Core/blob/main/docs/RELAY.md) · [Privacy baseline](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY_BASELINE.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)

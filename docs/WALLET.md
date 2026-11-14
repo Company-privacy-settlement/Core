@@ -103,3 +103,5 @@ Locking revokes in-progress journal accesses and prevents late reads, restores, 
 [Native NEAR public-testnet qualification](TESTNET_WALLET.md) records fourteen FINAL transactions, two deposits, cross-vault payout selection, a real missing-recipient failure and fixed-destination recovery with no second protocol fee. This validates the CLI/local-key native path. The Front FT wallet/NEAR Connect path and USDC are still unqualified on the public network.
 
 The [browser USDC qualification runbook](BROWSER_USDC_TESTNET.md) records the actual funding blockers and provides the read-only `testnet:preflight-usdc` command. It does not count native CLI receipts or browser fixtures as live USDC wallet acceptance.
+
+[Optional proof relay](RELAY.md) provides separately operated withdrawal/recovery sponsorship without customer keys or principal custody. Deposits and the existing direct wallet path remain available.

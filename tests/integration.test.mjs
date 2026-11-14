@@ -99,6 +99,9 @@ test('failed, cancelled, skipped and missing stages never produce a passed integ
   for (const outcome of ['failure', 'cancelled', 'skipped']) {
     assert.equal(succeeded(stageResults({ ...steps, ft: { outcome, conclusion: 'success' } })), false);
   }
+  assert.equal(succeeded(stageResults({ ...steps, relay: { outcome: 'failure' } })), false);
+  const withoutRelay = { ...steps }; delete withoutRelay.relay;
+  assert.equal(succeeded(stageResults(withoutRelay)), false);
   delete steps.release;
   assert.equal(stageResults(steps).release, 'not_run');
   assert.equal(succeeded(stageResults(steps)), false);

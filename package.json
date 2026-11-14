@@ -56,7 +56,11 @@
     "testnet:verify-wallet": "tsx scripts/testnet-wallet-verify.ts",
     "testnet:preflight-usdc": "tsx scripts/usdc-funding-preflight.ts",
     "privacy:baseline": "tsx scripts/privacy-baseline.ts",
-    "privacy:baseline-wallet": "tsx scripts/privacy-baseline-wallet.ts"
+    "privacy:baseline-wallet": "tsx scripts/privacy-baseline-wallet.ts",
+    "serve:relay": "tsx scripts/relay-server.ts",
+    "test:relay-sandbox": "tsx tests/manual/relay-sandbox.ts",
+    "relay:request": "tsx scripts/relay-request.ts",
+    "serve:relay:compiled": "node dist/service/scripts/relay-server.js"
   },
   "dependencies": {
     "bs58": "^6.0.0",
