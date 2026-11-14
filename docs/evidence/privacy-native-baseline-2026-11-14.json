@@ -1,0 +1,254 @@
+{
+  "format": "core-privacy-baseline-v1",
+  "policy": {
+    "network": "testnet",
+    "registry": "c14f-c1b494d1.testnet",
+    "denomination": "100000000000000000000000",
+    "feeRecipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+    "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+    "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+    "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45"
+  },
+  "snapshot": {
+    "hash": "5UmiAmFiSN6MXRqH7bmw4yk3T8D3umhdjGU5TJqyGEsT",
+    "height": 277614194
+  },
+  "inputSha256": "04bc9014bd9e2ec39b00b8a07e2c5734088fbc7f5d7cb06ba2331453b0b8d073",
+  "coverage": {
+    "providedRecords": 8,
+    "totalRecordCount": 8,
+    "contiguousFromGenesis": true,
+    "missingTransactionAttributions": 0,
+    "orphanLifecycleRecords": 0
+  },
+  "participation": {
+    "observedDepositSigners": [
+      "core14-0574c4-ebed76bb2c.testnet"
+    ],
+    "observedDepositSignerCount": 1,
+    "observedWithdrawalSigners": [
+      "core14-0574c4-ebed76bb2c.testnet"
+    ],
+    "observedWithdrawalSignerCount": 1,
+    "independentPeopleVerified": null,
+    "verifiedBusinessParticipants": null,
+    "declaredControllerCount": 1,
+    "controllerAssurance": "Operator declarations only; common funders, keys or addresses do not establish independent people.",
+    "declaredSyntheticOutputs": 0,
+    "unclassifiedOutputs": 2
+  },
+  "funding": {
+    "directDepositSigner": {
+      "known": {
+        "totalAtomic": "200000000000000000000000",
+        "sourceCount": 1,
+        "sources": [
+          {
+            "source": "core14-0574c4-ebed76bb2c.testnet",
+            "amountAtomic": "200000000000000000000000",
+            "share": 1
+          }
+        ],
+        "hhi": 1,
+        "largestShare": 1,
+        "inverseHhiSourceDiversity": 1,
+        "entropyBits": 0
+      },
+      "unknownAmountAtomic": "0",
+      "allDepositFundingAttributed": true
+    },
+    "declaredController": {
+      "known": {
+        "totalAtomic": "200000000000000000000000",
+        "sourceCount": 1,
+        "sources": [
+          {
+            "source": "native-qualification-operator",
+            "amountAtomic": "200000000000000000000000",
+            "share": 1
+          }
+        ],
+        "hhi": 1,
+        "largestShare": 1,
+        "inverseHhiSourceDiversity": 1,
+        "entropyBits": 0
+      },
+      "unmappedAmountAtomic": "0"
+    },
+    "observedUpstream": {
+      "known": null,
+      "providedEdges": 0,
+      "ignoredUnrelatedOrLaterEdges": 0,
+      "sharedFundingSources": [],
+      "completeFundingHistoryVerified": false
+    }
+  },
+  "linkability": {
+    "amountScope": "One registry, network, token and fixed denomination; amounts are public, never pooled across proof domains.",
+    "requests": [
+      {
+        "recordIndex": 2,
+        "nullifier": "4681588613611790185509328007788780523523401668061221007280589364799965985258",
+        "transaction": {
+          "hash": "E89i9KhiAhcQYBPBdo77pTavdPWpmqXeugsRN3gvGgUE",
+          "signer": "core14-0574c4-ebed76bb2c.testnet"
+        },
+        "lifecycle": "withdrawal_succeeded",
+        "candidateOutputCount": 2,
+        "depositCandidates": 2,
+        "internalTransferCandidates": 0,
+        "excludingDeclaredSynthetic": 2,
+        "samePublicSignerCandidates": 2,
+        "nearestPriorLagNs": "84792657736",
+        "nearestPriorTies": 1,
+        "windows": [
+          {
+            "seconds": 60,
+            "amountTimeCandidates": 0,
+            "excludingDeclaredSynthetic": 0,
+            "samePublicSignerCandidates": 0
+          },
+          {
+            "seconds": 300,
+            "amountTimeCandidates": 2,
+            "excludingDeclaredSynthetic": 2,
+            "samePublicSignerCandidates": 2
+          },
+          {
+            "seconds": 3600,
+            "amountTimeCandidates": 2,
+            "excludingDeclaredSynthetic": 2,
+            "samePublicSignerCandidates": 2
+          },
+          {
+            "seconds": 86400,
+            "amountTimeCandidates": 2,
+            "excludingDeclaredSynthetic": 2,
+            "samePublicSignerCandidates": 2
+          }
+        ]
+      },
+      {
+        "recordIndex": 4,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "transaction": {
+          "hash": "FwoYLjZx6oWMksVFaUP6Dsc1qQ1p6icw9DNifFTUWnQF",
+          "signer": "core14-0574c4-ebed76bb2c.testnet"
+        },
+        "lifecycle": "withdrawal_succeeded",
+        "candidateOutputCount": 2,
+        "depositCandidates": 2,
+        "internalTransferCandidates": 0,
+        "excludingDeclaredSynthetic": 2,
+        "samePublicSignerCandidates": 2,
+        "nearestPriorLagNs": "101121246778",
+        "nearestPriorTies": 1,
+        "windows": [
+          {
+            "seconds": 60,
+            "amountTimeCandidates": 0,
+            "excludingDeclaredSynthetic": 0,
+            "samePublicSignerCandidates": 0
+          },
+          {
+            "seconds": 300,
+            "amountTimeCandidates": 2,
+            "excludingDeclaredSynthetic": 2,
+            "samePublicSignerCandidates": 2
+          },
+          {
+            "seconds": 3600,
+            "amountTimeCandidates": 2,
+            "excludingDeclaredSynthetic": 2,
+            "samePublicSignerCandidates": 2
+          },
+          {
+            "seconds": 86400,
+            "amountTimeCandidates": 2,
+            "excludingDeclaredSynthetic": 2,
+            "samePublicSignerCandidates": 2
+          }
+        ]
+      }
+    ],
+    "windowSummary": [
+      {
+        "seconds": 60,
+        "requests": 2,
+        "zeroCandidates": 2,
+        "singletonCandidates": 0,
+        "multipleCandidates": 0,
+        "singletonShare": 0
+      },
+      {
+        "seconds": 300,
+        "requests": 2,
+        "zeroCandidates": 0,
+        "singletonCandidates": 0,
+        "multipleCandidates": 2,
+        "singletonShare": 0
+      },
+      {
+        "seconds": 3600,
+        "requests": 2,
+        "zeroCandidates": 0,
+        "singletonCandidates": 0,
+        "multipleCandidates": 2,
+        "singletonShare": 0
+      },
+      {
+        "seconds": 86400,
+        "requests": 2,
+        "zeroCandidates": 0,
+        "singletonCandidates": 0,
+        "multipleCandidates": 2,
+        "singletonShare": 0
+      }
+    ],
+    "interpretation": "Candidate counts and same-signer/nearest-time heuristics are associations within the supplied observation set, not proven input-note links or posterior probabilities. Zero candidates in a window does not prove privacy. Prior spent outputs remain candidates; internal transfers are counted without assigning their original funder."
+  },
+  "claims": {
+    "effectiveAnonymityEstablished": false,
+    "independentIdentitiesVerified": false,
+    "completeFundingHistory": false,
+    "chainReverifiedByAnalyzer": false
+  },
+  "limits": [
+    "Address and controller counts are not customer/person counts.",
+    "Declared synthetic traffic is not verified independent participation.",
+    "Source HHI and inverse HHI describe funding concentration, not an effective anonymity set.",
+    "Missing history or transaction attribution can hide correlations.",
+    "RPC/source authenticity must be checked independently of file integrity."
+  ],
+  "observationFileSha256": "3a06a382ba8ee8360d5b43aece4eda8197f7f3f972c0ec7db541ac5888afb58b",
+  "chainVerification": {
+    "format": "core-testnet-wallet-reverification-v1",
+    "passed": true,
+    "checkedAt": "2026-11-14T07:39:49.641Z",
+    "snapshot": {
+      "height": 277614194,
+      "hash": "5UmiAmFiSN6MXRqH7bmw4yk3T8D3umhdjGU5TJqyGEsT"
+    },
+    "observedFinalTransactions": 14,
+    "completedWithdrawals": 2,
+    "recordedBeforeBalancesReRead": true,
+    "outstandingNotes": 0,
+    "totalProtocolFeeYoctoNear": "600000000000000000000",
+    "rpcUrl": "https://test.rpc.fastnear.com/",
+    "claims": {
+      "publicTestnet": true,
+      "nativeNear": true,
+      "browserWalletVerified": false,
+      "usdcVerified": false,
+      "hostedHttpsVerified": false,
+      "productionQualified": false
+    },
+    "releaseSafety": "UNSAFE_LOCAL_DEVELOPMENT_ONLY",
+    "assurance": "Observed public RPC receipts, canonical snapshot, code/key bindings and balances. Private note origin is an executor declaration. This is not a light-client proof, browser-wallet qualification or production setup approval.",
+    "journalRecords": 8,
+    "everyJournalRecordReceiptAnchored": true,
+    "recordTimestampsCanonical": true,
+    "upstreamFundingCollected": false,
+    "evidenceSha256": "e009bd0f600b23e0fabe30064ee3211446682946126d1b341aace34b5981a681"
+  }
+}

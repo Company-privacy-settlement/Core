@@ -1,0 +1,217 @@
+{
+  "format": "core-privacy-observations-v1",
+  "policy": {
+    "network": "testnet",
+    "registry": "c14f-c1b494d1.testnet",
+    "denomination": "100000000000000000000000",
+    "feeRecipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+    "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+    "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+    "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45"
+  },
+  "snapshot": {
+    "hash": "5UmiAmFiSN6MXRqH7bmw4yk3T8D3umhdjGU5TJqyGEsT",
+    "height": 277614194
+  },
+  "totalRecordCount": 8,
+  "records": [
+    {
+      "record": {
+        "index": 0,
+        "kind": "deposit",
+        "commitment": "11833278448241267028291434203154019336678924871129840797059222229859499053028",
+        "nullifier": null,
+        "recipient": null,
+        "disclosure_root": "d48fdc2657d4f3c7b190f6ab4559f51dc3c7885ffc9ba647f3bc1e6fb6e2634b",
+        "block_height": 277613936,
+        "timestamp_ns": "1794633945075470898",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "H58XhKqPjkS3rgZdBBUnX8cAXpDYPcekneCbXp67ztzi",
+        "signer": "core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 1,
+        "kind": "deposit",
+        "commitment": "15099147599172795663058384687209248235968865709395855692167625080052548432582",
+        "nullifier": null,
+        "recipient": null,
+        "disclosure_root": "9662705defdcc5f951c2df314b1d25b0c8ebcebec7f8351def35f6af47e1cf1e",
+        "block_height": 277613949,
+        "timestamp_ns": "1794633953009552303",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "69VVRKHLMp3vAenzoUsM4MEiWRcTrZ2gNnwV1pzjzvhr",
+        "signer": "core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 2,
+        "kind": "withdrawal_requested",
+        "commitment": null,
+        "nullifier": "4681588613611790185509328007788780523523401668061221007280589364799965985258",
+        "recipient": "core14-forest-f2fd1a94fd.testnet",
+        "disclosure_root": "2e82580cbd535dafd4faca908d073421ffddf2327c4dd275adf37e0ef0492cac",
+        "block_height": 277614089,
+        "timestamp_ns": "1794634037802210039",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "E89i9KhiAhcQYBPBdo77pTavdPWpmqXeugsRN3gvGgUE",
+        "signer": "core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 3,
+        "kind": "withdrawal_succeeded",
+        "commitment": null,
+        "nullifier": "4681588613611790185509328007788780523523401668061221007280589364799965985258",
+        "recipient": "core14-forest-f2fd1a94fd.testnet",
+        "disclosure_root": "2e82580cbd535dafd4faca908d073421ffddf2327c4dd275adf37e0ef0492cac",
+        "block_height": 277614093,
+        "timestamp_ns": "1794634040172223199",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "0",
+        "vault": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "E89i9KhiAhcQYBPBdo77pTavdPWpmqXeugsRN3gvGgUE",
+        "signer": "core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 4,
+        "kind": "withdrawal_requested",
+        "commitment": null,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+        "block_height": 277614116,
+        "timestamp_ns": "1794634054130799081",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "FwoYLjZx6oWMksVFaUP6Dsc1qQ1p6icw9DNifFTUWnQF",
+        "signer": "core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 5,
+        "kind": "withdrawal_failed",
+        "commitment": null,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+        "block_height": 277614120,
+        "timestamp_ns": "1794634056557025595",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "0",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "FwoYLjZx6oWMksVFaUP6Dsc1qQ1p6icw9DNifFTUWnQF",
+        "signer": "core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 6,
+        "kind": "withdrawal_retried",
+        "commitment": null,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+        "block_height": 277614142,
+        "timestamp_ns": "1794634069907806261",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "Y445NDQDRJsEwYGn8yreiv1vcVUKj8wNp27xDH1w19u",
+        "signer": "core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 7,
+        "kind": "withdrawal_succeeded",
+        "commitment": null,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+        "block_height": 277614146,
+        "timestamp_ns": "1794634072256101745",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "0",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "Y445NDQDRJsEwYGn8yreiv1vcVUKj8wNp27xDH1w19u",
+        "signer": "core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "unclassified"
+    }
+  ],
+  "controllers": [
+    {
+      "account": "core14-0574c4-ebed76bb2c.testnet",
+      "controller": "native-qualification-operator",
+      "basis": "operator-declaration"
+    }
+  ],
+  "fundingEdges": [],
+  "windowsSeconds": [
+    60,
+    300,
+    3600,
+    86400
+  ]
+}

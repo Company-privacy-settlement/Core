@@ -54,7 +54,9 @@
     "hosting:verify": "tsx scripts/verify-hosting.ts",
     "deploy:resume-intent": "tsx scripts/deploy.ts resume-intent",
     "testnet:verify-wallet": "tsx scripts/testnet-wallet-verify.ts",
-    "testnet:preflight-usdc": "tsx scripts/usdc-funding-preflight.ts"
+    "testnet:preflight-usdc": "tsx scripts/usdc-funding-preflight.ts",
+    "privacy:baseline": "tsx scripts/privacy-baseline.ts",
+    "privacy:baseline-wallet": "tsx scripts/privacy-baseline-wallet.ts"
   },
   "dependencies": {
     "bs58": "^6.0.0",

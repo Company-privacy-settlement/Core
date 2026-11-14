@@ -56,7 +56,7 @@ npm run testnet:verify-wallet -- docs/evidence/testnet-wallet-2026-11-14.json \
 
 [Testnet run and transaction links](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md) · [Public evidence](https://github.com/Company-privacy-settlement/Core/blob/main/docs/evidence/testnet-wallet-2026-11-14.json)
 
-네이티브 지갑 실증 시 **Core 513개 테스트**와 SDK·타입 빌드·컴파일 서비스 재시작/백업/복구를 검증했습니다. 브라우저 USDC 준비 업데이트는 **Core 520개 테스트**와 타입 검사를 통과했으나 실제 자금 점검은 차단 상태입니다. 브라우저 테스트 환경·자금 사전 점검·공개 정산 실거래 증거는 구분합니다.
+네이티브 지갑 실증 시 **Core 513개 테스트**와 SDK·타입 빌드·컴파일 서비스 재시작/백업/복구를 검증했습니다. 브라우저 USDC 준비 업데이트는 **Core 520개 테스트**와 타입 검사를 통과했으나 실제 자금 점검은 차단 상태입니다. 프라이버시 기준선 업데이트는 **Core 535개 테스트**를 통과했으며 재검증한 네이티브 기록을 측정하지만 실효 익명성을 입증하지는 않습니다. 브라우저 테스트 환경·자금 사전 점검·공개 정산 실거래 증거는 구분합니다.
 
 ## 구조와 수수료
 
@@ -82,4 +82,4 @@ ZK는 사용한 입력 노트의 연결을 숨깁니다. 서명자·수취인·�
 
 ## 프로젝트 살펴보기
 
-[브라우저 USDC 실증](https://github.com/Company-privacy-settlement/Core/blob/main/docs/BROWSER_USDC_TESTNET.md) · [Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)
+[브라우저 USDC 실증](https://github.com/Company-privacy-settlement/Core/blob/main/docs/BROWSER_USDC_TESTNET.md) · [Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [프라이버시 기준선](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY_BASELINE.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)
