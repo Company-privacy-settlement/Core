@@ -1,0 +1,75 @@
+{
+  "format": "money-station-shared-https-acceptance-v1",
+  "status": "passed",
+  "checkedAt": "2026-11-14T22:13:42Z",
+  "frontOrigin": "https://moneystation.site",
+  "apiOrigin": "https://api.moneystation.site",
+  "certificates": {
+    "moneystation.site": {
+      "dnsNames": [
+        "api.moneystation.site",
+        "moneystation.site"
+      ],
+      "expires": "Feb 12 21:13:35 2027 GMT"
+    },
+    "api.moneystation.site": {
+      "dnsNames": [
+        "api.moneystation.site",
+        "moneystation.site"
+      ],
+      "expires": "Feb 12 21:13:35 2027 GMT"
+    }
+  },
+  "apiReadiness": {
+    "ready": true,
+    "readOnly": true,
+    "checkedAtBlock": {
+      "hash": "9b7pRmEshUwbWeNbHgbawxyvdQdSZEVbh28xrH3fnxTR",
+      "height": 277717072
+    },
+    "deploymentVerified": true,
+    "checkedVaults": 1,
+    "index": {
+      "enabled": true,
+      "ageMs": 7992,
+      "lagBlocks": 14,
+      "indexedRecords": 16,
+      "provenanceChecked": false
+    },
+    "chainFreshnessChecked": false
+  },
+  "organizationReadiness": {
+    "ready": true,
+    "service": "core-organizations",
+    "network": "testnet",
+    "checkedAtBlock": {
+      "height": 277717076,
+      "hash": "Az9DAxpk6XTwmy5QmWexdUAGF2pfCs642BjvsiH1RvGv"
+    },
+    "databaseAvailable": true,
+    "checkedAt": "2026-11-14T22:13:32.204Z",
+    "identityClaimsVerified": false
+  },
+  "checks": [
+    "normal-dns-and-trusted-public-tls",
+    "exact-native-policy",
+    "actual-index-checkpoint-advanced",
+    "both-runtime-readiness",
+    "exact-cors-and-preflight",
+    "missing-session-denied",
+    "unrelated-and-previous-origins-denied",
+    "organization-challenge-binds-corrected-audience"
+  ],
+  "scope": {
+    "nativeNearTestnet": true,
+    "publicHttpsAcceptedFromDeploymentHost": true,
+    "independentRemoteHttpsProbe": false,
+    "realWalletSessionChecked": false,
+    "browserUsdcAccepted": false
+  },
+  "backendRuntimeSourceCommit": "d6ab7c5a37796b26eeb85209a5e4bc18a1b9e319",
+  "supervisorSourceCommit": "f71914d",
+  "frontRuntimeSourceCommit": "68526b94661f61ac7eaac315b25c3fb02fafc54d",
+  "emptyOrganizationAudienceRebound": true,
+  "originalEncryptionKeysPreserved": true
+}

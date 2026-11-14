@@ -1,6 +1,6 @@
 # Ubuntu API and indexer deployment
 
-Money Station runs two actual loopback services on the selected Ubuntu host (`64.227.151.164`): settlement API plus its single finalized index writer on `127.0.0.1:3331`, and Organization API on `127.0.0.1:3332`. Both passed `/readyz` against actual NEAR testnet RPC on 2026-11-14. The finalized checkpoint advanced and retained 16 indexed records through a controlled worker restart. This qualifies local runtime operation, not public HTTPS or a browser payment journey.
+Money Station runs two actual loopback services on the selected Ubuntu host (`64.227.151.164`): settlement API plus its single finalized index writer on `127.0.0.1:3331`, and Organization API on `127.0.0.1:3332`. Both passed `/readyz` against actual NEAR testnet RPC on 2026-11-14. The finalized checkpoint advanced and retained 16 indexed records through a controlled worker restart. Subsequent [final-domain HTTPS acceptance](evidence/moneystation-https-2026-11-14.json) also passed normal DNS/TLS, live CORS and browser API requests. This does not qualify a signed browser payment journey.
 
 [Recorded local acceptance report](evidence/ubuntu-backend-2026-11-14.json) pins deployed Core `d6ab7c5a37796b26eeb85209a5e4bc18a1b9e319` and runtime `d6ab7c5a3779-b1d5111020f7`. The evidence-only documentation commit can follow that runtime commit; it does not imply a different deployed executable.
 
@@ -56,6 +56,10 @@ The existing Docker/Caddy profile and `hosting:verify` continue to require two d
 
 ## Remaining external acceptance
 
-At the dated DNS check, both public lookup and the `.site` authoritative server returned NXDOMAIN. The root frontend service and HTTP host gateway are installed; API HTTP access requires TLS. Public ACME certificates and HTTPS activation still await working DNS. After both DNS names reach this host, `activate-https.sh` checks the frontend and both API readiness routes over normal HTTPS. Collect independent external HTTPS evidence and a current wallet-authenticated organization canary before closing hosted-service qualification.
+The final public origins are `https://moneystation.site` and `https://api.moneystation.site`. Public DNS now resolves both names to the selected host. Both API readiness aliases returned 200 over normally verified HTTPS. The exact policy, advancing index, allowed preflight/CORS, missing-session denial and rejection of previous/unrelated origins passed. An unsigned login challenge binds the final origin and audience. Front presets the final Organization API origin and passed desktop/mobile real cross-origin browser requests.
+
+The final domain change retained a consistent private organization backup and preserved the encryption key ring. Every business table was checked empty before changing audience; ephemeral sessions/challenges and old audience-specific key-check tags were discarded, and normal startup regenerated checks using the preserved keys. Populated encrypted databases require an explicit reviewed migration, because audience is part of their authenticated encryption binding.
+
+The frontend and shared API gateway are installed; HTTP redirects to HTTPS. Dedicated certificate renewal and deploy-hook simulation passed. An independent off-host HTTPS probe and a current wallet-authenticated organization canary are still needed for complete hosting qualification. Actual host reboot has not been performed.
 
 The runtime uses the independently pinned native NEAR testnet policy, not the browser FT/USDC policy. Actual browser-wallet USDC payment/recovery, a funded relay, real KYB/tax/AI providers, full index provenance and production security review remain separate acceptance items. The service holds no user payment signing key.

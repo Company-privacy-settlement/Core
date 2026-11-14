@@ -6,7 +6,7 @@
 
 `Core` 仓库包含 Money Station 的 SDK、API、最终确认索引器及企业工作流。
 
-Ubuntu 上的结算 API、索引器和组织 API 已在回环地址运行，持久化存储、就绪及重启检查通过。公共 HTTPS 仍待完成。[运维与验证范围](docs/UBUNTU_BACKEND.md)。
+Ubuntu 已上线：[Money Station](https://moneystation.site) · [API 状态](https://api.moneystation.site/readyz)。公共 TLS、原生索引、最终来源 CORS 与浏览器连接验收通过，私有存储、加密密钥及证书续期已保留。[运维与证据](docs/UBUNTU_BACKEND.md)。
 
 `/relay/` 支持可选延迟执行：持久化随机执行时间、每批最多八笔独立交易，以及等待、取消、过期和原请求恢复。[调度指南](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SCHEDULED_DELIVERY.md)。这不代表匿名性证明或已上线的公共中继。
 
@@ -91,7 +91,7 @@ ZK 隐藏使用了哪一张输入票据。签名人、收款人、时间、固�
 
 ## 范围与后续工作
 
-**黑客松/开发原型**，设置为 `UNSAFE_LOCAL_DEVELOPMENT_ONLY`。公开测试网验证仅覆盖本地 Ed25519 软件钱包的原生 NEAR。真实浏览器钱包/USDC、外部 API HTTPS 验收、远程 Actions 成功及生产安全审核尚待完成。
+**黑客松/开发原型**，设置为 `UNSAFE_LOCAL_DEVELOPMENT_ONLY`。公开测试网验证仅覆盖本地 Ed25519 软件钱包的原生 NEAR。真实浏览器钱包/USDC、钱包认证企业流程验收、远程 Actions 成功及生产安全审核尚待完成。
 
 下一步优先外部托管中继验证、独立参与者与更严格的对抗性隐私测量。真实 KYB/AI 服务资格、专业规则批准和法定申报仍需独立验证。
 

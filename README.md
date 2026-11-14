@@ -6,7 +6,7 @@ Private business settlement on NEAR: independent vaults hold principal, shared z
 
 The `Core` repository contains Money Station’s SDK, API, finalized indexer and enterprise workflows.
 
-Ubuntu deployment: actual settlement/indexer and Organization APIs are running on loopback with persistent private state; readiness and restart checks passed. [Operations and remaining public HTTPS qualification](docs/UBUNTU_BACKEND.md).
+Live Ubuntu deployment: [Money Station](https://moneystation.site) · [API readiness](https://api.moneystation.site/readyz). Native index, final-origin CORS, browser requests and public TLS passed; private state and certificate renewal are retained. [Operations and evidence](docs/UBUNTU_BACKEND.md).
 
 Optional delayed delivery is available at `/relay/`: persistently sampled execution windows, batches of up to eight separate transactions, waiting/cancellation/expiry and original-request recovery. [Scheduling guide](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SCHEDULED_DELIVERY.md). This does not establish anonymity or a live hosted relay.
 
@@ -91,7 +91,7 @@ The ZK statement hides which input note is spent. Signers, recipients, timing, f
 
 ## Scope and next steps
 
-**Hackathon / development prototype.** The setup is `UNSAFE_LOCAL_DEVELOPMENT_ONLY`. Public-testnet qualification covers native NEAR with a local Ed25519 software wallet. Real browser-wallet/USDC execution, hosted API HTTPS acceptance, observed remote Actions success and production security review remain open.
+**Hackathon / development prototype.** The setup is `UNSAFE_LOCAL_DEVELOPMENT_ONLY`. Public-testnet qualification covers native NEAR with a local Ed25519 software wallet. Real browser-wallet/USDC execution, wallet-authenticated hosted API workflows, observed remote Actions success and production security review remain open.
 
 Next priorities: externally hosted relay qualification, independent participation and stronger adversarial privacy measurements. Live KYB/AI providers, professional rule approval and statutory filing require separate qualification.
 
