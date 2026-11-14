@@ -60,7 +60,10 @@
     "serve:relay": "tsx scripts/relay-server.ts",
     "test:relay-sandbox": "tsx tests/manual/relay-sandbox.ts",
     "relay:request": "tsx scripts/relay-request.ts",
-    "serve:relay:compiled": "node dist/service/scripts/relay-server.js"
+    "serve:relay:compiled": "node dist/service/scripts/relay-server.js",
+    "cover:traffic": "tsx scripts/cover-traffic.ts",
+    "cover:measure": "tsx scripts/cover-effect.ts",
+    "cover:traffic:compiled": "node dist/service/scripts/cover-traffic.js"
   },
   "dependencies": {
     "bs58": "^6.0.0",

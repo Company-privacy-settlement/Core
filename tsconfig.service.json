@@ -17,6 +17,8 @@
     "scripts/rules.ts",
     "scripts/verify-hosting.ts",
     "scripts/testnet-wallet-verify.ts",
-    "scripts/relay-server.ts"
+    "scripts/relay-server.ts",
+    "scripts/cover-traffic.ts",
+    "scripts/cover-effect.ts"
   ]
 }

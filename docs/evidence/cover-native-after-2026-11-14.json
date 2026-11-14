@@ -1,0 +1,368 @@
+{
+  "format": "core-privacy-observations-v1",
+  "policy": {
+    "network": "testnet",
+    "registry": "c14f-c1b494d1.testnet",
+    "denomination": "100000000000000000000000",
+    "feeRecipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+    "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+    "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+    "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45"
+  },
+  "snapshot": {
+    "hash": "EtFi2fGVd5HodAiScZtcFBRSvq57G7NpkaqL2HxJ2oHk",
+    "height": 277645787
+  },
+  "totalRecordCount": 16,
+  "records": [
+    {
+      "record": {
+        "index": 0,
+        "kind": "deposit",
+        "commitment": "11833278448241267028291434203154019336678924871129840797059222229859499053028",
+        "nullifier": null,
+        "recipient": null,
+        "disclosure_root": "d48fdc2657d4f3c7b190f6ab4559f51dc3c7885ffc9ba647f3bc1e6fb6e2634b",
+        "block_height": 277613936,
+        "timestamp_ns": "1794633945075470898",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 1,
+        "kind": "deposit",
+        "commitment": "15099147599172795663058384687209248235968865709395855692167625080052548432582",
+        "nullifier": null,
+        "recipient": null,
+        "disclosure_root": "9662705defdcc5f951c2df314b1d25b0c8ebcebec7f8351def35f6af47e1cf1e",
+        "block_height": 277613949,
+        "timestamp_ns": "1794633953009552303",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 2,
+        "kind": "withdrawal_requested",
+        "commitment": null,
+        "nullifier": "4681588613611790185509328007788780523523401668061221007280589364799965985258",
+        "recipient": "core14-forest-f2fd1a94fd.testnet",
+        "disclosure_root": "2e82580cbd535dafd4faca908d073421ffddf2327c4dd275adf37e0ef0492cac",
+        "block_height": 277614089,
+        "timestamp_ns": "1794634037802210039",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 3,
+        "kind": "withdrawal_succeeded",
+        "commitment": null,
+        "nullifier": "4681588613611790185509328007788780523523401668061221007280589364799965985258",
+        "recipient": "core14-forest-f2fd1a94fd.testnet",
+        "disclosure_root": "2e82580cbd535dafd4faca908d073421ffddf2327c4dd275adf37e0ef0492cac",
+        "block_height": 277614093,
+        "timestamp_ns": "1794634040172223199",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "0",
+        "vault": "vef1c6d6d5654e7c07536611490443d52.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 4,
+        "kind": "withdrawal_requested",
+        "commitment": null,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+        "block_height": 277614116,
+        "timestamp_ns": "1794634054130799081",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 5,
+        "kind": "withdrawal_failed",
+        "commitment": null,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+        "block_height": 277614120,
+        "timestamp_ns": "1794634056557025595",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "0",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 6,
+        "kind": "withdrawal_retried",
+        "commitment": null,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+        "block_height": 277614142,
+        "timestamp_ns": "1794634069907806261",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 7,
+        "kind": "withdrawal_succeeded",
+        "commitment": null,
+        "nullifier": "19614151853408735533658759861634029377761973630942730388336273565808201489956",
+        "recipient": "late.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "33b81d0d2c277999193afb4649571cc34313b179f27d7ab6feb6b7ae8090ca2d",
+        "block_height": 277614146,
+        "timestamp_ns": "1794634072256101745",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "0",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 8,
+        "kind": "deposit",
+        "commitment": "18064191399014040268599190361005478599717342363504454601269243112071789814699",
+        "nullifier": null,
+        "recipient": null,
+        "disclosure_root": "85d264b256143afea88d06fd962e7967708ba993dc398ff0b6bc97b34393bdc9",
+        "block_height": 277630567,
+        "timestamp_ns": "1794643813147023424",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 9,
+        "kind": "withdrawal_requested",
+        "commitment": null,
+        "nullifier": "21510418481469510019224297200411193768368678855810914436139760176762395215816",
+        "recipient": "core14-forest-f2fd1a94fd.testnet",
+        "disclosure_root": "827ff8ca43cb4415e5a7780d20199c8716626c29476fc3b6d2efe82d674068ea",
+        "block_height": 277630870,
+        "timestamp_ns": "1794643994058094880",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 10,
+        "kind": "withdrawal_succeeded",
+        "commitment": null,
+        "nullifier": "21510418481469510019224297200411193768368678855810914436139760176762395215816",
+        "recipient": "core14-forest-f2fd1a94fd.testnet",
+        "disclosure_root": "827ff8ca43cb4415e5a7780d20199c8716626c29476fc3b6d2efe82d674068ea",
+        "block_height": 277630874,
+        "timestamp_ns": "1794643996427984209",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "0",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": null,
+      "traffic": "unclassified"
+    },
+    {
+      "record": {
+        "index": 11,
+        "kind": "deposit",
+        "commitment": "13952027736927752047941674337915214208889027676791795372327563580172387302401",
+        "nullifier": null,
+        "recipient": null,
+        "disclosure_root": "fda3e5cd48747d269c3230744106a75d46c73280b13f4168cdbd4ea9c8528d84",
+        "block_height": 277644621,
+        "timestamp_ns": "1794652119120020841",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "2errt4TyHvJ7vQ11Wss67v51TeaMUAc9P4vSE63z2rhz",
+        "signer": "r4.core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "declared-synthetic"
+    },
+    {
+      "record": {
+        "index": 12,
+        "kind": "transfer",
+        "commitment": "4044512266483927038195794180345357093543109584629875270885452746113361591529",
+        "nullifier": "19363275068878906232840894323470357310152272065590590684996826337196890163114",
+        "recipient": null,
+        "disclosure_root": "d0a0ff6e0a6b9f529e184ac36c2a8abc04a7ab58442d11dbbfe81d00326db55b",
+        "block_height": 277645114,
+        "timestamp_ns": "1794652416313324074",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": null,
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "7eQRpAvT5JfMCiq5r7npnQcxtZBTPHwEznKXKiiXCidk",
+        "signer": "r4.core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "declared-synthetic"
+    },
+    {
+      "record": {
+        "index": 13,
+        "kind": "transfer",
+        "commitment": "14487371448710639645567982049856154023665467884308557035924593709017673524762",
+        "nullifier": "20944670430207570647177232155926083509784880022131808295737066868385431337941",
+        "recipient": null,
+        "disclosure_root": "e52d1fc3df72f389da88e5d59ad8e1f30286cf2306043a93c37ac45a826c43e4",
+        "block_height": 277645312,
+        "timestamp_ns": "1794652535069138128",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": null,
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "7gFY4aG8ztzvawrpbZgpN7UAH4YT5t1BirgoMNQPuxcC",
+        "signer": "r4.core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "declared-synthetic"
+    },
+    {
+      "record": {
+        "index": 14,
+        "kind": "withdrawal_requested",
+        "commitment": null,
+        "nullifier": "18788726555061079823540483676149084786675336916405028136709888850923413123082",
+        "recipient": "r4.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "5a596e5bd95f1ecf114211a03a0c59bc190dedf87304bd81b30e342463e053bb",
+        "block_height": 277645447,
+        "timestamp_ns": "1794652610226668052",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "150000000000000000000",
+        "protocol_fee_earned": "0",
+        "storage_fee_charged": "20000000000000000000000",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "7SRQkBuYYw7GjSw3DcQCHfyd9W3HC9W2HwhnhFMKsUP3",
+        "signer": "r4.core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "declared-synthetic"
+    },
+    {
+      "record": {
+        "index": 15,
+        "kind": "withdrawal_succeeded",
+        "commitment": null,
+        "nullifier": "18788726555061079823540483676149084786675336916405028136709888850923413123082",
+        "recipient": "r4.core14-0574c4-ebed76bb2c.testnet",
+        "disclosure_root": "5a596e5bd95f1ecf114211a03a0c59bc190dedf87304bd81b30e342463e053bb",
+        "block_height": 277645451,
+        "timestamp_ns": "1794652612579532750",
+        "amount": "100000000000000000000000",
+        "protocol_fee_charged": "0",
+        "protocol_fee_earned": "150000000000000000000",
+        "storage_fee_charged": "0",
+        "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "asset_token_id": null
+      },
+      "transaction": {
+        "hash": "7SRQkBuYYw7GjSw3DcQCHfyd9W3HC9W2HwhnhFMKsUP3",
+        "signer": "r4.core14-0574c4-ebed76bb2c.testnet"
+      },
+      "traffic": "declared-synthetic"
+    }
+  ],
+  "controllers": [
+    {
+      "account": "r4.core14-0574c4-ebed76bb2c.testnet",
+      "controller": "cover-experiment-operator",
+      "basis": "operator-declaration"
+    }
+  ],
+  "fundingEdges": [],
+  "windowsSeconds": [
+    60,
+    300,
+    3600,
+    86400
+  ]
+}

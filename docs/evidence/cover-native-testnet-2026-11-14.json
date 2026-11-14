@@ -1,0 +1,449 @@
+{
+  "format": "core-cover-native-testnet-evidence-v1",
+  "checkedAt": "2026-11-14T10:41:45.173550+00:00",
+  "network": "testnet",
+  "asset": "NEAR",
+  "walletKind": "dedicated-operator-ed25519-software-wallet",
+  "rpcUrl": "https://test.rpc.fastnear.com",
+  "experiment": {
+    "format": "core-cover-experiment-v1",
+    "id": "59bd437f-4b13-4b2f-a721-70c2366b31b3",
+    "policy": {
+      "network": "testnet",
+      "registry": "c14f-c1b494d1.testnet",
+      "denomination": "100000000000000000000000",
+      "feeRecipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+      "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+      "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+      "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45"
+    },
+    "signer": "r4.core14-0574c4-ebed76bb2c.testnet",
+    "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+    "minIntervalSeconds": 60,
+    "maxTransactions": 4,
+    "transferCount": 2,
+    "maxBudgetYoctoNear": "350000000000000000000000",
+    "maxGasPriceYoctoNear": "100000000",
+    "expiresAt": 1794655557391
+  },
+  "publicKey": "ed25519:BrMkE67nK8mVcW4Pam2N8yguEdVg8dBypTffbegaQyiL",
+  "noteCommitments": [
+    "13952027736927752047941674337915214208889027676791795372327563580172387302401",
+    "4044512266483927038195794180345357093543109584629875270885452746113361591529",
+    "14487371448710639645567982049856154023665467884308557035924593709017673524762"
+  ],
+  "before": {
+    "file": "cover-native-before-2026-11-14.json",
+    "sha256": "3629bbd4a610f8a5e3dd7168db566b9767e13e38e834bdcafc5d66da37e1efb3",
+    "snapshot": {
+      "hash": "96yVYaKKtEprhbtV11w3ZSaBdJfsMWsY33zh9YnWvcu5",
+      "height": 277644618
+    },
+    "provenance": "Archival reconstruction of canonical block immediately preceding first experiment transaction; initial live collector failed before writing."
+  },
+  "after": {
+    "file": "cover-native-after-2026-11-14.json",
+    "sha256": "049c330741151b80638507770382d824ef8657bf53cbca4db707bbc8c39faaac",
+    "snapshot": {
+      "hash": "EtFi2fGVd5HodAiScZtcFBRSvq57G7NpkaqL2HxJ2oHk",
+      "height": 277645787
+    }
+  },
+  "transactions": [
+    {
+      "sequence": 0,
+      "label": "declared-synthetic-0",
+      "hash": "2errt4TyHvJ7vQ11Wss67v51TeaMUAc9P4vSE63z2rhz",
+      "signer": "r4.core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:BrMkE67nK8mVcW4Pam2N8yguEdVg8dBypTffbegaQyiL",
+      "nonce": "277630554000002",
+      "unsignedTransaction": "IwAAAHI0LmNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AKE5ySD/XAnlLtrSLbBXBjVJRGph2A/bLU8zDZQJt0uFgsqM5oD8AAA3AAAAdjBiZWE0M2JiMzgzMmRhNjE0NWE3ZDA3ZGViNWJjYTRiLmMxNGYtYzFiNDk0ZDEudGVzdG5ldNa4YdUrXHG8GPlBLhalDA+2whrt6Ft639Ee77mw7NcwAQAAAAIHAAAAZGVwb3NpdLMAAAB7ImNvbW1pdG1lbnQiOiIxMzk1MjAyNzczNjkyNzc1MjA0Nzk0MTY3NDMzNzkxNTIxNDIwODg4OTAyNzY3Njc5MTc5NTM3MjMyNzU2MzU4MDE3MjM4NzMwMjQwMSIsImRpc2Nsb3N1cmVfcm9vdCI6ImZkYTNlNWNkNDg3NDdkMjY5YzMyMzA3NDQxMDZhNzVkNDZjNzMyODBiMTNmNDE2OGNkYmQ0ZWE5Yzg1MjhkODQifQDAbjHZEAEAAACYbwSCNFhxGQAAAAAAAA==",
+      "expectedReceiptFailure": false,
+      "call": {
+        "args": {
+          "commitment": "13952027736927752047941674337915214208889027676791795372327563580172387302401",
+          "disclosure_root": "fda3e5cd48747d269c3230744106a75d46c73280b13f4168cdbd4ea9c8528d84"
+        },
+        "attachedYoctoNear": "120150000000000000000000",
+        "contract": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+        "gas": "300000000000000",
+        "method": "deposit"
+      },
+      "inclusionBlock": {
+        "hash": "6nHjXVkmZ7K2DBr4Eb8nvDS9uPy2NvRAt9Ao9PXEnV4h",
+        "height": 277644619
+      },
+      "startedAt": 1794652112936,
+      "observedFinalAt": 1794652120260,
+      "reservedYoctoNear": "150150000000000000000000",
+      "executionTokensBurntYoctoNear": "4128790114880100000000"
+    },
+    {
+      "sequence": 1,
+      "label": "declared-synthetic-1",
+      "hash": "7eQRpAvT5JfMCiq5r7npnQcxtZBTPHwEznKXKiiXCidk",
+      "signer": "r4.core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:BrMkE67nK8mVcW4Pam2N8yguEdVg8dBypTffbegaQyiL",
+      "nonce": "277630554000003",
+      "unsignedTransaction": "IwAAAHI0LmNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AKE5ySD/XAnlLtrSLbBXBjVJRGph2A/bLU8zDZQJt0uFg8qM5oD8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0FdIqjUtfxkZDj1FwOiz/IUYILVxD4fjNrINNhTzJWBABAAAAAggAAAB0cmFuc2ZlcrsDAAB7Im91dHB1dF9jb21taXRtZW50IjoiNDA0NDUxMjI2NjQ4MzkyNzAzODE5NTc5NDE4MDM0NTM1NzA5MzU0MzEwOTU4NDYyOTg3NTI3MDg4NTQ1Mjc0NjExMzM2MTU5MTUyOSIsImRpc2Nsb3N1cmVfcm9vdCI6ImQwYTBmZjZlMGE2YjlmNTI5ZTE4NGFjMzZjMmE4YWJjMDRhN2FiNTg0NDJkMTFkYmJmZTgxZDAwMzI2ZGI1NWIiLCJwcm9vZiI6IjZ4TkNNWGFSZ2tVVU9aKzhSRVZ1OEppOWhsdVptNCsvRXp2WHQrV1I2UjU4UW1RRlZ5KzlHZ1pzdkJBZU5mSkVQeEpjTlVKeXdEOVNCVnF3YjBIUUZSZFM2VGNZazhQSFdsQk1PVGxTSUZ2eFRuV0ppOGlOSDF3RmJUNCtVaEFiUVlxcDErVXJIVXpsQm9JU0YwS0c0cVFSTVpJUmxHa2U2V1p3K011MkN5ejZOYm5UQzNZZjdPczV0MFVGaEx6R3dQNXNheGFNRG9DemdPeUpTTFZWRm5VMTB0TmVDZVZNWnV4WG9Xczg5Uy9lWHBtRjhVMVhFKy91KzhEb1N6Y2RyMS9iNktBMVJmS2NJL3k5a3JtUlZiQ1JISE1kcGgvMjhIRFhEcXRjdmhnOU5wUHlFcTBVd0oyRFBDd2VtZnNqNm9GSFRpZEg5YXowQmdqUktIZmZFQT09IiwicHVibGljX2lucHV0cyI6WyIxOTM2MzI3NTA2ODg3ODkwNjIzMjg0MDg5NDMyMzQ3MDM1NzMxMDE1MjI3MjA2NTU5MDU5MDY4NDk5NjgyNjMzNzE5Njg5MDE2MzExNCIsIjM4OTU5Njc3MTc0MzIxMzU5NjEzMjQwMjQyMTEwNjkyNDQ3MzQyNTA1OTI3Mjg5MTQ5OTQ4MDQyNzQ2MTM4NjU3MjkzODQ1NDM0ODkiLCIxNzE4NDU1NDI4MjE1MjU4MTg0MTMwOTk0NzkzMTIyOTU0ODYxOTUxMDY4NDM1ODQwMDIxMjAwNDQyMDI0OTYxNzc0NzI4NzU2NTM0OCIsIjEzNzI2MjkxODMxNTEwNzc3ODAzNDg5NjU2NDgxODAyMTk1NjQxMDE5MjEzOTQ0MzM5NTA4OTE1ODk0NzIzMDgzMzU2MDcxNjU5MyIsIjEwNTg1NzA4NzM1NTExNTg1NzM5OTA2ODU3MTYwODQ4OTM1MDE2ODM1OTk5MzIyNjU1Nzc1OTIzMjUxODQ5MjYwNDQ1NTg2MTA1NjE3Il19AMBuMdkQAQAAAIBkdZPBMzwEAAAAAAAA",
+      "expectedReceiptFailure": false,
+      "call": {
+        "args": {
+          "disclosure_root": "d0a0ff6e0a6b9f529e184ac36c2a8abc04a7ab58442d11dbbfe81d00326db55b",
+          "output_commitment": "4044512266483927038195794180345357093543109584629875270885452746113361591529",
+          "proof": "6xNCMXaRgkUUOZ+8REVu8Ji9hluZm4+/EzvXt+WR6R58QmQFVy+9GgZsvBAeNfJEPxJcNUJywD9SBVqwb0HQFRdS6TcYk8PHWlBMOTlSIFvxTnWJi8iNH1wFbT4+UhAbQYqp1+UrHUzlBoISF0KG4qQRMZIRlGke6WZw+Mu2Cyz6NbnTC3Yf7Os5t0UFhLzGwP5saxaMDoCzgOyJSLVVFnU10tNeCeVMZuxXoWs89S/eXpmF8U1XE+/u+8DoSzcdr1/b6KA1RfKcI/y9krmRVbCRHHMdph/28HDXDqtcvhg9NpPyEq0UwJ2DPCwemfsj6oFHTidH9az0BgjRKHffEA==",
+          "public_inputs": [
+            "19363275068878906232840894323470357310152272065590590684996826337196890163114",
+            "3895967717432135961324024211069244734250592728914994804274613865729384543489",
+            "17184554282152581841309947931229548619510684358400212004420249617747287565348",
+            "137262918315107778034896564818021956410192139443395089158947230833560716593",
+            "10585708735511585739906857160848935016835999322655775923251849260445586105617"
+          ]
+        },
+        "attachedYoctoNear": "20000000000000000000000",
+        "contract": "c14f-c1b494d1.testnet",
+        "gas": "300000000000000",
+        "method": "transfer"
+      },
+      "inclusionBlock": {
+        "hash": "DPrX21prK6bsKWfzXGMuLwT7cUWF4CK5pS9Sz95gBSng",
+        "height": 277645113
+      },
+      "startedAt": 1794652409634,
+      "observedFinalAt": 1794652417517,
+      "reservedYoctoNear": "50000000000000000000000",
+      "executionTokensBurntYoctoNear": "7048294505236300000000"
+    },
+    {
+      "sequence": 2,
+      "label": "declared-synthetic-2",
+      "hash": "7gFY4aG8ztzvawrpbZgpN7UAH4YT5t1BirgoMNQPuxcC",
+      "signer": "r4.core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:BrMkE67nK8mVcW4Pam2N8yguEdVg8dBypTffbegaQyiL",
+      "nonce": "277630554000004",
+      "unsignedTransaction": "IwAAAHI0LmNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AKE5ySD/XAnlLtrSLbBXBjVJRGph2A/bLU8zDZQJt0uFhMqM5oD8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0rIcTyQH0c10lzFlqOMzdWQx74mIykt739fXiMWXX4RsBAAAAAggAAAB0cmFuc2Zlcr8DAAB7Im91dHB1dF9jb21taXRtZW50IjoiMTQ0ODczNzE0NDg3MTA2Mzk2NDU1Njc5ODIwNDk4NTYxNTQwMjM2NjU0Njc4ODQzMDg1NTcwMzU5MjQ1OTM3MDkwMTc2NzM1MjQ3NjIiLCJkaXNjbG9zdXJlX3Jvb3QiOiJlNTJkMWZjM2RmNzJmMzg5ZGE4OGU1ZDU5YWQ4ZTFmMzAyODZjZjIzMDYwNDNhOTNjMzdhYzQ1YTgyNmM0M2U0IiwicHJvb2YiOiJac2hmTGwxeno3NGxIRlkxdm9ERVd0SjUrbjdUTEpKQk14eCt5UlRveVFST2pEMmhBK09pcXd3dHVUaGdpQnBON3RRYUtxa3NFSkh1TVZxTHh1TVRKU1I3VmFnOG5RN1lJUFdFd3RVWWFaVzRnOSsrRm9sa0JacmJZUEVtcTJvWU1lVVFBUHRkSGVNRE5BbTBkVGtxd0pHYmFseFdRckt0dlNBc1VFYXBOUXZhaENNeFJHWUhjZlJsOTRBUU9penlXRmJVdFM3TTU2ZWhqSDFSeFVxNEVNZm9NRzQzRkxIUDh6UjlZNmtzUWZJNmJYSGcxSWJML3JBdkFra2dVYlFpV3prc09vV3lta2I3bEVxZ3BRSmlPQlVhenBBRmFpQ1h5MFRiaVJiM2RCR0lIckYzVnA0K0c1V09OdFJDcjNpOExUTnIxOERrNFROZzlYdXhVV08xQ1E9PSIsInB1YmxpY19pbnB1dHMiOlsiMjA5NDQ2NzA0MzAyMDc1NzA2NDcxNzcyMzIxNTU5MjYwODM1MDk3ODQ4ODAwMjIxMzE4MDgyOTU3MzcwNjY4NjgzODU0MzEzMzc5NDEiLCIxMDQzMzgwNTQ2OTE1NTgyMTU1MDI4NjEyNDgxMDYxOTM3MjMyNzc0MTY5NTM4NTYwMDE4Njg0NDkxMTEwMjA2MzYwODIwMzY1ODc5NCIsIjEzMTEwNDA1NTMyNzA4MDI0MDg3Njg1NjM3NjU3NDA0NDUyODUxMTgyMjcxNTA4NjUyNjI1MzEyNzE5MDc0MjU5MDU1OTUwNjgxMzg1IiwiMTMzMTAxODYyNjQ2NjkxMTIyMjcwNDQ0NTEwMDUzMjI2MTA1MjI1MTc0NTAxNjUxMDc0MTM3NTk0MDY5ODI1ODc1OTQ5MTM2NjcwNTgiLCIxMDU4NTcwODczNTUxMTU4NTczOTkwNjg1NzE2MDg0ODkzNTAxNjgzNTk5OTMyMjY1NTc3NTkyMzI1MTg0OTI2MDQ0NTU4NjEwNTYxNyJdfQDAbjHZEAEAAACAZHWTwTM8BAAAAAAAAA==",
+      "expectedReceiptFailure": false,
+      "call": {
+        "args": {
+          "disclosure_root": "e52d1fc3df72f389da88e5d59ad8e1f30286cf2306043a93c37ac45a826c43e4",
+          "output_commitment": "14487371448710639645567982049856154023665467884308557035924593709017673524762",
+          "proof": "ZshfLl1zz74lHFY1voDEWtJ5+n7TLJJBMxx+yRToyQROjD2hA+OiqwwtuThgiBpN7tQaKqksEJHuMVqLxuMTJSR7Vag8nQ7YIPWEwtUYaZW4g9++FolkBZrbYPEmq2oYMeUQAPtdHeMDNAm0dTkqwJGbalxWQrKtvSAsUEapNQvahCMxRGYHcfRl94AQOizyWFbUtS7M56ehjH1RxUq4EMfoMG43FLHP8zR9Y6ksQfI6bXHg1IbL/rAvAkkgUbQiWzksOoWymkb7lEqgpQJiOBUazpAFaiCXy0TbiRb3dBGIHrF3Vp4+G5WONtRCr3i8LTNr18Dk4TNg9XuxUWO1CQ==",
+          "public_inputs": [
+            "20944670430207570647177232155926083509784880022131808295737066868385431337941",
+            "10433805469155821550286124810619372327741695385600186844911102063608203658794",
+            "13110405532708024087685637657404452851182271508652625312719074259055950681385",
+            "13310186264669112227044451005322610522517450165107413759406982587594913667058",
+            "10585708735511585739906857160848935016835999322655775923251849260445586105617"
+          ]
+        },
+        "attachedYoctoNear": "20000000000000000000000",
+        "contract": "c14f-c1b494d1.testnet",
+        "gas": "300000000000000",
+        "method": "transfer"
+      },
+      "inclusionBlock": {
+        "hash": "9avck6dK3Miwf5w1QBYD8Vuvr3S9Tndg6uE7tGaxJsRi",
+        "height": 277645311
+      },
+      "startedAt": 1794652528870,
+      "observedFinalAt": 1794652536618,
+      "reservedYoctoNear": "50000000000000000000000",
+      "executionTokensBurntYoctoNear": "7048472092718200000000"
+    },
+    {
+      "sequence": 3,
+      "label": "declared-synthetic-3",
+      "hash": "7SRQkBuYYw7GjSw3DcQCHfyd9W3HC9W2HwhnhFMKsUP3",
+      "signer": "r4.core14-0574c4-ebed76bb2c.testnet",
+      "receiver": "c14f-c1b494d1.testnet",
+      "publicKey": "ed25519:BrMkE67nK8mVcW4Pam2N8yguEdVg8dBypTffbegaQyiL",
+      "nonce": "277630554000005",
+      "unsignedTransaction": "IwAAAHI0LmNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0AKE5ySD/XAnlLtrSLbBXBjVJRGph2A/bLU8zDZQJt0uFhcqM5oD8AAAVAAAAYzE0Zi1jMWI0OTRkMS50ZXN0bmV0C7Fox8MJMIFZaSnDAIKXTj0J/2yzJOIzjcMD5zDGIRsBAAAAAggAAAB3aXRoZHJhd84DAAB7InZhdWx0IjoidjBiZWE0M2JiMzgzMmRhNjE0NWE3ZDA3ZGViNWJjYTRiLmMxNGYtYzFiNDk0ZDEudGVzdG5ldCIsInJlY2lwaWVudCI6InI0LmNvcmUxNC0wNTc0YzQtZWJlZDc2YmIyYy50ZXN0bmV0IiwiZGlzY2xvc3VyZV9yb290IjoiNWE1OTZlNWJkOTVmMWVjZjExNDIxMWEwM2EwYzU5YmMxOTBkZWRmODczMDRiZDgxYjMwZTM0MjQ2M2UwNTNiYiIsInByb29mIjoiUDRVS2VjZmgxcUM2SlU1NDdTeUtuS1czMW9ZSDcrTUxmMnViOGFxZEd5KzF3U1h6cC85amZvemZQdTRVWFBnN1ZiNnQ4Z0gwUURNTkRuSnMxV0dFRHRJalZmMUs0eStFNFllb2E3OHFaQ2ZPK01IUTV4bkFpZXJCdjYzcTFPd1lUTU9DMTBIRDBrbzRJeWoydVFxd0ZEOWhPdWFNbTBRWGZrKzI2NUVFUWk2SkZGa0h3S0ZOazc3QXhsT29uQUlTZFN3R1BleG9rSzE4elhoVDlwaXJHOWFEbGREcHFVUmlIbE5BRG53OCtRUDlabldDdDBlQ3ZST0p1QSt0L1dFcGRUM3RSdUlNUGtyWFBDZ1ZlV1VCSkRHWUVkeU9sbG9vcUlXMGk4d01YaGdNTncrU0hnT2pOVENRa3U2SkV4RDluNDVldjBYZmwvdWNxZ0lTRm1RRkt3PT0iLCJwdWJsaWNfaW5wdXRzIjpbIjE4Nzg4NzI2NTU1MDYxMDc5ODIzNTQwNDgzNjc2MTQ5MDg0Nzg2Njc1MzM2OTE2NDA1MDI4MTM2NzA5ODg4ODUwOTIzNDEzMTIzMDgyIiwiMjAxODU5NDY1MjIzNTQyMTk4MTQ0NDA1NDA3NjE5NDUyOTA5OTE5MzIzNDA1NTI0MTkxNTExMDE3MTMzMTc2ODk1NDkyNjI5NzcwOTIiLCIxMDc0MDY3MjIxOTY5NzQxMDk3NjE2MzQ2ODk4NTk2MzkzMjkxNzUzMzg3ODgwMjkxOTE3NDAxNjU3Mjc2NjAwMjk0MzQ2MTg3MzM1NCIsIjg2MDU1NjM1MzQxMTU3NDIzNTM3OTMwNTIwMTQyNzQ0MTI1OTUzNzE4NDM0NjgxNjg3ODU2MDgyMzA3MTE0Njc4MDIyMzIyODI0NjQiLCIxMDU4NTcwODczNTUxMTU4NTczOTkwNjg1NzE2MDg0ODkzNTAxNjgzNTk5OTMyMjY1NTc3NTkyMzI1MTg0OTI2MDQ0NTU4NjEwNTYxNyJdfQDAbjHZEAEAAAAYebmgbFVEBAAAAAAAAA==",
+      "expectedReceiptFailure": false,
+      "call": {
+        "args": {
+          "disclosure_root": "5a596e5bd95f1ecf114211a03a0c59bc190dedf87304bd81b30e342463e053bb",
+          "proof": "P4UKecfh1qC6JU547SyKnKW31oYH7+MLf2ub8aqdGy+1wSXzp/9jfozfPu4UXPg7Vb6t8gH0QDMNDnJs1WGEDtIjVf1K4y+E4Yeoa78qZCfO+MHQ5xnAierBv63q1OwYTMOC10HD0ko4Iyj2uQqwFD9hOuaMm0QXfk+265EEQi6JFFkHwKFNk77AxlOonAISdSwGPexokK18zXhT9pirG9aDldDpqURiHlNADnw8+QP9ZnWCt0eCvROJuA+t/WEpdT3tRuIMPkrXPCgVeWUBJDGYEdyOllooqIW0i8wMXhgMNw+SHgOjNTCQku6JExD9n45ev0Xfl/ucqgISFmQFKw==",
+          "public_inputs": [
+            "18788726555061079823540483676149084786675336916405028136709888850923413123082",
+            "20185946522354219814440540761945290991932340552419151101713317689549262977092",
+            "10740672219697410976163468985963932917533878802919174016572766002943461873354",
+            "8605563534115742353793052014274412595371843468168785608230711467802232282464",
+            "10585708735511585739906857160848935016835999322655775923251849260445586105617"
+          ],
+          "recipient": "r4.core14-0574c4-ebed76bb2c.testnet",
+          "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet"
+        },
+        "attachedYoctoNear": "20150000000000000000000",
+        "contract": "c14f-c1b494d1.testnet",
+        "gas": "300000000000000",
+        "method": "withdraw"
+      },
+      "inclusionBlock": {
+        "hash": "4U5JQtjRgLSjEnFzyotjF9oxni9Psx5z9xk3BQnEvbz8",
+        "height": 277645446
+      },
+      "startedAt": 1794652604156,
+      "observedFinalAt": 1794652613258,
+      "reservedYoctoNear": "50150000000000000000000",
+      "executionTokensBurntYoctoNear": "5049905742746200000000"
+    }
+  ],
+  "budget": {
+    "limitYoctoNear": "350000000000000000000000",
+    "reservedYoctoNear": "300300000000000000000000",
+    "executionTokensBurntYoctoNear": "23275462455580800000000",
+    "minimumObservedFinalToNextIntentMs": 67538,
+    "allIntervalMs": [
+      289374,
+      111353,
+      67538
+    ],
+    "refundsReplenishBudget": false
+  },
+  "rateCheck": {
+    "format": "core-cover-rate-check-v1",
+    "experimentId": "59bd437f-4b13-4b2f-a721-70c2366b31b3",
+    "result": "COVER_RATE_LIMIT",
+    "processRestarted": true,
+    "before": {
+      "experimentId": "59bd437f-4b13-4b2f-a721-70c2366b31b3",
+      "count": 3,
+      "reservedYoctoNear": "250150000000000000000000",
+      "maxBudgetYoctoNear": "350000000000000000000000",
+      "nextEligibleAt": 1794652596618,
+      "expiresAt": 1794655557391,
+      "operations": [
+        {
+          "sequence": 0,
+          "state": "final",
+          "hash": "2errt4TyHvJ7vQ11Wss67v51TeaMUAc9P4vSE63z2rhz"
+        },
+        {
+          "sequence": 1,
+          "state": "final",
+          "hash": "7eQRpAvT5JfMCiq5r7npnQcxtZBTPHwEznKXKiiXCidk"
+        },
+        {
+          "sequence": 2,
+          "state": "final",
+          "hash": "7gFY4aG8ztzvawrpbZgpN7UAH4YT5t1BirgoMNQPuxcC"
+        }
+      ]
+    },
+    "after": {
+      "experimentId": "59bd437f-4b13-4b2f-a721-70c2366b31b3",
+      "count": 3,
+      "reservedYoctoNear": "250150000000000000000000",
+      "maxBudgetYoctoNear": "350000000000000000000000",
+      "nextEligibleAt": 1794652596618,
+      "expiresAt": 1794655557391,
+      "operations": [
+        {
+          "sequence": 0,
+          "state": "final",
+          "hash": "2errt4TyHvJ7vQ11Wss67v51TeaMUAc9P4vSE63z2rhz"
+        },
+        {
+          "sequence": 1,
+          "state": "final",
+          "hash": "7eQRpAvT5JfMCiq5r7npnQcxtZBTPHwEznKXKiiXCidk"
+        },
+        {
+          "sequence": 2,
+          "state": "final",
+          "hash": "7gFY4aG8ztzvawrpbZgpN7UAH4YT5t1BirgoMNQPuxcC"
+        }
+      ]
+    },
+    "nonceBefore": 277630554000004,
+    "nonceAfter": 277630554000004,
+    "noNewTransaction": true
+  },
+  "balances": {
+    "r4.core14-0574c4-ebed76bb2c.testnet": {
+      "beforeAmountYoctoNear": "974801699639643100000000",
+      "afterAmountYoctoNear": "871226237184062300000000",
+      "netDebitYoctoNear": "103575462455580800000000"
+    },
+    "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet": {
+      "beforeAmountYoctoNear": "3631200000000000000000001",
+      "afterAmountYoctoNear": "3641350000000000000000001",
+      "netDebitYoctoNear": "-10150000000000000000000"
+    },
+    "c14f-c1b494d1.testnet": {
+      "beforeAmountYoctoNear": "10197861899967310100000001",
+      "afterAmountYoctoNear": "10268011899967310100000001",
+      "netDebitYoctoNear": "-70150000000000000000000"
+    }
+  },
+  "registry": {
+    "before": {
+      "protocol": "core-shared-registry-v2",
+      "network": "testnet",
+      "denomination": "100000000000000000000000",
+      "asset_token_id": null,
+      "deposit_token_amount": null,
+      "withdrawal_token_fee": null,
+      "storage_credit_bond": "5000000000000000000000",
+      "prepaid_storage_liability": "0",
+      "fee_recipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+      "deposit_fee_bps": 15,
+      "withdrawal_fee_bps": 15,
+      "deposit_protocol_fee": "150000000000000000000",
+      "withdrawal_protocol_fee": "150000000000000000000",
+      "vault_wasm_sha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+      "verifier_sha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45",
+      "vault_funding": "3606050000000000000000000",
+      "registration_fee": "50000000000000000000000",
+      "creation_deposit": "3656050000000000000000000",
+      "vault_count": 2,
+      "pending_funding": "0",
+      "refund_liability": "0",
+      "domain": "10585708735511585739906857160848935016835999322655775923251849260445586105617",
+      "root": "9561128915262880632150073677307610751936006827462182244864190332090811425832",
+      "leaf_count": 3,
+      "capacity": 256,
+      "outstanding_notes": 0,
+      "record_count": 11,
+      "storage_fee": "20000000000000000000000",
+      "deposit_attached": "120150000000000000000000",
+      "withdrawal_attached": "20150000000000000000000",
+      "withdrawal_received": "100000000000000000000000",
+      "pending_withdrawal_fees": "0",
+      "accrued_protocol_fees": "150000000000000000000",
+      "fee_payout_in_flight": "0"
+    },
+    "after": {
+      "protocol": "core-shared-registry-v2",
+      "network": "testnet",
+      "denomination": "100000000000000000000000",
+      "asset_token_id": null,
+      "deposit_token_amount": null,
+      "withdrawal_token_fee": null,
+      "storage_credit_bond": "5000000000000000000000",
+      "prepaid_storage_liability": "0",
+      "fee_recipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+      "deposit_fee_bps": 15,
+      "withdrawal_fee_bps": 15,
+      "deposit_protocol_fee": "150000000000000000000",
+      "withdrawal_protocol_fee": "150000000000000000000",
+      "vault_wasm_sha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+      "verifier_sha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45",
+      "vault_funding": "3606050000000000000000000",
+      "registration_fee": "50000000000000000000000",
+      "creation_deposit": "3656050000000000000000000",
+      "vault_count": 2,
+      "pending_funding": "0",
+      "refund_liability": "0",
+      "domain": "10585708735511585739906857160848935016835999322655775923251849260445586105617",
+      "root": "10740672219697410976163468985963932917533878802919174016572766002943461873354",
+      "leaf_count": 6,
+      "capacity": 256,
+      "outstanding_notes": 0,
+      "record_count": 16,
+      "storage_fee": "20000000000000000000000",
+      "deposit_attached": "120150000000000000000000",
+      "withdrawal_attached": "20150000000000000000000",
+      "withdrawal_received": "100000000000000000000000",
+      "pending_withdrawal_fees": "0",
+      "accrued_protocol_fees": "300000000000000000000",
+      "fee_payout_in_flight": "0"
+    }
+  },
+  "vault": {
+    "before": {
+      "protocol": "core-shared-vault-v2",
+      "asset_token_id": null,
+      "storage_credit_bond": "5000000000000000000000",
+      "prepaid_storage_liability": "0",
+      "deposit_token_amount": null,
+      "registry": "c14f-c1b494d1.testnet",
+      "network": "testnet",
+      "denomination": "100000000000000000000000",
+      "fee_recipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+      "storage_fee": "20000000000000000000000",
+      "deposit_fee_bps": 15,
+      "withdrawal_fee_bps": 15,
+      "deposit_attached": "120150000000000000000000",
+      "withdrawal_received": "100000000000000000000000",
+      "available_notes": 0,
+      "reserved_notes": 0,
+      "pending_deposits": 0,
+      "held_notes": 0,
+      "pending_deposit_fees": "0",
+      "accrued_protocol_fees": "150000000000000000000",
+      "fee_payout_in_flight": "0",
+      "refund_liability": "0"
+    },
+    "after": {
+      "protocol": "core-shared-vault-v2",
+      "asset_token_id": null,
+      "storage_credit_bond": "5000000000000000000000",
+      "prepaid_storage_liability": "0",
+      "deposit_token_amount": null,
+      "registry": "c14f-c1b494d1.testnet",
+      "network": "testnet",
+      "denomination": "100000000000000000000000",
+      "fee_recipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+      "storage_fee": "20000000000000000000000",
+      "deposit_fee_bps": 15,
+      "withdrawal_fee_bps": 15,
+      "deposit_attached": "120150000000000000000000",
+      "withdrawal_received": "100000000000000000000000",
+      "available_notes": 0,
+      "reserved_notes": 0,
+      "pending_deposits": 0,
+      "held_notes": 0,
+      "pending_deposit_fees": "0",
+      "accrued_protocol_fees": "300000000000000000000",
+      "fee_payout_in_flight": "0",
+      "refund_liability": "0"
+    }
+  },
+  "withdrawal": {
+    "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+    "recipient": "r4.core14-0574c4-ebed76bb2c.testnet",
+    "disclosure_root": "5a596e5bd95f1ecf114211a03a0c59bc190dedf87304bd81b30e342463e053bb",
+    "state": "Complete",
+    "attempt": 1,
+    "last_height": 277645447
+  },
+  "keylessRegistryAndVault": true,
+  "claims": {
+    "fourTransactionsFinal": true,
+    "allExperimentRowsReceiptAnchored": true,
+    "fullPrincipalReturnedByCompletedContractWithdrawal": true,
+    "independentParticipantsAdded": 0,
+    "customerWithdrawalBenefitMeasured": false,
+    "effectiveAnonymityEstablished": false,
+    "usdcVerified": false,
+    "browserWalletVerified": false,
+    "productionQualified": false
+  },
+  "safety": "UNSAFE_LOCAL_DEVELOPMENT_ONLY",
+  "assurance": "RPC observations and operator declarations; no light-client proof. Public exact signed intents allow independent receipt/signature checks; private note witnesses are not included. Older unknown attributions are not real-customer claims.",
+  "completionCheck": {
+    "state": "complete",
+    "transactions": 4,
+    "extraStepDidNotSend": true,
+    "raisedBudgetRejected": "COVER_IDENTITY_CHANGED",
+    "nonceBefore": 277630554000005,
+    "nonceAfter": 277630554000005
+  },
+  "costReconciliation": {
+    "totalAttachedYoctoNear": "180300000000000000000000",
+    "principalReturnedYoctoNear": "100000000000000000000000",
+    "executionTokensBurntYoctoNear": "23275462455580800000000",
+    "operatorNetDebitYoctoNear": "103575462455580800000000",
+    "formula": "attachments - returned principal + execution tokens burnt = operator historical balance debit",
+    "matched": true,
+    "additiveProtocolFeesAccruedYoctoNear": "300000000000000000000",
+    "outstandingNotesAfter": 0,
+    "vaultReservationsAfter": 0,
+    "treeOutputsConsumed": 3
+  }
+}

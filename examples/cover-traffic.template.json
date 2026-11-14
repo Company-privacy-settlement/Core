@@ -1,0 +1,13 @@
+{
+ "format":"core-cover-runtime-v1",
+ "experiment":{
+  "format":"core-cover-experiment-v1",
+  "id":"11111111-1111-4111-8111-111111111111",
+  "policy":{"network":"testnet","registry":"forest.testnet","denomination":"100000000000000000000000","feeRecipient":"treasury.testnet","registryWasmSha256":"0000000000000000000000000000000000000000000000000000000000000000","vaultWasmSha256":"0000000000000000000000000000000000000000000000000000000000000000","verifierSha256":"0000000000000000000000000000000000000000000000000000000000000000"},
+  "signer":"operator.testnet","vault":"v00000000000000000000000000000000.forest.testnet",
+  "minIntervalSeconds":60,"maxTransactions":4,"transferCount":2,
+  "maxBudgetYoctoNear":"350000000000000000000000","maxGasPriceYoctoNear":"100000000",
+  "expiresAt":1
+ },
+ "rpcUrl":"https://test.rpc.fastnear.com","keyFile":"operator-key.json","notesFile":"notes.json","journalFile":"cover.sqlite","artifactsDir":"../../artifacts"
+}

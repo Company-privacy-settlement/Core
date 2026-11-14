@@ -88,3 +88,7 @@ The method is motivated by empirical studies of usage-pattern heuristics, includ
 ## Validation
 
 Core type checking and **535 tests** passed, including fifteen focused cases for source weighting/common declarations, unknown attribution, time boundaries/ties, internal transfers, lifecycle deduplication, synthetic labels, upstream funding, missing history and invalid/cross-domain data. The live native collector reverified fourteen signed FINAL transactions and all eight immutable journal records. Offline reproduction produced the same metrics as the RPC-backed report. CLI smoke checks passed hash, symlink and overwrite refusal, explicit partial-collection failure artifacts and mode 0600 on generated outputs. SDK/browser vendoring remains unchanged. No additional on-chain transactions were sent by this measurement task.
+
+## Separate bounded cover experiment
+
+The [cover experiment](COVER_TRAFFIC.md) adds an opt-in testnet signer and before/after comparison. It records artificial traffic separately from participation, explicitly labels controlled probes, and rejects changed baseline attribution or uncontrolled concurrent traffic. Its four new transactions and sixteen-row after snapshot do not replace the original eight-row baseline above. Older unknown attribution remains unknown, and later outputs do not change historical withdrawal observations.

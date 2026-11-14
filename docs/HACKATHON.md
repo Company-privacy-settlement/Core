@@ -94,3 +94,7 @@ The current group holds 256 total outputs. The public single-payer run reveals s
 For this documentation/media update, Front's production static export, TypeScript check and three unit tests passed. The ten existing Docs browser checks passed across desktop/mobile Chromium. The browser media check verified playback advancement, all twelve chapter controls, a seek into recovery, English VTT loading, download responses and no horizontal overflow on desktop/mobile. [Media browser report](https://github.com/Company-privacy-settlement/Front/blob/main/docs/evidence/hackathon-media-2026-11-14.json).
 
 The media verifier checked four SHA-256/size entries, SRT/VTT timing, chapter coverage, H.264/AAC at 1600 × 900/24 fps, full video/audio decode and the original native-evidence hash. Exported media matches the source files byte for byte. README translations, repository links and Markdown anchors passed the local documentation checker; web links are subject to the existing repository/Site access controls. These are local submission checks, not observed remote Actions or live backend qualification.
+
+## Bounded cover-traffic experiment
+
+[Runbook, reproduction and public evidence](COVER_TRAFFIC.md): four native testnet transactions, 0.35 NEAR budget ceiling, durable 60-second minimum interval and same-operator principal return. Its synthetic probe has six raw historical candidates versus three excluding artificial outputs. Zero independent participants are added; this demonstrates controlled cost/frequency and measurement, not established anonymity.

@@ -1,0 +1,21 @@
+{
+  "format": "core-cover-experiment-v1",
+  "id": "59bd437f-4b13-4b2f-a721-70c2366b31b3",
+  "policy": {
+    "network": "testnet",
+    "registry": "c14f-c1b494d1.testnet",
+    "denomination": "100000000000000000000000",
+    "feeRecipient": "treasury.core14-0574c4-ebed76bb2c.testnet",
+    "registryWasmSha256": "79ed58b8cc65ee1b58692e104b1efc2f4779144229602575b0f8785910c017b9",
+    "vaultWasmSha256": "56f4b88e171ec1781a7856b06b659a9664d0036c20a203bbc4d910ae93c9f412",
+    "verifierSha256": "296120fd8a431089e51bfe703d2c42df9836d3df687120ef251ee91403f6ad45"
+  },
+  "signer": "r4.core14-0574c4-ebed76bb2c.testnet",
+  "vault": "v0bea43bb3832da6145a7d07deb5bca4b.c14f-c1b494d1.testnet",
+  "minIntervalSeconds": 60,
+  "maxTransactions": 4,
+  "transferCount": 2,
+  "maxBudgetYoctoNear": "350000000000000000000000",
+  "maxGasPriceYoctoNear": "100000000",
+  "expiresAt": 1794655557391
+}
