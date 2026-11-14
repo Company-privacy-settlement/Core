@@ -6,6 +6,8 @@ Private business settlement on NEAR: independent vaults hold principal, shared z
 
 The `Core` repository contains Money Station’s SDK, API, finalized indexer and enterprise workflows.
 
+Ubuntu deployment: actual settlement/indexer and Organization APIs are running on loopback with persistent private state; readiness and restart checks passed. [Operations and remaining public HTTPS qualification](docs/UBUNTU_BACKEND.md).
+
 Optional delayed delivery is available at `/relay/`: persistently sampled execution windows, batches of up to eight separate transactions, waiting/cancellation/expiry and original-request recovery. [Scheduling guide](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SCHEDULED_DELIVERY.md). This does not establish anonymity or a live hosted relay.
 
 Scheduled-delivery validation: **565 Core tests**, **8 Front unit tests**, real native/FT WASM and Groth16 scheduling checks, and desktop/mobile delivery/recovery/proof UX regressions. Public USDC and a hosted HTTPS relay remain separately unqualified.

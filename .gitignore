@@ -24,3 +24,5 @@ commitments.json
 *.sumsub-config.json
 
 *.ai-draft-config.json
+
+__pycache__/

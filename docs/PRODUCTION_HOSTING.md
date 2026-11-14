@@ -2,20 +2,20 @@
 
 [Hosting architecture](HOSTING.md) · [Organization service](ORGANIZATIONS.md) · [Deployment policy](DEPLOYMENT.md)
 
-**Current status: not deployed.** The selected Ubuntu host is `64.227.151.164`, with frontend `moneystation.site` and requested settlement API `api.moneystation.site`. Direct Hostinger DNS was reported, but the dated authoritative/public DNS checks still returned NXDOMAIN and the runtime account required a sudo password. Front now provides reviewed HTTP/HTTPS gateway templates and a staged static release; actual root installation and public certificates have not been completed. The API/indexer and Organization API are not installed by the frontend gateway. A native development-testnet policy and wallet record are available through [public-testnet qualification](TESTNET_WALLET.md); browser USDC and hosted API acceptance remain unqualified. Work package R04 remains open.
+**Current status: local backends deployed; public HTTPS pending.** On Ubuntu `64.227.151.164`, the actual settlement API/indexer (`127.0.0.1:3331`) and Organization API (`127.0.0.1:3332`) now run in separate owner-managed namespaces with private persistent SQLite state. Both passed actual-RPC readiness, index advancement, origin/session boundaries and controlled worker restart with preserved databases/encryption keys. [Ubuntu backend operations and scope](UBUNTU_BACKEND.md). Front provides a tested shared `api.moneystation.site` Nginx gateway. Direct Hostinger DNS was reported, but authoritative/public checks still returned NXDOMAIN; root gateway installation and public certificates remain pending. The native policy does not qualify browser USDC. External HTTPS and wallet-authenticated business-canary acceptance remain open; work package R04 is not closed.
 
 ## Required operator inputs
 
 | Input | Required evidence |
 | --- | --- |
 | Hosting target | Connected Render account or an explicitly selected SSH host with access and persistent storage; agree actual service/disk cost before provisioning paid resources |
-| API domains | Two distinct HTTPS origins for settlement and organization APIs, DNS access if using custom domains; platform-provided HTTPS names are acceptable |
+| API domains | Two distinct HTTPS origins for the Docker/Caddy profile, or the reviewed path-routed Ubuntu shared API origin; working DNS and certificate access |
 | Deployment policy | Real deployed keyless testnet group, verified contract/verifier hashes, policy file and independently obtained exact **byte** SHA-256; example/sandbox policies are not sufficient |
 | Front origin | Exact allowed Front origin; the selected custom-domain target is `https://moneystation.site`. The existing Sites preview is a separate origin. |
 | Protected keys | Organization encryption key ring, preserved separately from the database and readable only by the runtime owner |
 | Operator verification | External HTTPS reachability, advancing finalized index, current test-wallet organization session and post-restart persistence evidence |
 
-No hosting credentials, keys, secret files, sessions or paid accounts are created from placeholders. Provider connection is still needed. Never paste signing/private provider keys into issue bodies, repository files or deployment reports.
+No hosting credentials, keys, secret files, sessions or paid accounts are created from placeholders. Provider connection is still needed for optional external integrations. Never paste signing/private provider keys into issue bodies, repository files or deployment reports.
 
 ## One-host deployment
 
@@ -78,4 +78,4 @@ After passing external HTTPS probes:
 
 Recorded local validation on **2026-11-14**: **504 Core tests** (16 new hosting/readiness cases), type checking, compiled service/indexer and organization restart/backup/quarantined-restore checks passed. Both changed Compose files passed the official Compose schema; pinned Caddy adapted/validated both configurations and passed the actual local HTTP route/body-limit test. Live read-only RPC readiness reached NEAR testnet finalized block **277609625**. No Docker daemon, external server, domain, public deployed policy or authenticated live business canary was supplied. No external API HTTPS acceptance report or live restart/persistence qualification is claimed.
 
-The [native testnet policy](evidence/testnet-native-policy-2026-11-14.json) is now technically verified for the recorded CLI development run. It has no tokenId and does not qualify Front FT/USDC use or replace an operator review/security audit. Hosting account/SSH access, API domains and actual external HTTPS/restart acceptance still remain outstanding.
+The [native testnet policy](evidence/testnet-native-policy-2026-11-14.json) is now technically verified for the recorded CLI development run. It has no tokenId and does not qualify Front FT/USDC use or replace an operator review/security audit. The selected Ubuntu runtime now has local readiness/restart evidence; public DNS/HTTPS and a wallet-authenticated business canary remain outstanding. See the dated Ubuntu status above.

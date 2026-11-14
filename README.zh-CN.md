@@ -6,6 +6,8 @@
 
 `Core` 仓库包含 Money Station 的 SDK、API、最终确认索引器及企业工作流。
 
+Ubuntu 上的结算 API、索引器和组织 API 已在回环地址运行，持久化存储、就绪及重启检查通过。公共 HTTPS 仍待完成。[运维与验证范围](docs/UBUNTU_BACKEND.md)。
+
 `/relay/` 支持可选延迟执行：持久化随机执行时间、每批最多八笔独立交易，以及等待、取消、过期和原请求恢复。[调度指南](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SCHEDULED_DELIVERY.md)。这不代表匿名性证明或已上线的公共中继。
 
 延迟执行验证：**565 项 Core 测试**、**8 项 Front 单元测试**、真实原生/FT WASM 与 Groth16 调度，以及桌面/移动端等待、恢复和证明 UX。公开 USDC 与外部 HTTPS 中继验证仍待完成。

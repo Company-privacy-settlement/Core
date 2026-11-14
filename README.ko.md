@@ -6,6 +6,8 @@ NEAR 기반 기업 프라이빗 정산: 독립 볼트가 원금을 보관하고,
 
 `Core`는 Money Station의 SDK·API·최종화 인덱서·기업 워크플로를 보관하는 저장소입니다.
 
+우분투에 정산 API·인덱서·조직 API를 실제 가동했습니다. 루프백 준비 상태·재시작·DB/키 유지 검증을 통과했으며 공개 HTTPS 연결은 대기 중입니다. [운영 및 남은 실증](docs/UBUNTU_BACKEND.md).
+
 `/relay/`에서 선택적 지연 실행을 지원합니다. 실행 시간을 한 번 추첨해 저장하고, 배치당 최대 8개의 개별 거래와 대기·취소·만료·원본 요청 복구를 처리합니다. [지연 실행 가이드](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SCHEDULED_DELIVERY.md). 익명성 입증이나 공개 릴레이 운영을 의미하지 않습니다.
 
 지연 실행 검증: **Core 565개 테스트**, **Front 단위 테스트 8개**, 실제 네이티브/FT WASM·Groth16 스케줄링과 데스크톱·모바일 대기·복구·증명 UX를 검증했습니다. 공개 USDC와 외부 HTTPS 릴레이 실증은 별도입니다.
