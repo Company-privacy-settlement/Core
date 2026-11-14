@@ -1,165 +1,85 @@
-# Core — NEAR 기반 기업 프라이버시 정산
+# Core — private business settlement on NEAR
 
 [English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md)
 
-Core는 기업 간 결제와 기업→근로자 송금을 위한 개발용 프로토콜입니다. 독립 볼트가 원금을 보관하고, 공유 ZK 노트로 자금이 있는 한 볼트에서 수취인에게 직접 지급합니다. 수취인은 서명된 인보이스를 발행하고, 지급자는 지갑 호출을 각각 검토하며, 증빙 보유자는 필요한 필드만 공개할 수 있습니다.
+NEAR 기반 기업 프라이빗 정산: 독립 볼트가 원금을 보관하고, 공유 영지식 노트가 지급을 승인하며, 선택 공개 증빙으로 정산을 확인합니다.
 
-이 저장소는 SDK·로컬 브라우저 증명·증명 CLI·읽기 전용 API·확정 기록 인덱스·증빙 도구를 제공합니다. 브라우저 실행은 독립적으로 구성한 테스트넷 FT 그룹을 지원합니다. Native NEAR v2는 계약과 CLI에서 사용할 수 있습니다. 서비스와 Docs의 기본 언어는 영어입니다.
+Core는 SDK·API·최종화 인덱서·기업 워크플로 저장소입니다.
 
-[서비스 개요](docs/SERVICE.md) · [웹 Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [개발 현황](docs/ROADMAP.md)
+## 프로젝트 소개
 
-[기업용 인보이스 API](docs/ORGANIZATION_INVOICES.md)는 조직별 서명 인보이스 저장·조회, 중복 생성 방지, AES-256-GCM 민감정보 암호화를 지원합니다. 별도 소유자 전용 키 파일이 필요하며 미설정 시 저장을 거부합니다. 기존 로컬 인보이스·체크아웃은 독립적으로 유지됩니다.
+기업은 인보이스 내용과 업무 문서를 온체인에 공개하지 않으면서 공급사·직원·계약자에게 지급해야 합니다. Core는 수취인 서명 요청, 로컬 증명과 검토 가능한 증빙을 결합하고 원금 보관을 여러 볼트로 분산합니다.
 
-[결제 관리 대시보드](docs/PAYMENT_DASHBOARD.md)는 조직 인보이스 검색, 상태·자산·그룹·발행일 필터, CSV·JSON 내보내기와 확정 인덱스 기반 결제 조회를 지원합니다. 과거 이력 조회와 현재 키가 필요한 체크아웃을 분리하고, 미조회·오래된 인덱스·불완전한 조회를 명시합니다.
+[Hackathon guide](https://github.com/Company-privacy-settlement/Core/blob/main/docs/HACKATHON.md) · [Web Docs](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/docs/) · [Core](https://github.com/Company-privacy-settlement/Core) · [Contract](https://github.com/Company-privacy-settlement/Contract) · [Front](https://github.com/Company-privacy-settlement/Front)
 
-[결제 웹훅](docs/WEBHOOKS.md)은 암호화된 콜백·이벤트, 확정 인덱스 기반 영속 큐, 고정 이벤트 ID·HMAC 서명, 재시도·실패 이력과 수신 측 원자적 중복 제거를 지원합니다. Owner/Admin이 Organization → Webhooks에서 관리하며, 별도 검증 인덱스·허용 HTTPS 주소·보호된 키 파일 설정이 필요합니다.
+## 데모 보기
 
-[근로자·계약자 일괄 송금](docs/PAYOUT_BATCHES.md)은 1–20개 공개 출금 요청을 묶어 수취인별 승인·가산 수수료 확인, 중복 없는 재개, 공유 암호화 저널, 원래 수취인으로의 개별 복구와 CSV·JSON 정산을 지원합니다. 성공·불명확한 건을 배치 전체로 재전송하지 않습니다.
+[![Core — English narrated hackathon demo](docs/assets/hackathon-demo-poster.png)](https://github.com/Company-privacy-settlement/Front/blob/main/public/media/core-hackathon-demo-en.mp4)
 
-## 저장소
+[Watch English MP4](https://github.com/Company-privacy-settlement/Front/blob/main/public/media/core-hackathon-demo-en.mp4) · [Captions, transcript & chapters](https://github.com/Company-privacy-settlement/Front/blob/main/docs/HACKATHON_DEMO.md) · [Hosted video player](https://core-private-settlement-0574c4.jiheon6768.chatgpt.site/media/)
 
-| 저장소 | 역할 |
+영문 내레이션·자막과 실제 앱 화면을 제공합니다. 브라우저 구간은 지갑/API 테스트 환경임을 표시하고 실제 로컬 증명을 생성합니다. 별도 구간에서 기록된 네이티브 NEAR 공개 테스트넷 실증을 보여줍니다.
+
+저장소·사이트 접근은 기존 권한을 따릅니다. 영상은 Front에 보관되므로 심사자는 Front 접근 권한이나 다운로드 영상 패키지가 필요합니다. 제출 준비로 공유 권한을 변경하지 않습니다.
+
+## 구현한 기능
+
+| 기능 | 구현 |
 | --- | --- |
-| [Core](https://github.com/Company-privacy-settlement/Core) | 브라우저/Node SDK, 브라우저/CLI 증명, API, SQLite 인덱스, 증빙 검증 |
-| [Contract](https://github.com/Company-privacy-settlement/Contract) | Rust 계약, Circom 회로, 벡터, WASM·증명 아티팩트 |
-| [Front](https://github.com/Company-privacy-settlement/Front) | Next.js 랜딩·영문 Docs·인보이스·노트·정산·증빙·샘플 KYB |
+| 정산 | 네이티브 NEAR v2·토큰 고정 NEP-141/USDC v3, 공유 nullifier와 분산 원금. |
+| 로컬 증명 | Groth16 노트 생성·사용, 브라우저 증명 지원, 선택 공개 영수증. |
+| 운영 | 읽기 전용 API·최종화 SQLite 인덱서·서비스 감독·배포/릴리스·복구. |
+| 기업 | 조직/RBAC·암호화 인보이스·분리 승인·일괄 송금·서명 웹훅. |
+| 준비 | KYB 커넥터·미국/아부다비 적용일별 규칙·출처 초안·불변 리비전/독립 검토. |
 
-로컬 브라우저에서 FT 출금 증명 생성·취소, 독립 해시로 고정한 WASM/zkey/검증기 파일 확인과 증명 파일 재검증을 지원합니다. 검토한 파일은 `npm run prover:export`로 내보냅니다. [브라우저 증명 가이드](docs/BROWSER_PROVER.md). [인보이스 결제](docs/INVOICE_PAYMENTS.md)에서 원래 그룹의 암호화 노트 선택 → 로컬 증명 → 금액·수수료 확인 → 개별 지갑 승인 → 최종화 결제 확인을 지원합니다. 선택 단위 고정, 취소, 서명 직전 기업 키·상태 재검사와 보수적 복구를 적용합니다.
+## 로컬 실행
 
-## 현재 기능
-
-| 기능 | 구현 범위 |
-| --- | --- |
-| 프라이빗 정산 | Native NEAR v2와 토큰 고정 NEP-141 v3 그룹 분리, 고정 액면, 그룹별 총 256개 트리 출력 |
-| 브라우저 노트 | FT 노트 로컬 생성, 암호화 파일 백업·재검증, 공개 입금 계획 |
-| 지갑 실행 | 등록·스토리지·결제별 승인, 암호화 작업 기록, 확정 상태 확인·보수적 복구 |
-| 인보이스 | 수취인 NEP-413 서명, v2 단위별 참조, v1 읽기, 부분·완납·지연·초과 지급 대사 |
-| 인보이스 보관함 | 선택형 계정/네트워크별 암호화 저장·검색·열기·백업·복원·병합 |
-| 수취 준비 | 계정 활성화와 토큰 등록 분리 확인, 실제 등록비 조회, 활성화 금액 임의 추정 없음 |
-| 증빙 | 전체 영수증 암호화, 선택 필드 증명, 별도 루트 무결성 확인과 분리된 확정 TX 검증 |
-| 공개 인덱스 | SQLite 체크포인트, 범위가 명시된 전체 샤드 TX 탐색, 검증된 출처·페이지 조회 |
-| KYB | Front 로컬 샘플 접수와 SDK의 신뢰 발급자 서명 검사. 별도 Sumsub 연동 제공, 실제 심사 검증 필요 |
-
-## 서비스 흐름
-
-1. 운영자로부터 독립적으로 배포 정책을 확보하고 네트워크·registry·토큰·액면·수수료 수취인·코드/검증기 해시를 Core API와 확인합니다.
-2. Front **Private notes**에서 FT 노트를 생성하고 암호화 백업을 내려받아 다시 엽니다. API에는 공개 커밋먼트·루트만 보냅니다.
-3. **Settlements**에 공개 입금 계획을 가져와 테스트넷 지갑을 연결하고 등록·스토리지·결제를 각각 승인합니다. 입금 기록이 `Active`여야 예치 완료입니다.
-4. 원래 정책과 암호화 노트로 Front **Local proofs** 또는 CLI에서 출금 증명을 생성합니다. 인보이스 결제는 서명된 수취 계정과 해당 단위의 참조에 고정합니다.
-5. 앱에서 공개 출금 계획을 검토·승인합니다. 지급 기록의 `Complete`가 완료 기준이며, 지갑 응답이나 타임아웃만으로 성공·실패를 판단하지 않습니다.
-6. 용도별 백업을 보관하고 필요한 영수증 필드만 공개합니다. 무결성·TX 포함·사업자 신원·세무 신고 수리는 서로 다른 검증입니다.
-
-인보이스 결제 참조와 임의 영수증 루트는 별도 흐름입니다. Evidence 루트로 서명된 인보이스의 결제 참조를 대체할 수 없습니다.
-
-## 수수료
-
-입금과 출금에 각각 **원금의 0.15%를 추가**하며 자산 최소 단위에서 내림합니다. 수취인은 원금 전액을 받습니다.
-
-| 예시 | 입금 | 출금 수수료 | 수취 원금 |
-| --- | --- | --- | --- |
-| 1 USDC 노트, 6자리 소수 | 1.0015 USDC | 0.0015 USDC | 1 USDC |
-| Native 1 NEAR 노트 | 동작 스토리지 포함 1.0215 NEAR | 동작 스토리지 포함 0.0215 NEAR | 1 NEAR |
-
-FT 동작 스토리지는 해당 동작당 0.02 NEAR이며 최초 송금자 credit에는 대상 계약별 0.005 NEAR 원장 보증금이 추가됩니다. 토큰 등록·계정 활성화·네트워크 가스는 별도입니다. 새 노트를 예치하는 지급자는 입금 측 수수료도 냅니다. [운영 가이드](docs/OPERATIONS.md)와 [FT 계약 명세](https://github.com/Company-privacy-settlement/Contract/blob/main/docs/USDC.md)를 참고하세요.
-
-## Core 실행
-
-Node.js **22.13.0+**가 필요합니다. SDK/API/인덱스 개발에는 Rust나 Contract 체크아웃이 필요하지 않습니다.
+Node.js 22.16+가 필요하며 타입·테스트·SDK 빌드에는 지갑 키가 필요 없습니다. API·인덱서와 조직 API는 별도 서비스입니다. 실행 전 검토한 정책/RPC와 보호된 저장소를 구성하세요.
 
 ```bash
 npm ci
 npm run check
 npm test
-npm run build:client
+npm run build:sdk
 ```
-
-실제 그룹 실행에는 독립 검증된 정책이 필요합니다. 템플릿의 자리표시자는 그대로 사용할 수 없으며 `.env` 파일은 자동 로드하지 않습니다.
 
 ```bash
-export CORE_POLICY_FILE=/absolute/path/to/trusted-policy.json
-export CORE_RPC_URL=https://rpc.testnet.near.org
-export CORE_ALLOWED_ORIGINS=http://localhost:3000
-npm run serve
+# Read-only verification of the recorded real testnet run; no wallet key needed.
+npm run testnet:verify-wallet -- docs/evidence/testnet-wallet-2026-11-14.json \
+  e009bd0f600b23e0fabe30064ee3211446682946126d1b341aace34b5981a681 \
+  /tmp/core-wallet-verification-new.json
 ```
 
-기본 주소는 `127.0.0.1:3001`입니다. `/healthz`는 프로세스 생존, `/readyz`는 배포와 연결된 인덱스를 확인합니다. 인덱스를 연결하려면 동일한 정책·RPC·`CORE_INDEX_DB`로 별도 터미널에서 작업자를 먼저 실행하세요. [.env.example](.env.example) · [API 설정](docs/OPERATIONS.md) · [인덱스 설정](docs/INDEXER.md). 노트·지갑 키·비밀번호·업무 문서는 API에 보내지 않습니다.
+## 실제 테스트넷 증거
 
-## 버전별 릴리스 패키지
+2026-11-14 **실제 공개 테스트넷 거래 14건을 FINAL로 확인**했습니다. 배포·키 제거, 0.1 NEAR 입금 2건, 출금과 수취인 미생성 실패 후 원래 목적지 복구를 검증했습니다. 두 수취인은 각각 원금 0.1 NEAR 전액을 받았고 재시도 프로토콜 수수료는 0입니다. 레지스트리·볼트 2개는 키리스이며, 별도 읽기 전용 검증기로 영수증·서명·과거 입출금 전후 잔액·프로토콜 수수료 합계 0.0006 NEAR를 확인했습니다.
 
-`npm run build:sdk`는 Node ESM·타입과 브라우저 클라이언트를 빌드합니다. `release:prepare`는 변경 없는 Core/Contract/Front 커밋을 고정하고 컨트랙트·proving 아티팩트·SDK·그룹 정책·API 주소를 묶습니다. `release:verify`는 별도로 받은 매니페스트 SHA-256으로 오프라인 검증합니다. 현재 릴리스는 샌드박스·테스트넷 개발용이며 배포·온체인 준비 상태를 보장하지 않습니다. [명령과 형식](docs/RELEASES.md) · [입력 템플릿](examples/release.template.json).
+[Testnet run and transaction links](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md) · [Public evidence](https://github.com/Company-privacy-settlement/Core/blob/main/docs/evidence/testnet-wallet-2026-11-14.json)
 
-## 테스트넷 배포 도구
+최근 기록된 엔지니어링 검증은 **Core 513개 테스트**와 SDK·타입 빌드·컴파일 서비스 재시작/백업/복구입니다. 브라우저 테스트 환경과 공개 네이티브 실거래 증거는 구분합니다.
 
-`deploy:plan`으로 테스트넷 릴리스·공개 배포 입력을 고정하고 `deploy:preflight`로 최종화된 네트워크·계정·키·토큰·비용을 확인합니다. `deploy:execute`는 원자적 초기화·FT 등록·명시적으로 승인한 키 제거 중 한 단계만 실행하고 공개 전송 의도를 영구 기록합니다. `deploy:reconcile`은 재전송 없이 조회하며 `deploy:verify`는 키 없는 배포를 검증합니다. 서명 키는 별도의 소유자 전용 로컬 파일로 관리하며 API에서 사용하지 않습니다. [명령·리허설](docs/DEPLOYMENT.md) · [입력 템플릿](examples/deployment.template.json).
+## 구조와 수수료
 
-## API·인덱서 서버 운영
-
-`build:service`로 운영용 코드를 컴파일하고 `serve:service`로 읽기 전용 API·단일 SQLite 인덱서의 초기 동기화와 프로세스 감시를 실행합니다. Docker/Compose는 선택적 Caddy HTTPS·영구 볼륨·재시작 정책을 제공하며 Render 설정도 포함합니다. 정책 해시·정확한 origin·인덱스 준비 검증을 요구하고 온라인 백업·덮어쓰지 않는 복원을 지원합니다. [서버 운영·복구](docs/HOSTING.md) · [VPS 환경 예시](ops/service.env.example). 실제 외부 배포에는 호스팅 대상과 배포된 테스트넷 정책이 필요합니다.
-
-## 기업 조직 접근 관리
-
-별도 Organization API가 NEP-413 테스트넷 로그인, 조직·멤버 저장, 계정 지정 초대, Owner/Admin/Operator/Viewer/Auditor 역할, 접근 철회, 버전 검증 소유권 이전과 감사 기록을 제공합니다. Front `/organization/`에서 관리하며 세션은 메모리에만 둡니다. 조직 권한은 온체인 서명 권한이나 기업 신원 검증이 아닙니다. 독립 origin·DB·RPC 설정으로 `npm run serve:organizations`를 실행합니다. [API·역할·서버 운영](docs/ORGANIZATIONS.md).
-
-[조직 데이터 백업·복구](docs/ORGANIZATION_BACKUPS.md)는 일관된 온라인 스냅샷, 세션·챌린지 폐기와 격리 복구를 제공합니다. 현재 권한을 별도 승인한 파일을 적용해야 새 운영 DB로 활성화되며, 과거 소유자·역할·대기 초대는 자동으로 권한에 복원하지 않습니다.
-
-[기업 결제 승인](docs/CORPORATE_PAYMENTS.md)은 작성자와 다른 Owner/Admin 승인자를 분리하고 결제·별도 0.15% 수수료·선행 호출을 고정합니다. 지원 지갑 흐름은 실행 직전 현재 멤버 권한과 승인을 검사하고 같은 호출을 한 번만 예약합니다. 조직 API·SDK·앱의 정책이며 기존 컨트랙트의 고정 수취인 증명 실행 권한은 변경하지 않습니다.
-
-## 통합 CI
-
-세 저장소에서 같은 커밋 고정 파이프라인을 호출합니다. Core 타입·단위·API/인덱서 복구, 재빌드한 SDK와 Front 복사본, Front 타입·단위·정적 빌드·데스크톱/모바일 브라우저, 컨트랙트 WASM·단위, 네이티브/FT Groth16 샌드박스와 개발 릴리스를 검증합니다. 비공개 저장소에는 `INTEGRATION_READ_TOKEN`과 재사용 워크플로 접근 설정이 필요합니다. [버전·검증 단계·GitHub 설정](docs/CI.md). 로컬 통과와 실제 Actions 실행은 구분합니다.
-
-## 로컬 계약·증명 검증
-
-Core·Contract·Front를 형제 폴더로 체크아웃합니다. Contract 빌드에는 고정 Rust **1.99.1**, WASM target과 C/C++ 빌드 도구가 필요합니다. Core에서:
-
-```bash
-(cd ../Contract && npm ci)
-npm run contract:build
-npm run zk:setup
-(cd ../Contract && npm run build:test-ft)
-npm run demo:ft
+```mermaid
+flowchart LR
+    P["Payer"] --> A["Independent vault A"]
+    P --> B["Independent vault B"]
+    A -. "shared commitments / nullifiers" .-> Z["NEAR ZK registry"]
+    B -. "shared commitments / nullifiers" .-> Z
+    Z -. "authorize one funded payout" .-> B
+    B --> R["Recipient: full principal"]
 ```
 
-다른 경로는 `CORE_CONTRACT_REPO`로 지정합니다. Core는 WASM·증명 파일의 매니페스트 해시를 확인해 가져옵니다. 개발용 단일 머신 setup을 바꾸면 검증기·아티팩트·새 배포도 일치해야 합니다. 생성 파일은 Git에서 제외합니다.
+입금·출금 각각 **0.15%를 원금에 추가**합니다. 수취인은 원금 전액을 받습니다. NEAR 작업 저장비·토큰 등록·계정 활성화·네트워크 가스는 별도입니다.
 
-**2026-11-13 기록된 검증:** Core **320개 테스트**, Front **164개 브라우저 케이스**와 타입/빌드, 실제 FT 샌드박스 **14개 확정 기록**. 샌드박스 토큰은 Circle USDC나 공개망 자금이 아닙니다. 위 명령으로 기록된 검증을 재현할 수 있습니다.
+ZK는 사용한 입력 노트의 연결을 숨깁니다. 서명자·수취인·시간·고정 금액·볼트·자금 출처는 공개됩니다. 단일 payer 실증은 실효 익명성의 증거가 아닙니다. Cover traffic 스케줄러는 없으며 그룹당 총 출력 한도는 현재 256개입니다.
 
-## 프라이버시·보관·복구
+## 범위와 다음 단계
 
-원금은 A→B→C를 경유하지 않습니다. 그룹 공유 트리가 입력 노트 membership을 숨기고 선택한 볼트가 직접 지급합니다. 그룹별 프라이버시 집합은 별도입니다. 수취 계정·서명자·금액·시간·볼트 잔액·nullifier·공개 참조로 거래를 연결할 수 있으며 볼트 수가 실측 익명성 집합은 아닙니다. Keyless registry의 상태 조정과 RPC/API 관측에 대한 신뢰가 남습니다.
+**해커톤·개발 프로토타입**입니다. 설정은 `UNSAFE_LOCAL_DEVELOPMENT_ONLY`입니다. 공개 테스트넷 검증 범위는 로컬 Ed25519 소프트웨어 지갑의 네이티브 NEAR입니다. 실제 브라우저 지갑·USDC 실행, 외부 API HTTPS 운영, 원격 Actions 성공과 프로덕션 보안 검토는 남아 있습니다.
 
-브라우저 노트와 전체 영수증은 메모리 및 내려받은 암호화 파일에 둡니다. 작업 기록과 선택형 인보이스 보관함은 별도 브라우저 저장소에 암호화해 저장합니다. 잠금·페이지 캐시 처리는 진행 작업을 무효화합니다. 이미 열린 지갑 요청은 잠금으로 취소하지 못하며 저장된 서명 시도를 명시적으로 대사해야 합니다. 운영자는 잃은 노트 비밀값·암호를 복구할 수 없습니다.
+다음 우선순위는 비수탁 릴레이, 선택적 무작위 지연·배칭, 프라이버시 측정과 예산을 제한한 cover traffic 실험입니다. 실제 KYB/AI 제공자 운영 검증·전문가 규칙 승인·법정 신고는 별도입니다.
 
-미국/아부다비는 후속 준비 계층의 범위이며 미국 주와 ADGM/본토 구분이 필요합니다. 자율적인 전체 법률 자문·전체 관할 세무 규칙·실제 KYB 운영 검증·법정 신고·법정화폐 전환·프로덕션 배포는 구현하지 않았습니다. [컴플라이언스 범위](compliance/README.md).
+## 프로젝트 살펴보기
 
-## 가이드
-
-[지갑·복구](docs/WALLET.md) · [브라우저 노트](docs/BROWSER_NOTES.md) · [수취 준비](docs/RECIPIENTS.md) · [인보이스](docs/INVOICES.md) · [보관함](docs/INVOICE_LIBRARY.md) · [영수증](docs/BROWSER_RECEIPTS.md) · [그룹](docs/GROUPS.md) · [프라이버시](docs/PRIVACY.md) · [인덱스](docs/INDEXER.md) · [로드맵](docs/ROADMAP.md)
-
-현재 호스팅은 소유자 비공개입니다. 외부 고객 결제에는 알맞은 접근 권한과 별도 배포·자금 공급된 그룹이 필요합니다. 공개 자금 배포는 포함하지 않습니다. 가변 금액·프라이빗 그룹 이전·실제 컴플라이언스 연동·독립 보안 감사·검토된 다자 setup은 후속 작업입니다.
-
-**2026-11-14 기업 인보이스 검증:** 신규 API·암호화·중복 방지·복구 22개를 포함한 **Core 342개 테스트**와 컴파일된 서비스 재시작·CLI 복구 검증을 통과했습니다.
-
-**2026-11-14 결제 대시보드 검증:** 신규 Core 13개·브라우저 18개를 포함한 **Core 355개 테스트**, **데스크톱·모바일 브라우저 182개 케이스**와 타입·Node/브라우저 SDK·정적 빌드를 통과했습니다. 브라우저의 서비스·지갑 픽스처 검증은 공개망 실배포를 의미하지 않습니다.
-
-**2026-11-14 결제 웹훅 검증:** 신규 Core 24개·브라우저 12개를 포함한 **Core 379개 테스트**, **데스크톱·모바일 브라우저 194개 케이스**와 Node/브라우저 SDK·정적 빌드·컴파일된 서비스 복구 검증을 통과했습니다. 로컬 인덱스·지갑·전송 픽스처 검증이며 실제 수신처 전송·공개 백엔드 배포는 수행하지 않았습니다.
-
-근로자·계약자 일괄 송금 검증(**2026-11-14**): **Core 401개 테스트**, **데스크톱·모바일 브라우저 210개 케이스** 통과(신규 Core 22개·브라우저 16개 포함). 타입 검사, Node/브라우저 SDK·정적 Front 빌드, 컴파일 서버 재시작·백업·복구와 문서 검증을 통과했습니다. 지갑·RPC·조직 서비스는 로컬 테스트 환경이며 실제 자금이 있는 공개 네트워크 급여 송금이나 실제 모바일 지갑을 검증한 결과는 아닙니다.
-
-Organization → Verification에 [Sumsub KYB/KYC 연동](docs/VERIFICATION.md)을 추가했습니다. 기업·실소유자 심사, 보완 제출, 최소 상태 암호화, 인증 웹훅과 심사 완료일 기준 만료·철회를 처리합니다. 계약 계정·심사 레벨·HTTPS 콜백 설정이 필요하며 실제 기업 심사는 아직 검증하지 않았습니다. 별도 `/kyb/` 샘플은 전송하지 않습니다.
-
-KYB/KYC 연동 검증(**2026-11-14**): 신규 Core 27개·브라우저 14개를 포함한 **Core 428개 테스트**, **데스크톱·모바일 브라우저 224개 케이스**를 통과했습니다. 타입·Node/브라우저 SDK·정적 Front 빌드, 컴파일 서버 재시작·백업·복구, 문서와 SDK 동기화 검증도 통과했습니다. 제공자·RPC·지갑은 로컬 테스트 환경이며 실제 Sumsub 계정·기업/개인 심사·라이브 콜백·공개 백엔드는 검증하지 않았습니다.
-
-[미국·아부다비 규칙 엔진](docs/RULES.md)은 관할·근로자/계약자/B2B 형태·적용일에 따라 7개 출처 확인 후보를 선택하고 정확한 계산식과 공식 출처를 남깁니다. 브라우저·CLI 로컬 실행과 독립적으로 신뢰한 Ed25519 검토 서명을 지원합니다. 전문 검토 승인·전체 세액·자동 원천징수·신고는 포함하지 않습니다.
-
-규칙 엔진 검증(**2026-11-14**): 신규 Core 31개·Rules 브라우저 16개를 포함한 **Core 459개 테스트**, **데스크톱·모바일 브라우저 240개 케이스**를 통과했습니다. 타입·Node/브라우저 SDK·정적 Front 빌드, 컴파일 CLI 내보내기/재검증, 서버 재시작·백업·복구와 출처/문서 검사도 통과했습니다. 검토 키는 테스트용이며 전문 세무·법무 규칙 승인, 실제 납세자 평가·자동 원천징수·신고는 수행하지 않았습니다.
-
-[AI 세무·절차 초안](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md)을 Organization → Tax drafts에서 지원합니다. 검증된 규칙 계산과 선택 공개 영수증의 정확한 값 연결, 출처 포함 초안, 조직별 암호화 저장, 독립 검토, 불변 리비전, 승인 철회와 JSON/Markdown 내보내기를 제공합니다. AI는 금액·증빙을 받지 않고 검증된 문장 ID만 배열하며 결정적 개요는 별도로 표시합니다. 실제 AI 활성화는 비공개 제공자 키·모델, 유효한 검토는 운영자가 고정한 서명 규칙 정책이 필요합니다. 전문가 규칙 승인·자율 법률 자문·법정 신고·결제 권한을 제공하지 않습니다.
-
-초안 기능 검증(**2026-11-14**): **Core 488개**(신규 초안 29개), **데스크톱·모바일 브라우저 256개**(초안 16개 포함), Front 단위 3개, 타입 검사, Node·브라우저 SDK·정적 빌드, 컴파일 서비스·백업·복구 및 문서·소스 목록 검사가 통과했습니다. AI 전송과 검토 서명은 제어된 테스트 환경이며 실제 모델 요청·전문가 규칙 승인·법정 신고는 수행하지 않았습니다.
-
-[실제 서버 배포 준비](docs/PRODUCTION_HOSTING.md)에 API·인덱서·조직 API의 단일 HTTPS 게이트웨이, 조직 RPC·DB 준비 상태 검사, 정책 고정 외부 HTTPS 검증 명령을 추가했습니다. **운영 계정/SSH 접근·API 도메인·검증된 실제 testnet 배포 정책이 없어 실배포는 대기 상태**입니다. Front 사이트는 백엔드가 아니며 설정·로컬 검사만으로 운영 배포를 완료 처리하지 않습니다.
-
-서버 배포 준비 검증(**2026-11-14**): **Core 504개**, 타입 검사, 컴파일 런타임·재시작·백업·복구, 공식 Compose 스키마와 고정 Caddy 바이너리의 로컬 HTTP 경계 검사가 통과했습니다. 공개 NEAR testnet RPC 준비 상태도 확인했습니다. 운영 인프라가 없어 Docker·외부 서버 배포, 공개 API HTTPS 및 실제 기업 데이터 유지 검증은 수행하지 않았습니다.
-
-[네이티브 NEAR 실제 testnet 지갑 실증](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TESTNET_WALLET.md)(**2026-11-14**)에서 **실거래 14건을 FINAL로 확인**했습니다. 키리스 레지스트리·볼트, 0.1 NEAR 입금 2건, 다른 볼트 출금과 실제 수취인 미생성 실패 후 같은 nullifier·목적지 복구, 재시도 프로토콜 수수료 0을 검증했습니다. 공개 서명·정규 스냅샷·원금·수수료 합계 0.0006 NEAR를 재조회했고 **Core 513개**, SDK·타입·컴파일 런타임·복구 검사가 통과했습니다. 로컬 키를 사용하는 네이티브 소프트웨어 지갑 개발 실증이며 브라우저 지갑·USDC·외부 HTTPS·원격 Actions 성공·실효 익명성은 미검증입니다. Cover traffic 스케줄러는 없고 단일 공개 payer의 연결성은 남습니다. 가이드에 공개 정책·거래 링크·읽기 전용 검증 명령을 제공하며 개인 키·노트 witness는 제외합니다.
+[Service](https://github.com/Company-privacy-settlement/Core/blob/main/docs/SERVICE.md) · [Privacy](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRIVACY.md) · [Invoices](https://github.com/Company-privacy-settlement/Core/blob/main/docs/INVOICE_PAYMENTS.md) · [Organizations](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ORGANIZATIONS.md) · [Tax drafts](https://github.com/Company-privacy-settlement/Core/blob/main/docs/TAX_DRAFTS.md) · [Deployment](https://github.com/Company-privacy-settlement/Core/blob/main/docs/DEPLOYMENT.md) · [Hosting](https://github.com/Company-privacy-settlement/Core/blob/main/docs/PRODUCTION_HOSTING.md) · [CI](https://github.com/Company-privacy-settlement/Core/blob/main/docs/CI.md) · [Roadmap](https://github.com/Company-privacy-settlement/Core/blob/main/docs/ROADMAP.md)
